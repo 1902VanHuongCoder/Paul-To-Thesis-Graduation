@@ -55,26 +55,30 @@ print("Accuracy:", accuracy_score(y_test, y_pred))
 joblib.dump(model, "svm_model.pkl")
 joblib.dump(vectorizer, "vectorizer.pkl")
 
+
+!pip install rapidfuzz
+
 import random
 import joblib
+import json
+import re
+from rapidfuzz import fuzz, process
 
 # Load model and vectorizer
 model = joblib.load("svm_model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
 # Load dataset
-import json
 with open("dataset.json", "r", encoding="utf-8") as f:
     dataset = json.load(f)
 
-# Context for follow-up handling
+# Context for follow-up
 context = {"last_intent": None}
 
-# Preprocessing function (implement based on your earlier code)
+# Preprocessing
 def preprocess_text(text):
-    import re
     text = text.lower()
-    text = re.sub(r'[^\w\s]', '', text)
+    text = re.sub(r"[^\w\s]", "", text)
     return text.strip()
 
 # Intent classification
@@ -84,17 +88,62 @@ def classify_intent(user_input):
     predicted_intent = model.predict(vec)[0]
     return predicted_intent
 
-# Get response from dataset
+
+def match_entity_fuzzy(user_input, entity_list, threshold=50):
+    result = process.extractOne(user_input, entity_list, scorer=fuzz.token_set_ratio)
+    if result is not None:
+        match, score, _ = result
+        print(score)
+        if score >= threshold:
+
+            return match
+    return None
+
+# 🌟 Structured response renderer
+def render_structured_response(response_sections):
+    output = []
+    for section in response_sections:
+        if section["type"] == "title":
+            output.append(f"\n=== {section['content']} ===")
+        elif section["type"] == "text":
+            output.append(section["content"])
+        elif section["type"] == "list":
+            output.extend([f"• {item}" for item in section["content"]])
+        elif section["type"] == "conclusion":
+            output.append(f"\n👉 {section['content']}")
+    return "\n".join(output)
+
+# 🌟 Updated get_response function
 def get_response(intent, user_input):
+    user_input_lower = user_input.lower()
     for item in dataset:
         if item["intent"] == intent:
-            for entity, responses in item["responses"].items():
-                if entity != "default" and entity in user_input.lower():
+            # Flatten all entity keys
+            entity_keys = [k for k in item["responses"].keys() if k != "default"]
+            entity_match = match_entity_fuzzy(user_input_lower, entity_keys)
+
+            if entity_match:
+                responses = item["responses"][entity_match]
+                if isinstance(responses, list) and isinstance(responses[0], list):
+                    return render_structured_response(random.choice(responses))
+                elif isinstance(responses[0], dict):
+                    return render_structured_response(responses)
+                else:
                     return random.choice(responses)
-            return random.choice(item["responses"]["default"])
+
+            # Default fallback
+            default_responses = item["responses"].get("default", [])
+            if isinstance(default_responses, list) and len(default_responses) > 0:
+                if isinstance(default_responses[0], dict):
+                    return render_structured_response(default_responses)
+                elif isinstance(default_responses[0], list):
+                    return render_structured_response(random.choice(default_responses))
+                else:
+                    return random.choice(default_responses)
+
     return "Xin lỗi, tôi chưa hiểu ý bạn."
 
-# Chat loop
+# 🧠 Chat loop
 while True:
     user_input = input("Bạn: ")
     if user_input.lower() in ["exit", "thoát"]:
@@ -104,34 +153,32 @@ while True:
     preprocessed_input = preprocess_text(user_input)
     response = None
 
-    # Check for follow-up question
+    # Check follow-up with fuzzy entity matching
     if context["last_intent"]:
         matched = False
         for item in dataset:
             if item["intent"] == context["last_intent"]:
-                entities = item.get("entities", {}).get("loai_sau_benh", [])
-                for entity in entities:
-                    if entity in preprocessed_input:
-                        response = get_response(context["last_intent"], user_input)
-                        matched = True
-                        break
-                break  # exit after checking intent
+                raw_entities = item.get("entities", {})
+                entities = []
+                if isinstance(raw_entities, dict):
+                    for val in raw_entities.values():
+                        entities.extend(val if isinstance(val, list) else [val])
+                elif isinstance(raw_entities, list):
+                    entities = raw_entities
+
+                fuzzy_entity = match_entity_fuzzy(preprocessed_input, entities)
+                if fuzzy_entity:
+                    response = get_response(context["last_intent"], user_input)
+                    matched = True
+                    break
         if not matched:
-            # Not a follow-up, reset context and classify again
             intent = classify_intent(user_input)
             response = get_response(intent, user_input)
             context["last_intent"] = intent
-        else:
-            # Follow-up handled
-            pass
     else:
-        # No context yet
         intent = classify_intent(user_input)
         response = get_response(intent, user_input)
         context["last_intent"] = intent
 
-    # Print the predicted intent
-    print(f"Predicted Intent: {context['last_intent']}")
-    print(f"Chatbot: {response}")
-
-
+    print(f"\n🎯 Predicted Intent: {context['last_intent']}")
+    print(f"🤖 Chatbot:\n{response}")

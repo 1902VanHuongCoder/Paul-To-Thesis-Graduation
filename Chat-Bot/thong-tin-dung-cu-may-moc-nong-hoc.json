@@ -1,0 +1,429 @@
+{
+    "intent": "thong_tin_dung_cu_may_moc_nong_hoc",
+    "patterns": [
+        "Máy gặt đập liên hợp Kubota DC70 có giá bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC70 có thông số kỹ thuật gì?",
+        "Máy gặt đập liên hợp Kubota DC70 có tính năng gì nổi bật?",
+        "Máy gặt đập liên hợp Kubota DC70 có công suất bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC70 có thể làm việc trên diện tích bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC70 có thể gặt được loại lúa nào?",
+        "Công suất của máy gặt đập liên hợp Kubota DC70 là bao nhiêu?",
+        "Nhiên liệu của máy gặt đập liên hợp Kubota DC70 là gì?",
+        "Máy gặt đập liên hợp Kubota DC35 có giá bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC35 có thông số kỹ thuật gì?",
+        "Máy gặt đập liên hợp Kubota DC35 có tính năng gì nổi bật?",
+        "Máy gặt đập liên hợp Kubota DC35 có công suất bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC35 có thể làm việc trên diện tích bao nhiêu?",
+        "Máy gặt đập liên hợp Kubota DC35 có thể gặt được loại lúa nào?",
+        "Công suất của máy gặt đập liên hợp Kubota DC35 là bao nhiêu?",
+        "Nhiên liệu của máy gặt đập liên hợp Kubota DC35 là gì?"
+    ],
+    "responses": {
+        "kubota dc70": [
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Giới thiệu về máy gặt đập liên hợp Kubota DC70"
+                },
+                {
+                    "type": "text",
+                    "content": "Máy gặt đập liên hợp Kubota DC70 là dòng máy hiện đại, được thiết kế để đáp ứng nhu cầu thu hoạch lúa hiệu quả và nhanh chóng. Với công nghệ tiên tiến, máy mang lại hiệu suất cao và độ bền vượt trội."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số kỹ thuật"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước tổng thể: 4,800 x 2,880 x 3,000 mm.",
+                        "Trọng lượng: 3,000 kg.",
+                        "Động cơ: Động cơ diesel tăng áp, 4 xi lanh, làm mát bằng nước.",
+                        "Công suất: 69 mã lực tại 2,700 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Cấu tạo xích lăn cao su"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 500 mm x 1,700 mm.",
+                        "Bước mấu bám đất: 1,250 mm.",
+                        "Khoảng cách gầm: 325 mm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và đập lúa"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 2,075 mm.",
+                        "Hệ thống đập: Loại trục dọc, giúp đập lúa hiệu quả.",
+                        "Giảm thất thoát lúa và ngăn ngừa hư hỏng do ngẹn lúa."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy gặt đập liên hợp Kubota DC70 là lựa chọn tối ưu cho nông dân, giúp tăng năng suất và tiết kiệm thời gian thu hoạch."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Máy gặt đập liên hợp Kubota DC70"
+                },
+                {
+                    "type": "text",
+                    "content": "Kubota DC70 là dòng máy gặt đập liên hợp tiên tiến, được thiết kế để hoạt động hiệu quả trên nhiều loại địa hình và điều kiện canh tác khác nhau. Máy mang lại hiệu suất cao và độ bền vượt trội."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số cơ bản"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước: 4,800 x 2,880 x 3,000 mm.",
+                        "Trọng lượng: 3,000 kg.",
+                        "Động cơ: Diesel tăng áp, 4 xi lanh, làm mát bằng nước.",
+                        "Công suất: 69 mã lực tại 2,700 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Đặc điểm xích lăn cao su"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 500 mm x 1,700 mm.",
+                        "Bước mấu bám đất: 1,250 mm.",
+                        "Khoảng cách gầm: 325 mm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và đập lúa"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 2,075 mm.",
+                        "Hệ thống đập: Trục dọc, giảm thất thoát lúa.",
+                        "Ngăn ngừa hư hỏng do ngẹn lúa."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy Kubota DC70 là giải pháp hiệu quả cho việc thu hoạch lúa, giúp tiết kiệm thời gian và nâng cao năng suất."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Giới thiệu máy Kubota DC70"
+                },
+                {
+                    "type": "text",
+                    "content": "Máy gặt đập liên hợp Kubota DC70 là thiết bị nông nghiệp hiện đại, được thiết kế để đáp ứng nhu cầu thu hoạch lúa nhanh chóng và hiệu quả. Máy có khả năng hoạt động bền bỉ trong điều kiện khắc nghiệt."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số kỹ thuật chính"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước: 4,800 x 2,880 x 3,000 mm.",
+                        "Trọng lượng: 3,000 kg.",
+                        "Động cơ: Diesel tăng áp, 4 xi lanh, làm mát bằng nước.",
+                        "Công suất: 69 mã lực tại 2,700 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Cấu tạo xích lăn"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 500 mm x 1,700 mm.",
+                        "Bước mấu bám đất: 1,250 mm.",
+                        "Khoảng cách gầm: 325 mm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và đập lúa"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 2,075 mm.",
+                        "Hệ thống đập: Trục dọc, giảm thất thoát lúa.",
+                        "Ngăn ngừa hư hỏng do ngẹn lúa."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy Kubota DC70 là lựa chọn hoàn hảo cho nông dân, giúp tối ưu hóa quá trình thu hoạch lúa."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Máy gặt đập Kubota DC70"
+                },
+                {
+                    "type": "text",
+                    "content": "Kubota DC70 là dòng máy gặt đập liên hợp được thiết kế để đáp ứng nhu cầu thu hoạch lúa hiệu quả. Máy mang lại hiệu suất cao và độ bền vượt trội, phù hợp với nhiều loại địa hình."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số kỹ thuật"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước: 4,800 x 2,880 x 3,000 mm.",
+                        "Trọng lượng: 3,000 kg.",
+                        "Động cơ: Diesel tăng áp, 4 xi lanh, làm mát bằng nước.",
+                        "Công suất: 69 mã lực tại 2,700 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Đặc điểm xích lăn"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 500 mm x 1,700 mm.",
+                        "Bước mấu bám đất: 1,250 mm.",
+                        "Khoảng cách gầm: 325 mm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và đập lúa"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 2,075 mm.",
+                        "Hệ thống đập: Trục dọc, giảm thất thoát lúa.",
+                        "Ngăn ngừa hư hỏng do ngẹn lúa."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy gặt đập Kubota DC70 là giải pháp lý tưởng cho nông dân, giúp nâng cao hiệu quả thu hoạch."
+                }
+            ]
+        ],
+        "kubota dc35": [
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Giới thiệu về máy gặt đập liên hợp Kubota DC35"
+                },
+                {
+                    "type": "text",
+                    "content": "Máy gặt đập liên hợp Kubota DC35 là dòng máy linh hoạt, phù hợp với các đồng ruộng nhỏ và hay bị lún. Máy được trang bị đầy đủ tính năng hiện đại, giúp nông dân thu hoạch hiệu quả."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Ưu điểm nổi bật"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kết cấu thùng đập dọc giúp gặt lúa tốt hơn, hạn chế nghẹn, hoạt động êm và bền.",
+                        "Kích thước gọn nhẹ: 4,120 x 1,850 x 2,150 mm.",
+                        "Trọng lượng nhẹ: 1,550 kg, chỉ bằng 50% trọng lượng DC70.",
+                        "Động cơ diesel tăng áp, 3 xi lanh, làm mát bằng nước, vận hành bền bỉ cả ngày lẫn đêm.",
+                        "Công suất: 33.3 mã lực tại 3,000 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Cấu tạo xích lăn cao su"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 400 mm x 1,330 mm.",
+                        "Giảm áp lực đè lên đất ruộng đến 20% so với dòng máy công suất lớn.",
+                        "Khoảng gầm cao: 300 mm, giúp đi lầy và qua bờ ruộng tốt hơn."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống guồng cào và hàm cắt"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hệ thống guồng cào và ống dẫn lúa chống nghẹn tốt.",
+                        "Hàm cắt dài: 1,600 mm, giúp cắt trọn góc ruộng mà không cần tăng thêm nhịp di chuyển."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy gặt đập liên hợp Kubota DC35 là lựa chọn lý tưởng cho nông dân, giúp tối ưu hóa quá trình thu hoạch trên các đồng ruộng nhỏ."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Máy gặt đập Kubota DC35"
+                },
+                {
+                    "type": "text",
+                    "content": "Kubota DC35 là dòng máy gặt đập liên hợp nhỏ gọn, được thiết kế để hoạt động hiệu quả trên các đồng ruộng nhỏ và lầy lún. Máy mang lại hiệu suất cao và độ bền vượt trội."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số kỹ thuật chính"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước: 4,120 x 1,850 x 2,150 mm.",
+                        "Trọng lượng: 1,550 kg.",
+                        "Động cơ: Diesel tăng áp, 3 xi lanh, làm mát bằng nước.",
+                        "Công suất: 33.3 mã lực tại 3,000 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Đặc điểm xích lăn"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 400 mm x 1,330 mm.",
+                        "Giảm áp lực đè lên đất ruộng đến 20%.",
+                        "Khoảng gầm cao: 300 mm, giúp vượt qua bờ ruộng dễ dàng."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và guồng cào"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 1,600 mm, giúp cắt trọn góc ruộng.",
+                        "Hệ thống guồng cào chống nghẹn, hoạt động hiệu quả."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy Kubota DC35 là giải pháp hiệu quả cho việc thu hoạch lúa trên các đồng ruộng nhỏ, giúp tiết kiệm thời gian và nâng cao năng suất."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Giới thiệu máy Kubota DC35"
+                },
+                {
+                    "type": "text",
+                    "content": "Máy gặt đập liên hợp Kubota DC35 là thiết bị nông nghiệp hiện đại, được thiết kế để đáp ứng nhu cầu thu hoạch lúa trên các đồng ruộng nhỏ và khó canh tác. Máy có khả năng hoạt động bền bỉ và hiệu quả."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Ưu điểm nổi bật"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước nhỏ gọn: 4,120 x 1,850 x 2,150 mm.",
+                        "Trọng lượng nhẹ: 1,550 kg, dễ dàng di chuyển trên đồng ruộng.",
+                        "Động cơ diesel tăng áp, 3 xi lanh, làm mát bằng nước, vận hành ổn định cả ngày lẫn đêm.",
+                        "Công suất: 33.3 mã lực tại 3,000 rpm.",
+                        "Xích lăn cao su giảm áp lực lên đất ruộng, giúp máy hoạt động tốt trên địa hình lầy lún."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Hệ thống hàm cắt và guồng cào"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 1,600 mm, giúp cắt trọn góc ruộng.",
+                        "Hệ thống guồng cào chống nghẹn, đảm bảo hiệu quả thu hoạch."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy Kubota DC35 là lựa chọn hoàn hảo cho nông dân, giúp tối ưu hóa quá trình thu hoạch lúa trên các đồng ruộng nhỏ và khó canh tác."
+                }
+            ],
+            [
+                {
+                    "type": "title",
+                    "content": "📌 Máy gặt đập Kubota DC35"
+                },
+                {
+                    "type": "text",
+                    "content": "Kubota DC35 là dòng máy gặt đập liên hợp nhỏ gọn, được thiết kế để hoạt động hiệu quả trên các đồng ruộng nhỏ và lầy lún. Máy mang lại hiệu suất cao và độ bền vượt trội."
+                },
+                {
+                    "type": "title",
+                    "content": "🔍 Thông số kỹ thuật chính"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Kích thước: 4,120 x 1,850 x 2,150 mm.",
+                        "Trọng lượng: 1,550 kg.",
+                        "Động cơ: Diesel tăng áp, 3 xi lanh, làm mát bằng nước.",
+                        "Công suất: 33.3 mã lực tại 3,000 rpm."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🔧 Đặc điểm xích lăn"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Rộng: 400 mm x 1,330 mm.",
+                        "Giảm áp lực đè lên đất ruộng đến 20%.",
+                        "Khoảng gầm cao: 300 mm, giúp vượt qua bờ ruộng dễ dàng."
+                    ]
+                },
+                {
+                    "type": "title",
+                    "content": "🛠️ Hệ thống hàm cắt và guồng cào"
+                },
+                {
+                    "type": "list",
+                    "content": [
+                        "Hàm cắt dài: 1,600 mm, giúp cắt trọn góc ruộng.",
+                        "Hệ thống guồng cào chống nghẹn, hoạt động hiệu quả."
+                    ]
+                },
+                {
+                    "type": "conclusion",
+                    "content": "✅ Máy Kubota DC35 là giải pháp hiệu quả cho việc thu hoạch lúa trên các đồng ruộng nhỏ, giúp tiết kiệm thời gian và nâng cao năng suất."
+                }
+            ]
+        ],
+        "default": [
+            "Tạm biệt! Hẹn gặp lại bạn sau nhé!",
+            "Chúc bạn một ngày tốt lành!",
+            "Tạm biệt, hãy giữ liên lạc nhé!",
+            "Hẹn gặp lại bạn trong những cuộc trò chuyện sau!",
+            "Tạm biệt, hãy chăm sóc bản thân nhé!"
+        ]
+    },
+    "entities": []
+}

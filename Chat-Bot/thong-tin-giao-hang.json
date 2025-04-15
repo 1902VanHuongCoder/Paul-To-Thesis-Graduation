@@ -1,0 +1,26 @@
+{
+    "intent": "thong_tin_giao_hang",
+    "patterns": [
+        "thời gian giao hàng là bao lâu?",
+        "khi nào tôi sẽ nhận được hàng?",
+        "thời gian giao hàng mất bao lâu?",
+        "giao hàng trong bao lâu?",
+        "thời gian giao hàng là gì?",
+        "thời gian giao hàng",
+        "thời gian giao hàng là bao nhiêu?",
+        "thời gian giao hàng của bạn là bao lâu?",
+        "thời gian giao hàng của shop là bao lâu?",
+        "thời gian giao hàng của cửa hàng là bao lâu?",
+        "cho tôi hỏi thời gian giao hàng của shop là bao lâu?"
+    ],
+    "responses": {
+        "default": [
+            "Thời gian giao hàng thường mất từ 3 đến 5 ngày làm việc.",
+            "Chúng tôi sẽ giao hàng trong vòng 2 đến 4 ngày làm việc.",
+            "Thời gian giao hàng có thể từ 1 đến 7 ngày tùy thuộc vào địa điểm của bạn.",
+            "Thời gian giao hàng là từ 3 đến 7 ngày làm việc.",
+            "Thời gian giao hàng của chúng tôi là từ 2 đến 5 ngày làm việc."
+        ]
+    },
+    "entities": []
+}

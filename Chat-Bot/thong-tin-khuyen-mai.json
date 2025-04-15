@@ -1,0 +1,24 @@
+{
+    "intent": "thong_tin_khuyen_mai",
+    "patterns": [
+        "Hiện tại có chương trình khuyến mãi nào không?",
+        "Có khuyến mãi nào đang diễn ra không?",
+        "Tôi muốn biết về các chương trình khuyến mãi.",
+        "Có chương trình giảm giá nào không?",
+        "Có khuyến mãi nào đang diễn ra không?",
+        "Có chương trình khuyến mãi nào không?",
+        "Có chương trình giảm giá nào không?",
+        "Có khuyến mãi nào không?",
+        "Có giảm giá khi mua nhiều không?"
+    ],
+    "responses": {
+        "default": [
+            "Hiện tại chúng tôi đang có chương trình khuyến mãi giảm giá 20% cho tất cả sản phẩm.",
+            "Chúng tôi có chương trình khuyến mãi giảm giá 10% cho đơn hàng từ 1 triệu đồng.",
+            "Hiện tại không có chương trình khuyến mãi nào.",
+            "Chúng tôi có chương trình khuyến mãi giảm giá 15% cho khách hàng thân thiết.",
+            "Chúng tôi có chương trình khuyến mãi giảm giá 30% cho sản phẩm mới ra mắt."
+        ]
+    },
+    "entities": []
+}

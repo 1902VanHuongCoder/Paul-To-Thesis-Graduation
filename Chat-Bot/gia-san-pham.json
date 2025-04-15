@@ -1,0 +1,24 @@
+{
+    "intent": "gia_san_pham",
+    "patterns": [
+        "Giá sản phẩm này là bao nhiêu?",
+        "Sản phẩm này có giá bao nhiêu?",
+        "Tôi muốn biết giá của sản phẩm này.",
+        "Giá của sản phẩm này là gì?",
+        "Bạn có thể cho tôi biết giá sản phẩm này không?",
+        "Giá của sản phẩm này là bao nhiêu?",
+        "Giá của sản phẩm này là gì?",
+        "Sản phẩm này có giá bao nhiêu tiền?",
+        "Giá của sản phẩm này là bao nhiêu tiền?",
+        "Cho tôi biết giá của sản phẩm này được không?"
+    ],
+    "responses": {
+        "default": [
+            "Giá sản phẩm thay đổi tùy theo từng thời điểm và chương trình khuyến mãi.",
+            "Tùy vào thời điểm mà giá sản phẩm có thể khác nhau.",
+            "Giá sản phẩm có thể thay đổi theo từng thời điểm và chương trình khuyến mãi.",
+            "Vì giá sản phẩm có thể thay đổi theo thời gian, bạn hãy kiểm tra lại trên trang web của chúng tôi."
+        ]
+    },
+    "entities": []
+}
