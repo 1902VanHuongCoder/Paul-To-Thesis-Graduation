@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                // Use modern JavaScript features
+    "module": "ESNext",               // Use ES modules
+    "moduleResolution": "Node",       // Resolve modules like Node.js
+    "strict": true,                   // Enable strict type checking
+    "esModuleInterop": true,          // Allow default imports from CommonJS modules
+    "skipLibCheck": true,             // Skip type checking of declaration files
+    "outDir": "./dist",               // Output directory for compiled files
+    "baseUrl": ".",                   // Base URL for module resolution
+    "paths": {
+      "*": ["node_modules/*"]         // Resolve modules correctly
+    }
+  },
+  "include": ["./**/*.ts"],           // Include all TypeScript files
+  "exclude": ["node_modules"]         // Exclude node_modules
+}
