@@ -1,28 +1,13 @@
-// filepath: d:\Learning Web\Thesis\graduation-thesis\src\app\login.tsx
+import { MobileDrawer, Navigation, SearchForm, TopHeader } from "@/app/components";
 import React from "react";
 
-export default function Login() {
+export default function MenuBar() {
   return (
-    <div className="flex flex-col font-sans font-extrabold placeholder:text-black items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-2xl font-extralight mb-6 font-sans text-red-500">Login</h1>
-      <form className="flex flex-col gap-4 w-full max-w-sm">
-        <input
-          type="email"
-          placeholder="Email"
-          className="p-2 border border-gray-300 rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="p-2 border border-gray-300 rounded"
-        />
-        <button
-          type="submit"
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Login
-        </button>
-      </form>
+    <div className="w-screen bg-black h-screen">
+      <TopHeader />
+      <Navigation />
+      <MobileDrawer />
+      <SearchForm />
     </div>
   );
 }
