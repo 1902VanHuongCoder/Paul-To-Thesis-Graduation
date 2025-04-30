@@ -1,81 +1,60 @@
-import { cn } from "@/lib/utils"; // Helper to combine class names
-import React from "react";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "normal";
-  size?: "sm" | "md" | "lg";
-}
+import { cn } from "@/lib/utils"
 
-export default function Button({
-  className = "",
-  variant = "primary",
-  size = "md",
-  children,
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline:
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9",
+      },
+    },
+    
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
   ...props
-}: ButtonProps) {
-  // Base styles
-  const baseStyles =
-    "group rounded-full flex items-center gap-x-4 font-bold font-sans focus:outline-none transition overflow-hidden cursor-pointer duration-200";
-
-  // Variant styles
-  const variantStyles = {
-    primary: "bg-primary text-white",
-    secondary: "bg-white text-primary",
-    outline: "border border-primary text-gray-800 hover:bg-gray-100",
-    ghost: "bg-transparent text-white border-[1px] border-secondary border-solid",
-    normal: "bg-white text-black lowercase border-[1px] border-solid border-primary hover:bg-gray-100",
-  };
-
-  // Size styles
-  const sizeStyles = {
-    sm: "pl-2 pr-1 py-1 text-sm",
-    md: "pl-4 pr-2 py-2",
-    lg: "pl-5 pr-3 py-3 text-lg",
-  };
-
-  // Conditional styles for "normal" variant
-  const normalVariantStyles =
-    variant === "normal"
-      ? {
-          sm: "!pl-2 pr-4 py-2",
-          md: "!pl-2 pr-4 py-2",
-          lg: "!pl-2 pr-4 py-2",
-        }[size]
-      : "";
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
 
   return (
-    <button
-      className={cn(
-        baseStyles,
-        variantStyles[variant],
-        sizeStyles[size],
-        normalVariantStyles,
-        className
-      )}
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    >
-      <span className="relative z-2 group-hover:text-primary transition-all duration-500 pl-3 capitalize">
-        {children}
-      </span>
-      {variant !== "normal" && (
-        <span className="relative p-2 rounded-full">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-chevron-right-icon lucide-chevron-right text-primary relative z-2"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-          <span className="absolute top-0 left-0 w-full h-full bg-secondary rounded-full z-1 group-hover:scale-1000 duration-200"></span>
-        </span>
-      )}
-    </button>
-  );
+    />
+  )
 }
+
+export { Button, buttonVariants }

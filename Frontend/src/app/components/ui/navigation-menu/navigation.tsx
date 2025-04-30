@@ -10,7 +10,7 @@ import {
 import Image from "next/image";
 import darkLogo from "@public/images/dark+logo.png";
 import vector02 from "@public/vectors/Vector+02.png";
-import Button from "../button/button";
+import Button from "../button/button-brand";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 

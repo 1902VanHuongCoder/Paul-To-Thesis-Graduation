@@ -5,7 +5,7 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from 
 import { Input } from "@/app/components/ui/input/input";
 import { XIcon } from "lucide-react";
 import { Title } from "@radix-ui/react-dialog";
-import Button from "../button/button";
+import Button from "../button/button-brand";
 
 export default function SearchForm() {
     return (
