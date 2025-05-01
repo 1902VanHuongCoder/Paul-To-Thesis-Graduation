@@ -21,3 +21,8 @@ export { default as CustomPagination } from './ui/pagination/custom-pagination';
 export { default as Breadcrumb } from './ui/breadcrumb/custome-breadcrum';
 export { default as AddToCartPanel } from './ui/add-to-cart-panel/add-to-cart-panel';
 export { default as WishlistDialog } from './ui/dialog/wishlist-dialog';
+export { default as ImageGallery } from './ui/image-gallery/image-gallery';
+export { default as ProductDetails } from './section/product-details/product-details';
+export { default as TabsNavigation } from './ui/tabs/tabs-navigation';
+export { default as CommentItem } from './ui/comment-item/comment-item';
+export { default as ReviewForm } from './ui/form/review-form';
