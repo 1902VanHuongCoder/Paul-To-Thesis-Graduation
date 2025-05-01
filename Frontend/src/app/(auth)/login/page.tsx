@@ -1,9 +1,10 @@
-import {  } from "@/app/components";
+"use client";
 import React from "react";
 
-export default function MenuBar() {
+export default function NewsList() {
+
   return (
-    <div className="w-full bg-black/80">
+    <div>
     
     </div>
   );
