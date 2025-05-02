@@ -26,3 +26,15 @@ export { default as ProductDetails } from './section/product-details/product-det
 export { default as TabsNavigation } from './ui/tabs/tabs-navigation';
 export { default as CommentItem } from './ui/comment-item/comment-item';
 export { default as ReviewForm } from './ui/form/review-form';
+export { default as PromoCodeInput } from './ui/input/promo-code-input';
+export { default as LanguageSwitcher } from './ui/language-switcher/language-switcher';
+
+
+export { default as CartPage } from './section/cart-page/cart-page';
+export { default as WishlistPage } from './section/wishlist-page/wishlist-page';
+export { default as CheckoutPage } from './section/checkout-page/checkout-page';
+export { default as OrderTrackingPage } from './section/order-tracking-page/order-tracking-page';
+export { default as OrderDetailPage } from './section/order-detail-page/order-detail-page';
+export { default as ErrorPage } from './section/error-page/error-page';
+export { default as LoginForm } from './section/login-page/login-page';
+export { default as SignUpForm } from './section/signup-page/signup-page';
