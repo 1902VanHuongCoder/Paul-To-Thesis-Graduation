@@ -35,7 +35,7 @@ export default function NewsCard({
           <span className="text-lg font-bold">{date}</span>
           <span className="text-xs">{monthYear}</span>
         </div>
-              <div className="w-full h-[300px] overflow-hidden rounded-2xl">
+        <div className="w-full h-[300px] overflow-hidden rounded-2xl">
           <Image
             src={image}
             alt="News Image"

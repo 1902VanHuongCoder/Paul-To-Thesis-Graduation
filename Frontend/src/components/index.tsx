@@ -29,6 +29,7 @@ export { default as ReviewForm } from './ui/form/review-form';
 export { default as PromoCodeInput } from './ui/input/promo-code-input';
 export { default as LanguageSwitcher } from './ui/language-switcher/language-switcher';
 export { default as ChatBot } from './section/chatbot/chatbot';
+export { default as NewsItem } from './ui/news-item/news-item';
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';
@@ -38,3 +39,4 @@ export { default as OrderDetailPage } from './section/order-detail-page/order-de
 export { default as ErrorPage } from './section/error-page/error-page';
 export { default as LoginForm } from './section/login-page/login-page';
 export { default as SignUpForm } from './section/signup-page/signup-page';
+export { default as Component } from './section/test-table/test-table';

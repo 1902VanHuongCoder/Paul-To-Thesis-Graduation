@@ -1,6 +1,5 @@
 "use client"
 import { Bot, Paperclip, Mic, CornerDownLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
     ExpandableChat,
     ExpandableChatHeader,
@@ -10,6 +9,7 @@ import {
 import { useState } from "react"
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/app/components/ui/chat-bubble/chat-bubble"
 import { ChatInput } from "@/app/components/ui/input/chat-input"
+import { Button } from "../../ui/button/button"
 
 export default function ChatBot() {
     const [messages,] = useState([

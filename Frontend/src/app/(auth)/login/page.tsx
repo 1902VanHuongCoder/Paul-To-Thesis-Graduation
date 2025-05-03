@@ -1,6 +1,11 @@
-import React from 'react'; 
+"use client";
+import { Component } from '@/app/components';
+import React from 'react';
 export default function Login() {
-  return(
-    <div>Hello</div>
+
+  return (
+    <div className=''>
+     <Component />
+    </div>
   )
 }
