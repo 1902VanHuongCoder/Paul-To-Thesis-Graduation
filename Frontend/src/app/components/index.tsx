@@ -28,7 +28,7 @@ export { default as CommentItem } from './ui/comment-item/comment-item';
 export { default as ReviewForm } from './ui/form/review-form';
 export { default as PromoCodeInput } from './ui/input/promo-code-input';
 export { default as LanguageSwitcher } from './ui/language-switcher/language-switcher';
-
+export { default as ChatBot } from './section/chatbot/chatbot';
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

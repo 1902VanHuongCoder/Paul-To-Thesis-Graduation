@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface LanguageOption {
@@ -10,12 +11,12 @@ interface LanguageOption {
 }
 
 const languages: LanguageOption[] = [
-    { code: "ar", name: "Arabic", flag: "https://cdn-icons-png.freepik.com/256/12364/12364056.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid" },
-    { code: "bn", name: "Bengali", flag: "https://cdn-icons-png.freepik.com/256/555/555417.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid" },
+  { code: "ar", name: "Arabic", flag: "https://cdn-icons-png.freepik.com/256/12364/12364056.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid" },
+  { code: "bn", name: "Bengali", flag: "https://cdn-icons-png.freepik.com/256/555/555417.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid" },
 ];
 
 export default function LanguageSwitcher() {
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(languages[2]); // Default to English
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(languages[0]); // Default to English
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLanguageChange = (language: LanguageOption) => {
@@ -40,12 +41,19 @@ export default function LanguageSwitcher() {
         {/* Selected Language */}
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
-            <img
-              src={selectedLanguage.flag}
-              alt={`${selectedLanguage.name} flag`}
-              className="w-6 h-6 rounded"
-            />
-            <span>{selectedLanguage.name}</span>
+            {selectedLanguage && (
+              <span className="w-8 h-6 rounded overflow-hidden">
+                <Image
+                  src={selectedLanguage.flag}
+                  alt={`${selectedLanguage.name} flag`}
+                  className="w-8 h-6 rounded"
+                  width={20} // Set the width of the image
+                  height={20} // Set the height of the image
+                />
+              </span>
+
+            )}
+            <span>  {selectedLanguage && selectedLanguage.name}</span>
           </div>
           <ChevronDown />
         </div>
@@ -59,11 +67,16 @@ export default function LanguageSwitcher() {
                 onClick={() => handleLanguageChange(language)}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                <img
-                  src={language.flag}
-                  alt={`${language.name} flag`}
-                  className="w-6 h-6 rounded"
-                />
+                <span className="w-8 h-6 rounded overflow-hidden">
+                  <Image
+                    width={20} // Set the width of the image
+                    height={20} // Set the height of the image
+                    src={language.flag}
+                    alt={`${language.name} flag`}
+                    className="w-full h-full object-cover"
+                  />
+                </span>
+
                 <span>{language.name}</span>
               </li>
             ))}
