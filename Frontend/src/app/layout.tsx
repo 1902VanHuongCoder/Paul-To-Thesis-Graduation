@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Itim from "next/font/local";
 import Nunito_Sans from "next/font/local";
 import "./globals.css";
-
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/i18n/i18n";
 
 const nunito = Nunito_Sans({
   variable: "--font-nunito",
@@ -43,7 +44,9 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${itim.variable} antialiased`}
       >
-        {children}
+         <I18nextProvider i18n={i18n}> 
+          {children}
+    </I18nextProvider>
       </body>
     </html>
   );
