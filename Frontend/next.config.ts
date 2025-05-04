@@ -1,11 +1,18 @@
 import type { NextConfig } from "next";
-import { i18n } from './next-i18next.config';
+
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    domains: ["cdn-front.freepik.com", "www.shadcnblocks.com", "img.freepik.com", "cdn-icons-png.freepik.com"], // Add the external domain here
+    domains: ["cdn-front.freepik.com", "www.shadcnblocks.com", "img.freepik.com", "cdn-icons-png.freepik.com"],
   },
-   i18n,
+  async redirects() {
+    return [
+      {
+        source: '/((?!vi|en).*)', // Match all routes that do not start with /vi or /en
+        destination: '/vi/', // Redirect to /vi and preserve the path
+        permanent: false, // Temporary redirect
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Slider } from "@/app/components/ui/slider/slider";
+import { Slider } from "@/components/ui/slider/slider";
 
 interface CashFilterProps {
   minPrice?: number;

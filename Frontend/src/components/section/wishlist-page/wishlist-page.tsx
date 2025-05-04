@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Button from "@/app/components/ui/button/button-brand";
+import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 
 interface WishlistItem {

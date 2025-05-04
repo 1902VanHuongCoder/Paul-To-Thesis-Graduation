@@ -10,8 +10,8 @@ import {
     DialogDescription,
     DialogFooter,
     DialogClose,
-} from "@/app/components/ui/dialog/dialog";
-import { Input } from "@/app/components/ui/input/input";
+} from "@/components/ui/dialog/dialog";
+import { Input } from "@/components/ui/input/input";
 import Button from "../../ui/button/button-brand";
 import { X } from "lucide-react";
 

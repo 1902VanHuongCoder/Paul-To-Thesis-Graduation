@@ -12,34 +12,31 @@ interface LanguageOption {
 
 const languages: LanguageOption[] = [
   {
-    code: "ar",
-    name: "Arabic",
-    flag: "https://cdn-icons-png.freepik.com/256/12364/12364056.png",
+    code: "en",
+    name: "English",
+    flag: "https://cdn-icons-png.freepik.com/256/197/197374.png",
   },
   {
-    code: "bn",
-    name: "Bengali",
-    flag: "https://cdn-icons-png.freepik.com/256/555/555417.png",
+    code: "vi",
+    name: "Vietnamese",
+    flag: "https://cdn-icons-png.freepik.com/256/197/197452.png",
   },
 ];
 
 export default function LanguageSwitcher() {
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(languages[0]); // Default to Arabic
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
+    languages[0]
+  );
 
   const handleLanguageChange = (language: LanguageOption) => {
     setSelectedLanguage(language);
     setIsOpen(false);
-    console.log(`Language switched to: ${language.name}`);
-    // Add logic to update the app's language here (e.g., i18n.changeLanguage(language.code))
+    // Add your language change logic here, e.g., redirecting to a different URL
+    window.location.href = `/${language.code}`;
   };
-
   return (
     <div className="relative w-full max-w-xs">
-      {/* Label */}
-      <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-2">
-        Select Language
-      </label>
 
       {/* Dropdown Container */}
       <div

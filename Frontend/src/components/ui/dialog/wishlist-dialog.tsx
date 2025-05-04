@@ -9,8 +9,8 @@ import {
     DialogTitle,
     DialogFooter,
     DialogClose,
-} from "@/app/components/ui/dialog/dialog";
-import Button from "@/app/components/ui/button/button-brand";
+} from "@/components/ui/dialog/dialog";
+import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 
 interface WishlistItem {

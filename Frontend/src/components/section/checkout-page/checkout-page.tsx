@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "@/app/components/ui/button/button-brand";
+import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
 import Image from "next/image";

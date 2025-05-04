@@ -11,10 +11,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/app/components/ui/alert-dialog/alert-dialog";
-import { Badge } from "@/app/components/ui/badge/badge";
-import { Button } from "@/app/components/ui/button/button";
-import { Checkbox } from "@/app/components/ui/checkbox/checkbox";
+} from "@/components/ui/alert-dialog/alert-dialog";
+import { Badge } from "@/components/ui/badge/badge";
+import { Button } from "@/components/ui/button/button";
+import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -29,18 +29,18 @@ import {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu/dropdown-menu";
-import { Input } from "@/app/components/ui/input/input";
-import { Label } from "@/app/components/ui/label/label";
-import { Pagination, PaginationContent, PaginationItem } from "@/app/components/ui/pagination/pagination";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover/popover";
+} from "@/components/ui/dropdown-menu/dropdown-menu";
+import { Input } from "@/components/ui/input/input";
+import { Label } from "@/components/ui/label/label";
+import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination/pagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover/popover";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/app/components/ui/select/select";
+} from "@/components/ui/select/select";
 import {
     Table,
     TableBody,
@@ -48,7 +48,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/app/components/ui/table/table";
+} from "@/components/ui/table/table";
 import {
     ColumnDef,
     ColumnFiltersState,

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Form, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form/form";
+import { Form, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import riceflowericon from "@public/vectors/Rice+Flower+Icon.png";

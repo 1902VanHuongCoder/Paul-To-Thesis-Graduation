@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from "@/app/components/ui/drawer/drawer";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/app/components/ui/accordion/accordion";
+import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from "@/components/ui/drawer/drawer";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion/accordion";
 import { ShoppingCartIcon, SearchIcon, XIcon } from "lucide-react";
 
 import darklogo from "@public/images/light+logo.png";

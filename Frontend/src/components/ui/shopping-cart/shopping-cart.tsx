@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle } from "@/app/components/ui/drawer/drawer";
+import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer/drawer";
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 

@@ -8,8 +8,8 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/app/components/ui/form/form";
-import Button from "@/app/components/ui/button/button-brand";
+} from "@/components/ui/form/form";
+import Button from "@/components/ui/button/button-brand";
 
 interface ReviewFormInputs {
   name: string;

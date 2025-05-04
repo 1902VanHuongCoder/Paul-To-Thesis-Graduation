@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/app/components/ui/input/input";
-import Button from "@/app/components/ui/button/button-brand";
+import { Input } from "@/components/ui/input/input";
+import Button from "@/components/ui/button/button-brand";
 
 export default function OrderTrackingPage() {
   const [orderId, setOrderId] = useState("");

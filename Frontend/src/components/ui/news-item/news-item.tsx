@@ -3,7 +3,7 @@
 import React from "react";
 import { PlayCircle, Tag, MessageSquare, Eye, Share2, CircleUser } from "lucide-react";
 import Image from "next/image";
-import Button from "@/app/components/ui/button/button-brand";
+import Button from "@/components/ui/button/button-brand";
 
 interface NewsItemProps {
     image: string;

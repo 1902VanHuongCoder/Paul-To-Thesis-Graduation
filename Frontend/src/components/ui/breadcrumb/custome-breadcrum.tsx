@@ -8,7 +8,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/app/components/ui/breadcrumb/breadcrumb";
+} from "@/components/ui/breadcrumb/breadcrumb";
 
 interface CustomBreadcrumbProps {
   items: { label: string; href?: string }[]; // Array of breadcrumb items

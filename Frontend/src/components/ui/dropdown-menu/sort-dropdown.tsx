@@ -7,7 +7,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu/dropdown-menu";
+} from "@/components/ui/dropdown-menu/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 
 interface SortDropdownProps {

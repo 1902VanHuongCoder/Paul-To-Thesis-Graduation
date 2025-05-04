@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/app/components/ui/input/input";
+import { Input } from "@/components/ui/input/input";
 import { Button } from "../button/button";
 
 interface PromoCodeInputProps {

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from "@/app/components/ui/drawer/drawer";
-import { Input } from "@/app/components/ui/input/input";
+import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from "@/components/ui/drawer/drawer";
+import { Input } from "@/components/ui/input/input";
 import { XIcon, MicIcon } from "lucide-react";
 import { Title } from "@radix-ui/react-dialog";
 import Button from "../button/button-brand";

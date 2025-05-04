@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs/tabs";
 
 interface TabsNavigationProps {
   description: string;

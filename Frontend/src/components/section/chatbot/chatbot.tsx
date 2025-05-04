@@ -5,10 +5,10 @@ import {
     ExpandableChatHeader,
     ExpandableChatBody,
     ExpandableChatFooter,
-} from "@/app/components/section/chatbot/chatbot-items"
+} from "@/components/section/chatbot/chatbot-items"
 import { useState } from "react"
-import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/app/components/ui/chat-bubble/chat-bubble"
-import { ChatInput } from "@/app/components/ui/input/chat-input"
+import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui/chat-bubble/chat-bubble"
+import { ChatInput } from "@/components/ui/input/chat-input"
 import { Button } from "../../ui/button/button"
 
 export default function ChatBot() {

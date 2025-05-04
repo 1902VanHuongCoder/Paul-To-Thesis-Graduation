@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import IconButton from "@/app/components/ui/button/icon-button";
-import Button from "@/app/components/ui/button/button-brand";
+import IconButton from "@/components/ui/button/icon-button";
+import Button from "@/components/ui/button/button-brand";
 import { Heart } from "lucide-react";
 
 interface ProductDetailsProps {
