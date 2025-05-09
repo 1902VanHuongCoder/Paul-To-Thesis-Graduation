@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",                // Use modern JavaScript features
-    "module": "ESNext",               // Use ES modules
+    "module": "CommonJS",              // Use CommonJS for Jest compatibility
     "moduleResolution": "Node",       // Resolve modules like Node.js
     "strict": true,                   // Enable strict type checking
     "esModuleInterop": true,          // Allow default imports from CommonJS modules
@@ -10,8 +10,11 @@
     "baseUrl": ".",                   // Base URL for module resolution
     "paths": {
       "*": ["node_modules/*"]         // Resolve modules correctly
-    }
+    },
+    "allowSyntheticDefaultImports": true, // Allow synthetic default imports
+    "types": ["jest", "node"],        // Include Jest and Node.js types
+    "resolveJsonModule": true         // Allow importing JSON files
   },
   "include": ["./**/*.ts"],           // Include all TypeScript files
-  "exclude": ["node_modules"]         // Exclude node_modules
+  "exclude": ["node_modules", "dist"] // Exclude node_modules and output directory
 }

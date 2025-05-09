@@ -3,21 +3,19 @@ import dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables from .env file
 
-const MYSQL_CONFIG = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DATABASE,
-  port: Number(process.env.PORT) || 3306,
-};
+import { Sequelize } from "sequelize";
 
-export const connectToDatabase = async () => {
-  try {
-    const connection = await mysql.createConnection(MYSQL_CONFIG);
-    console.log('✅ Connected to MySQL Workbench successfully');
-    return connection;
-  } catch (err) {
-    console.error('❌ Error connecting to MySQL:', err);
-    process.exit(1);
+// Create a MySQL connection pool
+const sequelize = new Sequelize(
+  process.env.DB_NAME as string,
+  process.env.DB_USER as string,
+  process.env.DB_PASSWORD as string,
+  {
+    host: process.env.DB_HOST || "localhost",
+    port: Number(process.env.PORT) || 3306,
+    dialect: "mysql",
+    logging: false, // Set to true if you want SQL logs
   }
-};
+);
+
+export default sequelize;
