@@ -3,11 +3,15 @@ import bodyParser from "body-parser";
 import sequelize from "./configs/mysql-database-connect";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
-import uploadRoutes from "./routes/uploadRoutes"; // Assuming you have an upload route
+import uploadRoutes from "./routes/uploadRoutes"; 
+import productRoutes from "./routes/productRoutes";
+import categoryRoutes from "./routes/categoryRoutes"; // Import the new category routes
+import subCategoryRoutes from "./routes/subCategoryRoutes"; // Import the new subcategory routes
+import tagRoutes from "./routes/tagRoutes"; // Import the new tag routes
+import originRoutes from "./routes/originRoutes"; // Import the new origin routes
 
 const app = express();
 
-// Connect to MySQL
 // Connect to MySQL and Sync DB
 sequelize
   .authenticate()
@@ -22,11 +26,12 @@ sequelize
     console.error("❌ DB Connection Error:", err);
   });
 
-// Middleware
-app.use(express.json());
+// Middleware to parse JSON request bodies
+app.use(express.json()); // Built-in middleware for JSON parsing
 
-// Middleware to parse form data
-app.use(express.urlencoded({ extended: true }));
+// If using body-parser (optional)
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Middleware to parse raw body (e.g. binary data)
 app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
@@ -34,8 +39,12 @@ app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/upload", uploadRoutes); // Assuming you have an upload route")
-
+app.use("/api/upload", uploadRoutes);
+app.use("/api/products",productRoutes);
+app.use("/api/category", categoryRoutes);  
+app.use("/api/subcategory", subCategoryRoutes); 
+app.use("/api/tag", tagRoutes);
+app.use("/api/origin", originRoutes); 
 // Define the port
 const PORT = 3000;
 
@@ -45,4 +54,3 @@ app.listen(PORT, () => {
 });
 
 export default app;
-// Export the app for testing purposes
