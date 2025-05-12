@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Category, Origin, Product, ProductAttribute, SubCategory, Tag } from "../models";
+import { Category, Origin, Product, ProductAttribute, ProductTag, SubCategory, Tag } from "../models";
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -7,8 +7,9 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
       include: [
         { model: Category },
         { model: SubCategory },
-        { model: Tag },
+        { model: Tag }, // Include associated tags
         { model: Origin },
+        { model: ProductAttribute }, // Include associated attributes
       ],
     });
     res.status(200).json(products);
@@ -26,9 +27,9 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
       include: [
         { model: Category },
         { model: SubCategory },
-        { model: Tag },
+        { model: Tag }, // Include associated tags
         { model: Origin },
-        { model: ProductAttribute },
+        { model: ProductAttribute }, // Include associated attributes
       ],
     });
 
@@ -45,19 +46,50 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 };
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
-  const { productName, productPrice, quantityAvailable, categoryID, tagID, originID, subcategoryID, images } = req.body;
+  const {
+    productName,
+    productPrice,
+    quantityAvailable,
+    categoryID,
+    tagIDs, // Array of tag IDs
+    originID,
+    subcategoryID,
+    images,
+    attributes, // Additional attributes specific to the category
+  } = req.body;
 
   try {
+    // Create the product
     const newProduct = await Product.create({
       productName,
       productPrice,
       quantityAvailable,
       categoryID,
-      tagID,
       originID,
       subcategoryID,
       images,
     });
+
+    // Handle tags
+    if (tagIDs && Array.isArray(tagIDs)) {
+      const productTags = tagIDs.map((tagID: number) => ({
+        productID: newProduct.productID,
+        tagID,
+      }));
+
+      await ProductTag.bulkCreate(productTags);
+    }
+
+    // Handle additional attributes
+    if (attributes && Array.isArray(attributes)) {
+      const productAttributes = attributes.map((attr: any) => ({
+        productID: newProduct.productID,
+        attributeID: attr.attributeID,
+        value: attr.value,
+      }));
+
+      await ProductAttribute.bulkCreate(productAttributes);
+    }
 
     res.status(201).json(newProduct);
   } catch (error) {
@@ -68,7 +100,17 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { productName, productPrice, quantityAvailable, categoryID, tagID, originID, subcategoryID, images } = req.body;
+  const {
+    productName,
+    productPrice,
+    quantityAvailable,
+    categoryID,
+    tagIDs, // Array of tag IDs
+    originID,
+    subcategoryID,
+    images,
+    attributes, // Additional attributes specific to the category
+  } = req.body;
 
   try {
     const product = await Product.findByPk(id);
@@ -78,16 +120,45 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Update the product
     await product.update({
       productName,
       productPrice,
       quantityAvailable,
       categoryID,
-      tagID,
       originID,
       subcategoryID,
       images,
     });
+
+    // Handle tags
+    if (tagIDs && Array.isArray(tagIDs)) {
+      // Delete existing tags for the product
+      await ProductTag.destroy({ where: { productID: id } });
+
+      // Add updated tags
+      const productTags = tagIDs.map((tagID: number) => ({
+        productID: id,
+        tagID,
+      }));
+
+      await ProductTag.bulkCreate(productTags);
+    }
+
+    // Handle additional attributes
+    if (attributes && Array.isArray(attributes)) {
+      // Delete existing attributes for the product
+      await ProductAttribute.destroy({ where: { productID: id } });
+
+      // Add updated attributes
+      const productAttributes = attributes.map((attr: any) => ({
+        productID: id,
+        attributeID: attr.attributeID,
+        value: attr.value,
+      }));
+
+      await ProductAttribute.bulkCreate(productAttributes);
+    }
 
     res.status(200).json({ message: "Product updated successfully", product });
   } catch (error) {
@@ -107,7 +178,8 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Delete related records in ProductAttribute
+    // Delete related records in ProductTag and ProductAttribute
+    await ProductTag.destroy({ where: { productID: id } });
     await ProductAttribute.destroy({ where: { productID: id } });
 
     // Delete the product

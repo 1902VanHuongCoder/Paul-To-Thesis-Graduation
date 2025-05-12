@@ -9,6 +9,8 @@ import categoryRoutes from "./routes/categoryRoutes"; // Import the new category
 import subCategoryRoutes from "./routes/subCategoryRoutes"; // Import the new subcategory routes
 import tagRoutes from "./routes/tagRoutes"; // Import the new tag routes
 import originRoutes from "./routes/originRoutes"; // Import the new origin routes
+import productAttributeRoutes from "./routes/productAttributeRoutes"; // Import the new product attribute routes
+import attributeRoutes from "./routes/attributeRoutes"; // Import the new attribute routes
 
 const app = express();
 
@@ -40,11 +42,13 @@ app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/products",productRoutes);
+app.use("/api/product",productRoutes);
 app.use("/api/category", categoryRoutes);  
 app.use("/api/subcategory", subCategoryRoutes); 
 app.use("/api/tag", tagRoutes);
 app.use("/api/origin", originRoutes); 
+app.use("/api/product-attributes",productAttributeRoutes);
+app.use("/api/attribute", attributeRoutes); 
 // Define the port
 const PORT = 3000;
 

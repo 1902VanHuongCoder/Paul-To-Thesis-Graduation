@@ -6,7 +6,9 @@ import Origin from "./Origin";
 import SubCategory from "./Subcategory";
 import ProductTag from "./ProductTag";
 
-class Product extends Model {}
+class Product extends Model {
+  productID: any;
+}
 
 Product.init(
   {
