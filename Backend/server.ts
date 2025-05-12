@@ -5,12 +5,19 @@ import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
 import uploadRoutes from "./routes/uploadRoutes"; 
 import productRoutes from "./routes/productRoutes";
-import categoryRoutes from "./routes/categoryRoutes"; // Import the new category routes
-import subCategoryRoutes from "./routes/subCategoryRoutes"; // Import the new subcategory routes
-import tagRoutes from "./routes/tagRoutes"; // Import the new tag routes
-import originRoutes from "./routes/originRoutes"; // Import the new origin routes
-import productAttributeRoutes from "./routes/productAttributeRoutes"; // Import the new product attribute routes
-import attributeRoutes from "./routes/attributeRoutes"; // Import the new attribute routes
+import categoryRoutes from "./routes/categoryRoutes";
+import subCategoryRoutes from "./routes/subCategoryRoutes"; 
+import tagRoutes from "./routes/tagRoutes";
+import originRoutes from "./routes/originRoutes"; 
+import productAttributeRoutes from "./routes/productAttributeRoutes";
+import attributeRoutes from "./routes/attributeRoutes"; 
+import inventoryRoutes from "./routes/inventoryRoutes"; 
+import inventoryTransactionRoutes from "./routes/inventoryTransactionRoutes"; 
+import locationRoutes from "./routes/locationRoutes";
+import orderRoutes from "./routes/orderRoutes";
+import shoppingCartRoutes from "./routes/shoppingCartRoutes";
+import commentRoutes from "./routes/commentRoutes";
+import newsRoutes from "./routes/newsRoutes";
 
 const app = express();
 
@@ -38,6 +45,7 @@ app.use(bodyParser.json());
 // Middleware to parse raw body (e.g. binary data)
 app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
 
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -49,6 +57,14 @@ app.use("/api/tag", tagRoutes);
 app.use("/api/origin", originRoutes); 
 app.use("/api/product-attributes",productAttributeRoutes);
 app.use("/api/attribute", attributeRoutes); 
+app.use("/api/inventory", inventoryRoutes); 
+app.use("/api/inventory-transaction", inventoryTransactionRoutes); 
+app.use("/api/location", locationRoutes); 
+app.use("/api/order", orderRoutes);
+app.use("/api/shopping-cart", shoppingCartRoutes); 
+app.use("/api/comment", commentRoutes);
+app.use("/api/news", newsRoutes);
+
 // Define the port
 const PORT = 3000;
 

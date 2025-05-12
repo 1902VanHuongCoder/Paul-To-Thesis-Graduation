@@ -7,6 +7,18 @@ import ProductTag from "./ProductTag";
 import ProductAttribute from "./ProductAtribute";
 import Attribute from "./Attribute";
 import Origin from "./Origin";
+import InventoryTransaction from "./InventoryTransaction";
+import Inventory from "./Inventory";
+import Location from "./Location";
+import Order from "./Order";
+import OrderProduct from "./OrderProduct";
+import CartItem from "./CartItem";
+import ShoppingCart from "./ShoppingCart";
+import Comment from "./Comment";
+import News from "./News";
+import TagOfNews from "./TagOfNew";
+import NewsTagOfNews from "./NewsTagOfNews";
+
 
 SubCategory.hasMany(Product, {
   foreignKey: "subcategoryID", // Foreign key in the Product model
@@ -37,9 +49,60 @@ Origin.hasMany(Product, {
   foreignKey: "originID", // Foreign key in the Product model
 });
 
-// Define associations
 Tag.belongsToMany(Product, { through: ProductTag, foreignKey: "tagID" });
 Product.belongsToMany(Tag, { through: ProductTag, foreignKey: "productID" });
+
+InventoryTransaction.belongsTo(Inventory, { foreignKey: "inventoryID", as: "inventory" });
+Inventory.hasMany(InventoryTransaction, { foreignKey: "inventoryID", as: "transactions" });
+
+Inventory.belongsTo(Product, { foreignKey: "productID", as: "product" });
+Inventory.belongsTo(Location, { foreignKey: "locationID", as: "location" });
+
+Product.hasMany(Inventory, { foreignKey: "productID", as: "inventories" });
+Location.hasMany(Inventory, { foreignKey: "locationID", as: "inventories" });
+
+Order.belongsToMany(Product, {
+  through: OrderProduct,
+  foreignKey: "orderID",
+  as: "products",
+});
+Product.belongsToMany(Order, {
+  through: OrderProduct,
+  foreignKey: "productID",
+  as: "orders",
+});
+
+ShoppingCart.belongsToMany(Product, {
+  through: CartItem,
+  foreignKey: "cartID",
+  as: "products",
+});
+Product.belongsToMany(ShoppingCart, {
+  through: CartItem,
+  foreignKey: "productID",
+  as: "carts",
+});
+
+Comment.belongsTo(User, { foreignKey: "userID", as: "user" });
+Comment.belongsTo(Product, { foreignKey: "productID", as: "product" });
+
+User.hasMany(Comment, { foreignKey: "userID", as: "comments" });
+Product.hasMany(Comment, { foreignKey: "productID", as: "comments" });
+
+News.belongsTo(User, { foreignKey: "userID", as: "author" });
+User.hasMany(News, { foreignKey: "userID", as: "news" });
+
+News.belongsToMany(TagOfNews, {
+  through: NewsTagOfNews,
+  foreignKey: "newsID",
+  as: "hastags",
+});
+
+TagOfNews.belongsToMany(News, {
+  through: NewsTagOfNews,
+  foreignKey: "newsTagID",
+  as: "hasnews",
+});
 
 export {
   User,
@@ -51,4 +114,16 @@ export {
   ProductAttribute,
   Attribute,
   Origin,
+  InventoryTransaction,
+  Inventory,
+  Location,
+  Order,
+  OrderProduct,
+  CartItem,
+  ShoppingCart,
+  Comment,
+  News,
+  TagOfNews,
+  NewsTagOfNews,
 };
+
