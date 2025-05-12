@@ -28,8 +28,24 @@ SubCategory.belongsTo(Category, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model
 });
 
-ProductAttribute.belongsTo(Product, { foreignKey: "productID" });
-ProductAttribute.belongsTo(Attribute, { foreignKey: "attributeID" });
+Product.belongsToMany(Attribute, {
+  through: ProductAttribute,
+  foreignKey: "productID",
+  as: "attributes",
+});
+
+Attribute.belongsToMany(Product, {
+  through: ProductAttribute,
+  foreignKey: "attributeID",
+  as: "products",
+});
+
+ProductAttribute.belongsTo(Product, { foreignKey: "productID", as: "product" });
+ProductAttribute.belongsTo(Attribute, {
+  foreignKey: "attributeID",
+  as: "attribute",
+});
+
 
 Product.belongsTo(Category, { foreignKey: "categoryID" });
 

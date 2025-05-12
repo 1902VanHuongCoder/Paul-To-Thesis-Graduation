@@ -54,16 +54,18 @@ app.use("/api/product",productRoutes);
 app.use("/api/category", categoryRoutes);  
 app.use("/api/subcategory", subCategoryRoutes); 
 app.use("/api/tag", tagRoutes);
-app.use("/api/origin", originRoutes); 
-app.use("/api/product-attributes",productAttributeRoutes);
 app.use("/api/attribute", attributeRoutes); 
+app.use("/api/origin", originRoutes); 
 app.use("/api/inventory", inventoryRoutes); 
-app.use("/api/inventory-transaction", inventoryTransactionRoutes); 
 app.use("/api/location", locationRoutes); 
 app.use("/api/order", orderRoutes);
-app.use("/api/shopping-cart", shoppingCartRoutes); 
-app.use("/api/comment", commentRoutes);
+app.use("/api/shopping-cart", shoppingCartRoutes);
 app.use("/api/news", newsRoutes);
+
+app.use("/api/comment", commentRoutes);
+app.use("/api/inventory-transaction", inventoryTransactionRoutes);
+app.use("/api/product-attributes",productAttributeRoutes);
+
 
 // Define the port
 const PORT = 3000;
