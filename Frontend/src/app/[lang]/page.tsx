@@ -1,4 +1,4 @@
-import { LanguageSwitcher } from '@/components';
+import PayPalButton from '@/components/ui/button/paypal-button';
 import { dictionaries } from '@/lib/dictionaries';
 
 export default async function HomePage({ params }: { params: { lang: string } }) {
@@ -8,7 +8,8 @@ export default async function HomePage({ params }: { params: { lang: string } })
         <main>
             <h1>{t.title}</h1>
             <p>{t.description}</p>
-            <LanguageSwitcher />
+            <PayPalButton />
+            <h1>Hello</h1>
         </main>
     );
 }

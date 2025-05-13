@@ -7,7 +7,7 @@ class ProductAttribute extends Model {}
 
 ProductAttribute.init(
   {
-    id: {
+    productAttributeID: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,

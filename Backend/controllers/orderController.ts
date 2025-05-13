@@ -1,13 +1,24 @@
 import { Request, Response } from "express";
 import { Order, User, Product, OrderProduct } from "../models";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // GET all orders
-export const getAllOrders = async (req: Request, res: Response): Promise<void> => {
+export const getAllOrders = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const orders = await Order.findAll({
       include: [
         { model: User, as: "user" },
-        { model: Product, as: "products", through: { attributes: ["quantity", "price"] } },
+        {
+          model: Product,
+          as: "products",
+          through: { attributes: ["quantity", "price"] },
+        },
       ],
     });
     res.status(200).json(orders);
@@ -18,14 +29,21 @@ export const getAllOrders = async (req: Request, res: Response): Promise<void> =
 };
 
 // GET a specific order by ID
-export const getOrderById = async (req: Request, res: Response): Promise<void> => {
+export const getOrderById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
     const order = await Order.findByPk(id, {
       include: [
         { model: User, as: "user" },
-        { model: Product, as: "products", through: { attributes: ["quantity", "price"] } },
+        {
+          model: Product,
+          as: "products",
+          through: { attributes: ["quantity", "price"] },
+        },
       ],
     });
 
@@ -42,10 +60,35 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 };
 
 // POST a new order
-export const createOrder = async (req: Request, res: Response): Promise<void> => {
-  const { userID, orderDate, total, totalAmount, note, orderStatus, products } = req.body;
+export const createOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const {
+    userID,
+    orderDate,
+    total,
+    totalAmount,
+    note,
+    orderStatus,
+    products,
+    orderID,
+  } = req.body;
 
   try {
+    const { data } = await axios.get(
+      `${process.env.PAYPAL_API}/v2/checkout/orders/${orderID}`,
+      {
+        auth: {
+          username: String(process.env.PAYPAL_CLIENT_ID),
+          password: String(process.env.PAYPAL_SECRET),
+        },
+      }
+    );
+    if (data.status !== "COMPLETED") {
+      res.status(400).json({ message: "Payment not completed." });
+      return;
+    }
     // Create the order
     const newOrder = await Order.create({
       userID,
@@ -58,12 +101,14 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     // Handle products associated with the order
     if (products && Array.isArray(products)) {
-      const orderProducts = products.map((product: { productID: number; quantity: number; price: number }) => ({
-        orderID: newOrder.orderID,
-        productID: product.productID,
-        quantity: product.quantity,
-        price: product.price,
-      }));
+      const orderProducts = products.map(
+        (product: { productID: number; quantity: number; price: number }) => ({
+          orderID: newOrder.orderID,
+          productID: product.productID,
+          quantity: product.quantity,
+          price: product.price,
+        })
+      );
 
       await OrderProduct.bulkCreate(orderProducts);
     }
@@ -76,9 +121,13 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 };
 
 // PUT (update) an existing order by ID
-export const updateOrder = async (req: Request, res: Response): Promise<void> => {
+export const updateOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
-  const { userID, orderDate, total, totalAmount, note, orderStatus, products } = req.body;
+  const { userID, orderDate, total, totalAmount, note, orderStatus, products } =
+    req.body;
 
   try {
     const order = await Order.findByPk(id);
@@ -104,12 +153,14 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
       await OrderProduct.destroy({ where: { orderID: id } });
 
       // Add updated product associations
-      const orderProducts = products.map((product: { productID: number; quantity: number; price: number }) => ({
-        orderID: id,
-        productID: product.productID,
-        quantity: product.quantity,
-        price: product.price,
-      }));
+      const orderProducts = products.map(
+        (product: { productID: number; quantity: number; price: number }) => ({
+          orderID: id,
+          productID: product.productID,
+          quantity: product.quantity,
+          price: product.price,
+        })
+      );
 
       await OrderProduct.bulkCreate(orderProducts);
     }
@@ -122,7 +173,10 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
 };
 
 // DELETE an order by ID
-export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
+export const deleteOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {

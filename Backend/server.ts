@@ -18,6 +18,7 @@ import orderRoutes from "./routes/orderRoutes";
 import shoppingCartRoutes from "./routes/shoppingCartRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import newsRoutes from "./routes/newsRoutes";
+import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
 
 const app = express();
 
@@ -60,10 +61,11 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/location", locationRoutes); 
 app.use("/api/order", orderRoutes);
 app.use("/api/shopping-cart", shoppingCartRoutes);
-app.use("/api/news", newsRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/inventory-transaction", inventoryTransactionRoutes);
 app.use("/api/product-attributes",productAttributeRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/tag-of-news", tagOfNewsRoutes); 
 
 
 // Define the port

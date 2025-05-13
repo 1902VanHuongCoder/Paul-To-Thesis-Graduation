@@ -1,12 +1,11 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
-import Category from "./Category";
 
 class Attribute extends Model {}
 
 Attribute.init(
   {
-    id: {
+    attributeID: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,

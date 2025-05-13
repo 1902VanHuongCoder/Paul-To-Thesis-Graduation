@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { Metadata } from "next";
 import Itim from "next/font/local";
 import Nunito_Sans from "next/font/local";
@@ -38,16 +37,13 @@ export default function LangLayout({
     children: React.ReactNode;
     params: { lang: string };
 }) {
-    const otherLang = params.lang === 'en' ? 'vi' : 'en';
 
     return (
         <html lang={params.lang}>
             <body
                 className={`${nunito.variable} ${itim.variable} antialiased`}
             >
-                <nav>
-                    <Link href={`/${otherLang}`}>Switch to {otherLang.toUpperCase()}</Link>
-                </nav>
+               
                 {children}
             </body>
         </html>
