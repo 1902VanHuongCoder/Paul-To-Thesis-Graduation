@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../server"; // Assuming your Express app is exported from server.ts
-import { InventoryTransaction, Inventory } from "../models";
+import InventoryTransaction from "../models/InventoryTransaction";
 
 jest.mock("../models");
 
@@ -13,22 +13,21 @@ describe("Inventory Transaction Controller", () => {
     it("should return all inventory transactions", async () => {
       const mockTransactions = [
         {
-          id: 1,
+          transactionID: 1,
           inventoryID: 1,
           quantityChange: 10,
           transactionType: "ADD",
           note: "Added stock",
           performedBy: "Admin",
-          inventory: { id: 1, productID: 1, quantityInStock: 100 },
+     
         },
         {
-          id: 2,
+          transactionID: 2,
           inventoryID: 2,
           quantityChange: -5,
           transactionType: "REMOVE",
           note: "Removed stock",
           performedBy: "Admin",
-          inventory: { id: 2, productID: 2, quantityInStock: 50 },
         },
       ];
       jest.spyOn(InventoryTransaction, "findAll").mockResolvedValue(mockTransactions as any);
@@ -50,13 +49,13 @@ describe("Inventory Transaction Controller", () => {
   describe("GET /api/inventory-transaction/:id", () => {
     it("should return an inventory transaction by ID", async () => {
       const mockTransaction = {
-        id: 1,
+        transactionID: 1,
         inventoryID: 1,
         quantityChange: 10,
         transactionType: "ADD",
         note: "Added stock",
         performedBy: "Admin",
-        inventory: { id: 1, productID: 1, quantityInStock: 100 },
+  
       };
       jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue(mockTransaction as any);
 
@@ -85,7 +84,7 @@ describe("Inventory Transaction Controller", () => {
   describe("POST /api/inventory-transaction", () => {
     it("should create a new inventory transaction", async () => {
       const mockTransaction = {
-        id: 1,
+        transactionID: 1,
         inventoryID: 1,
         quantityChange: 10,
         transactionType: "ADD",
@@ -129,12 +128,14 @@ describe("Inventory Transaction Controller", () => {
   describe("PUT /api/inventory-transaction/:id", () => {
     it("should update an existing inventory transaction", async () => {
       const mockTransaction = {
-        id: 1,
+        transactionID: 1,
         inventoryID: 1,
         quantityChange: 15,
         transactionType: "ADD",
         note: "Updated stock",
         performedBy: "Admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue({
         update: jest.fn().mockResolvedValue(mockTransaction),

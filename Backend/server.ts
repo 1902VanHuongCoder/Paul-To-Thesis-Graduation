@@ -61,7 +61,6 @@ app.use("/api/location", locationRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/shopping-cart", shoppingCartRoutes);
 app.use("/api/news", newsRoutes);
-
 app.use("/api/comment", commentRoutes);
 app.use("/api/inventory-transaction", inventoryTransactionRoutes);
 app.use("/api/product-attributes",productAttributeRoutes);

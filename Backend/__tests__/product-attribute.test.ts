@@ -1,154 +1,186 @@
 import request from "supertest";
 import app from "../server"; // Assuming your Express app is exported from server.ts
-import { ProductAttribute, Product, Attribute } from "../models";
+import InventoryTransaction from "../models/InventoryTransaction";
 
 jest.mock("../models");
 
-describe("Product Attribute Controller", () => {
+describe("Inventory Transaction Controller", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("GET /api/product-attributes", () => {
-    it("should return all product attributes", async () => {
-      const mockProductAttributes = [
+  describe("GET /api/inventory-transaction", () => {
+    it("should return all inventory transactions", async () => {
+      const mockTransactions = [
         {
-          id: 1,
-          productID: 1,
-          attributeID: 1,
-          value: "Value 1",
-          Product: { productID: 1, productName: "Product 1" },
-          Attribute: { id: 1, attributeName: "Attribute 1" },
+          transactionID: 1,
+          inventoryID: 1,
+          quantityChange: 10,
+          transactionType: "ADD",
+          note: "Added stock",
+          performedBy: "Admin",
+
         },
         {
-          id: 2,
-          productID: 2,
-          attributeID: 2,
-          value: "Value 2",
-          Product: { productID: 2, productName: "Product 2" },
-          Attribute: { id: 2, attributeName: "Attribute 2" },
+          transactionID: 2,
+          inventoryID: 2,
+          quantityChange: -5,
+          transactionType: "REMOVE",
+          note: "Removed stock",
+          performedBy: "Admin",
+   
         },
       ];
-      jest.spyOn(ProductAttribute, "findAll").mockResolvedValue(mockProductAttributes as any);
+      jest.spyOn(InventoryTransaction, "findAll").mockResolvedValue(mockTransactions as any);
 
-      const response = await request(app).get("/api/product-attributes");
+      const response = await request(app).get("/api/inventory-transaction");
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockProductAttributes);
+      expect(response.body).toEqual(mockTransactions);
     });
 
-    it("should handle errors when fetching product attributes", async () => {
-      jest.spyOn(ProductAttribute, "findAll").mockRejectedValue(new Error("Database error"));
+    it("should handle errors when fetching inventory transactions", async () => {
+      jest.spyOn(InventoryTransaction, "findAll").mockRejectedValue(new Error("Database error"));
 
-      const response = await request(app).get("/api/product-attributes");
+      const response = await request(app).get("/api/inventory-transaction");
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Database error");
     });
   });
 
-  describe("GET /api/product-attributes/:id", () => {
-    it("should return a product attribute by ID", async () => {
-      const mockProductAttribute = {
-        id: 1,
-        productID: 1,
-        attributeID: 1,
-        value: "Value 1",
-        Product: { productID: 1, productName: "Product 1" },
-        Attribute: { id: 1, attributeName: "Attribute 1" },
-      };
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue(mockProductAttribute as any);
+  describe("GET /api/inventory-transaction/:id", () => {
+    it("should return an inventory transaction by ID", async () => {
+      const mockTransaction = {
+        transactionID: 1,
+        inventoryID: 1,
+        quantityChange: 10,
+        transactionType: "ADD",
+        note: "Added stock",
+        performedBy: "Admin",
 
-      const response = await request(app).get("/api/product-attributes/1");
+      };
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue(mockTransaction as any);
+
+      const response = await request(app).get("/api/inventory-transaction/1");
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockProductAttribute);
+      expect(response.body).toEqual(mockTransaction);
     });
 
-    it("should return 404 if product attribute is not found", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue(null);
+    it("should return 404 if inventory transaction is not found", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue(null);
 
-      const response = await request(app).get("/api/product-attributes/999");
+      const response = await request(app).get("/api/inventory-transaction/999");
       expect(response.status).toBe(404);
-      expect(response.body.message).toBe("Product attribute not found");
+      expect(response.body.message).toBe("Inventory transaction not found");
     });
 
-    it("should handle errors when fetching a product attribute by ID", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockRejectedValue(new Error("Database error"));
+    it("should handle errors when fetching an inventory transaction by ID", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockRejectedValue(new Error("Database error"));
 
-      const response = await request(app).get("/api/product-attributes/1");
+      const response = await request(app).get("/api/inventory-transaction/1");
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Database error");
     });
   });
 
-  describe("POST /api/product-attributes", () => {
-    it("should create a new product attribute", async () => {
-      const mockProductAttribute = {
-        id: 1,
-        productID: 1,
-        attributeID: 1,
-        value: "New Value",
+  describe("POST /api/inventory-transaction", () => {
+    it("should create a new inventory transaction", async () => {
+      const mockTransaction = {
+        transactionID: 1,
+        inventoryID: 1,
+        quantityChange: 10,
+        transactionType: "ADD",
+        note: "Added stock",
+        performedBy: "Admin",
+  
       };
-      jest.spyOn(ProductAttribute, "create").mockResolvedValue(mockProductAttribute as any);
+      jest.spyOn(InventoryTransaction, "create").mockResolvedValue(mockTransaction as any);
 
       const response = await request(app)
-        .post("/api/product-attributes")
-        .send({ productID: 1, attributeID: 1, value: "New Value" });
+        .post("/api/inventory-transaction")
+        .send({
+          inventoryID: 1,
+          quantityChange: 10,
+          transactionType: "ADD",
+          note: "Added stock",
+          performedBy: "Admin",
+        });
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(mockProductAttribute);
+      expect(response.body).toEqual(mockTransaction);
     });
 
-    it("should handle errors when creating a product attribute", async () => {
-      jest.spyOn(ProductAttribute, "create").mockRejectedValue(new Error("Database error"));
+    it("should handle errors when creating an inventory transaction", async () => {
+      jest.spyOn(InventoryTransaction, "create").mockRejectedValue(new Error("Database error"));
 
       const response = await request(app)
-        .post("/api/product-attributes")
-        .send({ productID: 1, attributeID: 1, value: "New Value" });
+        .post("/api/inventory-transaction")
+        .send({
+          inventoryID: 1,
+          quantityChange: 10,
+          transactionType: "ADD",
+          note: "Added stock",
+          performedBy: "Admin",
+        });
 
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Database error");
     });
   });
 
-  describe("PUT /api/product-attributes/:id", () => {
-    it("should update an existing product attribute", async () => {
-      const mockProductAttribute = {
-        id: 1,
-        productID: 1,
-        attributeID: 1,
-        value: "Updated Value",
+  describe("PUT /api/inventory-transaction/:id", () => {
+    it("should update an existing inventory transaction", async () => {
+      const mockTransaction = {
+        transactionID: 1,
+        inventoryID: 1,
+        quantityChange: 15,
+        transactionType: "ADD",
+        note: "Updated stock",
+        performedBy: "Admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue({
-        update: jest.fn().mockResolvedValue(mockProductAttribute),
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue({
+        update: jest.fn().mockResolvedValue(mockTransaction),
       } as any);
 
       const response = await request(app)
-        .put("/api/product-attributes/1")
-        .send({ productID: 1, attributeID: 1, value: "Updated Value" });
+        .put("/api/inventory-transaction/1")
+        .send({
+          inventoryID: 1,
+          quantityChange: 15,
+          transactionType: "ADD",
+          note: "Updated stock",
+          performedBy: "Admin",
+        });
 
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe("Product attribute updated successfully");
+      expect(response.body.message).toBe("Inventory transaction updated successfully");
     });
 
-    it("should return 404 if product attribute is not found", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue(null);
+    it("should return 404 if inventory transaction is not found", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue(null);
 
-      const response = await request(app).put("/api/product-attributes/999").send({
-        productID: 1,
-        attributeID: 1,
-        value: "Updated Value",
+      const response = await request(app).put("/api/inventory-transaction/999").send({
+        inventoryID: 1,
+        quantityChange: 15,
+        transactionType: "ADD",
+        note: "Updated stock",
+        performedBy: "Admin",
       });
 
       expect(response.status).toBe(404);
-      expect(response.body.message).toBe("Product attribute not found");
+      expect(response.body.message).toBe("Inventory transaction not found");
     });
 
-    it("should handle errors when updating a product attribute", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockRejectedValue(new Error("Database error"));
+    it("should handle errors when updating an inventory transaction", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockRejectedValue(new Error("Database error"));
 
-      const response = await request(app).put("/api/product-attributes/1").send({
-        productID: 1,
-        attributeID: 1,
-        value: "Updated Value",
+      const response = await request(app).put("/api/inventory-transaction/1").send({
+        inventoryID: 1,
+        quantityChange: 15,
+        transactionType: "ADD",
+        note: "Updated stock",
+        performedBy: "Admin",
       });
 
       expect(response.status).toBe(500);
@@ -156,30 +188,30 @@ describe("Product Attribute Controller", () => {
     });
   });
 
-  describe("DELETE /api/product-attributes/:id", () => {
-    it("should delete a product attribute", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue({
+  describe("DELETE /api/inventory-transaction/:id", () => {
+    it("should delete an inventory transaction", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue({
         destroy: jest.fn().mockResolvedValue(true),
       } as any);
 
-      const response = await request(app).delete("/api/product-attributes/1");
+      const response = await request(app).delete("/api/inventory-transaction/1");
 
       expect(response.status).toBe(204);
     });
 
-    it("should return 404 if product attribute is not found", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockResolvedValue(null);
+    it("should return 404 if inventory transaction is not found", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockResolvedValue(null);
 
-      const response = await request(app).delete("/api/product-attributes/999");
+      const response = await request(app).delete("/api/inventory-transaction/999");
 
       expect(response.status).toBe(404);
-      expect(response.body.message).toBe("Product attribute not found");
+      expect(response.body.message).toBe("Inventory transaction not found");
     });
 
-    it("should handle errors when deleting a product attribute", async () => {
-      jest.spyOn(ProductAttribute, "findByPk").mockRejectedValue(new Error("Database error"));
+    it("should handle errors when deleting an inventory transaction", async () => {
+      jest.spyOn(InventoryTransaction, "findByPk").mockRejectedValue(new Error("Database error"));
 
-      const response = await request(app).delete("/api/product-attributes/1");
+      const response = await request(app).delete("/api/inventory-transaction/1");
 
       expect(response.status).toBe(500);
       expect(response.body.error).toBe("Database error");

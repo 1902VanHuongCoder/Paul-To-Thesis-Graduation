@@ -1,17 +1,10 @@
 import { Request, Response } from "express";
 import Comment from "../models/Comment";
-import User from "../models/User";
-import Product from "../models/Product";
 
 // GET all comments
 export const getAllComments = async (req: Request, res: Response): Promise<void> => {
   try {
-    const comments = await Comment.findAll({
-      include: [
-        { model: User, as: "user" },
-        { model: Product, as: "product" },
-      ],
-    });
+    const comments = await Comment.findAll();
     res.status(200).json(comments);
   } catch (error) {
     console.error("Error fetching comments:", error);
@@ -24,12 +17,7 @@ export const getCommentById = async (req: Request, res: Response): Promise<void>
   const { id } = req.params;
 
   try {
-    const comment = await Comment.findByPk(id, {
-      include: [
-        { model: User, as: "user" },
-        { model: Product, as: "product" },
-      ],
-    });
+    const comment = await Comment.findByPk(id);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });

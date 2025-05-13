@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../server"; // Assuming your Express app is exported from server.ts
-import { Comment, User, Product } from "../models";
+import Comment from "../models/Comment";
 
 jest.mock("../models");
 
@@ -13,24 +13,22 @@ describe("Comment Controller", () => {
     it("should return all comments", async () => {
       const mockComments = [
         {
-          id: 1,
+          commentID: 1,
           userID: 1,
           productID: 1,
           content: "Great product!",
+       
           rating: 5,
-          status: "approved",
-          user: { id: 1, username: "John Doe" },
-          product: { id: 1, productName: "Product 1" },
+          status: "active",
         },
         {
-          id: 2,
+          commentID: 2,
           userID: 2,
           productID: 2,
           content: "Not bad.",
+
           rating: 3,
-          status: "pending",
-          user: { id: 2, username: "Jane Smith" },
-          product: { id: 2, productName: "Product 2" },
+          status: "inactive",
         },
       ];
       jest.spyOn(Comment, "findAll").mockResolvedValue(mockComments as any);
@@ -52,14 +50,13 @@ describe("Comment Controller", () => {
   describe("GET /api/comment/:id", () => {
     it("should return a comment by ID", async () => {
       const mockComment = {
-        id: 1,
+        commentID: 1,
         userID: 1,
         productID: 1,
         content: "Great product!",
+ 
         rating: 5,
-        status: "approved",
-        user: { id: 1, username: "John Doe" },
-        product: { id: 1, productName: "Product 1" },
+        status: "active",
       };
       jest.spyOn(Comment, "findByPk").mockResolvedValue(mockComment as any);
 
@@ -88,13 +85,13 @@ describe("Comment Controller", () => {
   describe("POST /api/comment", () => {
     it("should create a new comment", async () => {
       const mockComment = {
-        id: 1,
+        commentID: 1,
         userID: 1,
         productID: 1,
         content: "Great product!",
+  
         rating: 5,
-        status: "approved",
-        commentAt: new Date(),
+        status: "active",
       };
       jest.spyOn(Comment, "create").mockResolvedValue(mockComment as any);
 
@@ -105,7 +102,7 @@ describe("Comment Controller", () => {
           productID: 1,
           content: "Great product!",
           rating: 5,
-          status: "approved",
+          status: "active",
         });
 
       expect(response.status).toBe(201);
@@ -122,7 +119,7 @@ describe("Comment Controller", () => {
           productID: 1,
           content: "Great product!",
           rating: 5,
-          status: "approved",
+          status: "active",
         });
 
       expect(response.status).toBe(500);
@@ -133,12 +130,13 @@ describe("Comment Controller", () => {
   describe("PUT /api/comment/:id", () => {
     it("should update an existing comment", async () => {
       const mockComment = {
-        id: 1,
+        commentID: 1,
         userID: 1,
         productID: 1,
         content: "Updated content",
+        commentAt: new Date(),
         rating: 4,
-        status: "approved",
+        status: "active",
       };
       jest.spyOn(Comment, "findByPk").mockResolvedValue({
         update: jest.fn().mockResolvedValue(mockComment),
@@ -149,7 +147,7 @@ describe("Comment Controller", () => {
         .send({
           content: "Updated content",
           rating: 4,
-          status: "approved",
+          status: "active",
         });
 
       expect(response.status).toBe(200);
@@ -162,7 +160,7 @@ describe("Comment Controller", () => {
       const response = await request(app).put("/api/comment/999").send({
         content: "Updated content",
         rating: 4,
-        status: "approved",
+        status: "active",
       });
 
       expect(response.status).toBe(404);
@@ -175,7 +173,7 @@ describe("Comment Controller", () => {
       const response = await request(app).put("/api/comment/1").send({
         content: "Updated content",
         rating: 4,
-        status: "approved",
+        status: "active",
       });
 
       expect(response.status).toBe(500);
