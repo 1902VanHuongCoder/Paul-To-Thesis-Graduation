@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors"; // Import CORS middleware
 import bodyParser from "body-parser";
 import sequelize from "./configs/mysql-database-connect";
 import userRoutes from "./routes/userRoutes";
@@ -19,8 +20,16 @@ import shoppingCartRoutes from "./routes/shoppingCartRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import newsRoutes from "./routes/newsRoutes";
 import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
+import vnpayRoutes from "./routes/vnpayRoutes";
 
 const app = express();
+
+// Enable CORS
+app.use(cors({
+  origin: "http://localhost:3001", // Allow requests from this origin
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+}));
 
 // Connect to MySQL and Sync DB
 sequelize
@@ -66,6 +75,7 @@ app.use("/api/inventory-transaction", inventoryTransactionRoutes);
 app.use("/api/product-attributes",productAttributeRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/tag-of-news", tagOfNewsRoutes); 
+app.use("/api/create-payment", vnpayRoutes);
 
 
 // Define the port
