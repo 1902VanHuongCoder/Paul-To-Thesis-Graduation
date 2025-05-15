@@ -1,10 +1,12 @@
 import express from "express";
-import { createVNPayPayment,paymentReturn } from "../controllers/vnpayController";
+import { createVNPayPayment,createVNPayPaymentTest,paymentReturn, vnpayIPN } from "../controllers/vnpayController";
 
 const router = express.Router();
 
-router.post("/", createVNPayPayment);
+router.post("/", createVNPayPaymentTest);
 
-router.get("/", paymentReturn); 
+router.get("/return", paymentReturn);
+
+router.get("/vnpay-ipn", vnpayIPN);
 
 export default router;

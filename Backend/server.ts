@@ -77,7 +77,6 @@ app.use("/api/news", newsRoutes);
 app.use("/api/tag-of-news", tagOfNewsRoutes); 
 app.use("/api/create-payment", vnpayRoutes);
 
-
 // Define the port
 const PORT = 3000;
 

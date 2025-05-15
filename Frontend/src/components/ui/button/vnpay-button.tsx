@@ -4,29 +4,29 @@ import React from "react";
 const VNPayButton = ({
     orderId,
     amount,
-    orderInfo,
+    orderDescription,
     bankCode,
-    locale,
+    language,
 }: {
     orderId: string;
     amount: number;
-    orderInfo: string;
+        orderDescription: string;
     bankCode: string;
-    locale: string;
+    language: string;
 }) => {
-    const handlePayment = async () => {
+      const handlePayment = async () => {
         try {
             const response = await fetch("http://localhost:3000/api/create-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ orderId, amount, orderInfo, bankCode, locale }),
+                body: JSON.stringify({ orderId, amount, orderDescription, bankCode, language, orderType: "other" }),
             });
-
-            if (response.redirected) {
+    
+            const data = await response.json();
+            if (data.url) {
                 // Redirect to VNPay payment URL
-                window.location.href = response.url;
+                window.location.href = data.url;
             } else {
-                const data = await response.json();
                 alert(data.message || "Failed to create payment");
             }
         } catch (error) {
@@ -34,7 +34,6 @@ const VNPayButton = ({
             alert("An error occurred. Please try again.");
         }
     };
-
     return (
         <button onClick={handlePayment} className="bg-primary text-white px-4 py-2 rounded">
             Pay with VNPay
