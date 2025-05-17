@@ -18,7 +18,7 @@ export default function Card({
     rating,
 }: CardProps) {
     return (
-        <div className="rounded-xl overflow-hidden bg-transparent hover:shadow-2xl/10  min-w-[15rem] max-w-[300px] w-full border-[.5px] hover:border-none transition-all border-primary/20 border-solid font-sans">
+        <div className="rounded-xl overflow-hidden bg-transparent hover:shadow-2xl/10  min-w-[15rem] w-full border-[.5px] hover:border-none transition-all border-primary/20 border-solid font-sans">
             {/* Image */}
             <Image
                 src={image}

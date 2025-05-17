@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
+import { baseUrl } from "@/lib/base-url";
 
 type TagFormValues = {
   tagName: string;
@@ -23,7 +24,7 @@ export default function AddTagPage() {
 
   // Fetch current tags
   const fetchTags = async () => {
-    const res = await fetch("http://localhost:3000/api/tag");
+    const res = await fetch(`${baseUrl}/api/tag`);
     if (res.ok) {
       const data = await res.json();
       setTags(data);
@@ -36,7 +37,7 @@ export default function AddTagPage() {
 
   const onSubmit = async (data: TagFormValues) => {
     setMessage("");
-    const res = await fetch("http://localhost:3000/api/tag", {
+    const res = await fetch(`${baseUrl}/api/tag`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

@@ -29,7 +29,7 @@ export default function DisplayModeSwitcher({
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md">
+    <div className="flex items-center justify-between bg-white gap-x-4">
       {/* View Toggle Buttons */}
       <div className="flex items-center gap-2">
         <button

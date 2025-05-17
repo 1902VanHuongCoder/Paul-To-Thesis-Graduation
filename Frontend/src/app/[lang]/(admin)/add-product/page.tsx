@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
-
+import { baseUrl } from "@/lib/base-url";
 type ProductFormValues = {
   productName: string;
   productPrice: string;
@@ -15,6 +15,7 @@ type ProductFormValues = {
   subcategoryID: string;
   tagIDs: string[];
   images: FileList;
+  [key: `attribute_${number}`]: number | string | boolean | Date; // Dynamic attributes
 };
 
 type Category = {
@@ -35,6 +36,18 @@ type Tag = {
   tagName: string;
 };
 
+type Attribute = {
+  attributeID: number;
+  name: string;
+  label: string;
+  data_type: string;
+  required: boolean;
+  default_value: string | null;
+  placeholder: string | null;
+  unit: string | null;
+  options: string[] | null;
+};
+
 
 export default function AddProductPage() {
   const methods = useForm<ProductFormValues>();
@@ -46,31 +59,120 @@ export default function AddProductPage() {
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
 
   // Fetch categories, origins, tags on mount
   useEffect(() => {
-    fetch("http://localhost:3000/api/category")
+    fetch(`${baseUrl}/api/category`)
       .then(res => res.json())
       .then(data => setCategories(data || []));
-    fetch("http://localhost:3000/api/origin")
+    fetch(`${baseUrl}/api/origin`)
       .then(res => res.json())
       .then(data => setOrigins(data || []));
-    fetch("http://localhost:3000/api/tag")
+    fetch(`${baseUrl}/api/tag`)
       .then(res => res.json())
       .then(data => setTags(data || []));
   }, []);
 
   // Watch categoryID and fetch subcategories when it changes
-  const selectedCategoryID = watch("categoryID");
+  const selectedCategoryID = watch(`categoryID`);
   useEffect(() => {
     if (selectedCategoryID) {
-      fetch(`http://localhost:3000/api/subcategory?categoryID=${selectedCategoryID}`)
+      fetch(`${baseUrl}/api/subcategory?categoryID=${selectedCategoryID}`)
         .then(res => res.json())
         .then(data => setSubcategories(data || []));
+      // Fetch attributes for this category
+      fetch(`${baseUrl}/api/attribute?categoryID=${selectedCategoryID}`)
+        .then(res => res.json())
+        .then(data => setAttributes(data || []));
     } else {
       setSubcategories([]);
+      setAttributes([]);
     }
   }, [selectedCategoryID]);
+
+  // Handle dynamic attribute fields
+  const renderAttributeField = (attr: Attribute) => {
+    const fieldName = `attribute_${attr.attributeID}`;
+    switch (attr.data_type) {
+      case "string":
+        return (
+          <FormItem key={attr.attributeID}>
+            <FormLabel>{attr.label}{attr.unit ? ` (${attr.unit})` : ""}</FormLabel>
+            <FormControl>
+              <Input
+                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
+                placeholder={attr.placeholder || ""}
+                defaultValue={attr.default_value || ""}
+              />
+            </FormControl>
+            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
+          </FormItem>
+        );
+      case "number":
+        return (
+          <FormItem key={attr.attributeID}>
+            <FormLabel>{attr.label}{attr.unit ? ` (${attr.unit})` : ""}</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                {...register(fieldName as keyof ProductFormValues, { required: attr.required, valueAsNumber: true })}
+                placeholder={attr.placeholder || ""}
+                defaultValue={attr.default_value || ""}
+              />
+            </FormControl>
+            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
+          </FormItem>
+        );
+      case "boolean":
+        return (
+          <FormItem key={attr.attributeID}>
+            <FormLabel>{attr.label}</FormLabel>
+            <FormControl>
+              <input
+                type="checkbox"
+                {...register(fieldName as keyof ProductFormValues)}
+                defaultChecked={attr.default_value === "true"}
+              />
+            </FormControl>
+          </FormItem>
+        );
+      case "date":
+        return (
+          <FormItem key={attr.attributeID}>
+            <FormLabel>{attr.label}</FormLabel>
+            <FormControl>
+              <Input
+                type="date"
+                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
+                defaultValue={attr.default_value || ""}
+              />
+            </FormControl>
+            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
+          </FormItem>
+        );
+      case "select":
+        return (
+          <FormItem key={attr.attributeID}>
+            <FormLabel>{attr.label}</FormLabel>
+            <FormControl>
+              <select
+                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
+                defaultValue={attr.default_value || ""}
+              >
+                <option value="" disabled>Select {attr.label}</option>
+                {attr.options?.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </FormControl>
+            {(errors as never)[fieldName] && <FormMessage>This field is required</FormMessage>}
+          </FormItem>
+        );
+      default:
+        return null;
+    }
+  };
 
   const onSubmit = async (data: ProductFormValues) => {
     setMessage("");
@@ -80,7 +182,7 @@ export default function AddProductPage() {
     if (data.images && data.images.length > 0) {
       const formData = new FormData();
       Array.from(data.images).forEach((file) => formData.append("files", file));
-      const uploadRes = await fetch("http://localhost:3000/api/upload/multiple", {
+      const uploadRes = await fetch(`${baseUrl}/api/upload/multiple`, {
         method: "POST",
         body: formData,
       });
@@ -88,8 +190,16 @@ export default function AddProductPage() {
       uploadedImages = (uploadData.files as { url: string }[])?.map((f) => f.url) || [];
     }
 
-    // 2. Submit product
-    const res = await fetch("http://localhost:3000/api/product", {
+    // 2. Collect dynamic attribute values
+    
+    const attributesPayload = attributes.map(attr => (
+      {
+      attributeID: attr.attributeID,
+      value: data["attribute_" + attr.attributeID as keyof ProductFormValues]
+    }));
+
+    // 3. Submit product
+    const res = await fetch(`${baseUrl}/api/product`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -98,7 +208,17 @@ export default function AddProductPage() {
         quantityAvailable: parseInt(data.quantityAvailable, 10),
         tagIDs: data.tagIDs,
         images: uploadedImages,
+        attributes: attributesPayload,
       }),
+    });
+
+    console.log({
+      ...data,
+      productPrice: parseFloat(data.productPrice),
+      quantityAvailable: parseInt(data.quantityAvailable, 10),
+      tagIDs: data.tagIDs,
+      images: uploadedImages,
+      attributes: attributesPayload,
     });
     if (res.ok) {
       setMessage("Product added successfully!");
@@ -107,6 +227,7 @@ export default function AddProductPage() {
       setMessage("Failed to add product.");
     }
   };
+
 
   return (
     <main className="max-w-xl mx-auto p-6">
@@ -172,7 +293,7 @@ export default function AddProductPage() {
             <FormLabel>Tags</FormLabel>
             <FormControl>
               <select multiple {...register("tagIDs")}>
-                {tags.map((tag) => (
+                {tags.length > 0 && tags.map((tag) => (
                   <option key={tag.tagID} value={tag.tagID}>{tag.tagName}</option>
                 ))}
               </select>
@@ -184,8 +305,16 @@ export default function AddProductPage() {
               <Input type="file" multiple {...register("images")} />
             </FormControl>
           </FormItem>
-          <Button type="submit" className="mt-4">Add Product</Button>
+
           {message && <FormMessage className="mt-2">{message}</FormMessage>}
+          {attributes.length > 0 && (
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-2">Product Specifics</h2>
+              {attributes.map((item) => (
+                renderAttributeField(item)
+              ))}
+            </div>
+          )}<Button type="submit" className="mt-4">Add Product</Button>
         </form>
       </FormProvider>
     </main>

@@ -7,9 +7,20 @@ export const getAllSubCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const subCategories = await SubCategory.findAll({
+    let subCategories;
+    if(req.query.categoryID){
+      const categoryID = req.query.categoryID as string;
+      subCategories = await SubCategory.findAll({
+        where: {
+          categoryID
+        }, 
+        include: [Category], // Include the associated Category
+      })
+    }else{
+       subCategories = await SubCategory.findAll({
       include: [Category], // Include the associated Category
     });
+    }
     res.status(200).json(subCategories);
   } catch (error) {
     console.error("Error fetching subcategories:", error);

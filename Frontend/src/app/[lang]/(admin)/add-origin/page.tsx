@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
+import { baseUrl } from "@/lib/base-url";
 
 type OriginFormValues = {
   originName: string;
@@ -15,7 +16,7 @@ export default function AddOriginPage() {
 
   const onSubmit = async (data: OriginFormValues) => {
     setMessage("");
-    const res = await fetch("http://localhost:3000/api/origin", {
+    const res = await fetch(`${baseUrl}/api/origin`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

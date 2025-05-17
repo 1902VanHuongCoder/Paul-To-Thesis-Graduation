@@ -16,7 +16,7 @@ export default function TagFilter({ tags, onTagSelect }: TagFilterProps) {
       </div>
 
       {/* Tags List */}
-      <div className="p-4 grid grid-cols-3 gap-2">
+      <div className="p-4 flex flex-wrap gap-2">
         {tags.map((tag) => (
           <button
             key={tag}

@@ -26,7 +26,7 @@ const app = express();
 
 // Enable CORS
 app.use(cors({
-  origin: "http://localhost:3001", // Allow requests from this origin
+  origin: "http://localhost:3000", // Allow requests from this origin
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
 }));
@@ -78,7 +78,7 @@ app.use("/api/tag-of-news", tagOfNewsRoutes);
 app.use("/api/create-payment", vnpayRoutes);
 
 // Define the port
-const PORT = 3000;
+const PORT = 3001;
 
 // Start the server
 app.listen(PORT, () => {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
+import { baseUrl } from "@/lib/base-url";
 
 type CategoryFormValues = {
   categoryName: string;
@@ -15,7 +16,7 @@ export default function AddCategoryPage() {
 
   const onSubmit = async (data: CategoryFormValues) => {
     setMessage("");
-    const res = await fetch("http://localhost:3000/api/category", {
+    const res = await fetch(`${baseUrl}/api/category`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

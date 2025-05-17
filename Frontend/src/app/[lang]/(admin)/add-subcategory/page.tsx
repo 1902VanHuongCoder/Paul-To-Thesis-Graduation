@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
+import { baseUrl } from "@/lib/base-url";
 
 type SubCategoryFormValues = {
   subcategoryName: string;
@@ -21,14 +22,14 @@ export default function AddSubCategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/category")
+    fetch(`${baseUrl}/api/category`)
       .then(res => res.json())
       .then(data => setCategories(data || []));
   }, []);
 
   const onSubmit = async (data: SubCategoryFormValues) => {
     setMessage("");
-    const res = await fetch("http://localhost:3000/api/subcategory", {
+    const res = await fetch(`${baseUrl}/api/subcategory`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
