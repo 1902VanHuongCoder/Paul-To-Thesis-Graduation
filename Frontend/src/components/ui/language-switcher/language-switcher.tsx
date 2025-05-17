@@ -2,7 +2,9 @@
 
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface LanguageOption {
   code: string;
@@ -24,16 +26,23 @@ const languages: LanguageOption[] = [
 ];
 
 export default function LanguageSwitcher() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Get current language from the first segment of the path
+  const currentLang = pathname.split("/")[1] || "en";
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
-    languages[0]
-  );
+
+  const selectedLanguage =
+    languages.find((lang) => lang.code === currentLang) || languages[0];
 
   const handleLanguageChange = (language: LanguageOption) => {
-    setSelectedLanguage(language);
     setIsOpen(false);
-    // Add your language change logic here, e.g., redirecting to a different URL
-    window.location.href = `/${language.code}`;
+    // Replace the first segment (lang) with the new language code
+    const segments = pathname.split("/");
+    segments[1] = language.code;
+    const newPath = segments.join("/") || "/";
+    router.push(newPath);
   };
   return (
     <div className="relative w-full max-w-xs">
