@@ -1,13 +1,36 @@
 import express from "express";
+import cors from "cors"; // Import CORS middleware
 import bodyParser from "body-parser";
 import sequelize from "./configs/mysql-database-connect";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
-import uploadRoutes from "./routes/uploadRoutes"; // Assuming you have an upload route
+import uploadRoutes from "./routes/uploadRoutes"; 
+import productRoutes from "./routes/productRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+import subCategoryRoutes from "./routes/subCategoryRoutes"; 
+import tagRoutes from "./routes/tagRoutes";
+import originRoutes from "./routes/originRoutes"; 
+import productAttributeRoutes from "./routes/productAttributeRoutes";
+import attributeRoutes from "./routes/attributeRoutes"; 
+import inventoryRoutes from "./routes/inventoryRoutes"; 
+import inventoryTransactionRoutes from "./routes/inventoryTransactionRoutes"; 
+import locationRoutes from "./routes/locationRoutes";
+import orderRoutes from "./routes/orderRoutes";
+import shoppingCartRoutes from "./routes/shoppingCartRoutes";
+import commentRoutes from "./routes/commentRoutes";
+import newsRoutes from "./routes/newsRoutes";
+import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
+import vnpayRoutes from "./routes/vnpayRoutes";
 
 const app = express();
 
-// Connect to MySQL
+// Enable CORS
+app.use(cors({
+  origin: "http://localhost:3001", // Allow requests from this origin
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+}));
+
 // Connect to MySQL and Sync DB
 sequelize
   .authenticate()
@@ -22,19 +45,37 @@ sequelize
     console.error("❌ DB Connection Error:", err);
   });
 
-// Middleware
-app.use(express.json());
+// Middleware to parse JSON request bodies
+app.use(express.json()); // Built-in middleware for JSON parsing
 
-// Middleware to parse form data
-app.use(express.urlencoded({ extended: true }));
+// If using body-parser (optional)
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Middleware to parse raw body (e.g. binary data)
 app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
 
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/upload", uploadRoutes); // Assuming you have an upload route")
+app.use("/api/upload", uploadRoutes);
+app.use("/api/product",productRoutes);
+app.use("/api/category", categoryRoutes);  
+app.use("/api/subcategory", subCategoryRoutes); 
+app.use("/api/tag", tagRoutes);
+app.use("/api/attribute", attributeRoutes); 
+app.use("/api/origin", originRoutes); 
+app.use("/api/inventory", inventoryRoutes); 
+app.use("/api/location", locationRoutes); 
+app.use("/api/order", orderRoutes);
+app.use("/api/shopping-cart", shoppingCartRoutes);
+app.use("/api/comment", commentRoutes);
+app.use("/api/inventory-transaction", inventoryTransactionRoutes);
+app.use("/api/product-attributes",productAttributeRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/tag-of-news", tagOfNewsRoutes); 
+app.use("/api/create-payment", vnpayRoutes);
 
 // Define the port
 const PORT = 3000;
@@ -45,4 +86,3 @@ app.listen(PORT, () => {
 });
 
 export default app;
-// Export the app for testing purposes

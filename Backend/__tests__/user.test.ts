@@ -1,9 +1,9 @@
 import request from "supertest";
 import app from "../server"; // Assuming your Express app is exported from app.ts
-import User from "../models/User";
+import { User } from "../models";
 import bcrypt from "bcryptjs";
 
-jest.mock("../models/User");
+jest.mock("../models");
 jest.mock("bcryptjs");
 
 describe("User Controller", () => {

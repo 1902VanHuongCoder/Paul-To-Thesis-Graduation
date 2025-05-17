@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
-import User from "../models/User";
+import  { User }  from "../models";
 import { generateToken } from "../utils/generateToken";
 import bcrypt from "bcryptjs";
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
+
+  console.log("Request body",req.body); // Log the request body for debugging
+
+
   const { email, password } = req.body; // Extract email and password from the request body
 
   try {
