@@ -9,7 +9,7 @@ import Button from "../button/button-brand";
 
 export default function SearchForm() {
     return (
-        <Drawer direction="top">
+        <Drawer direction="top" defaultOpen={false}>
             {/* Trigger Button */}
             <DrawerTrigger className="flex items-center justify-center rounded-full hover:bg-secondary transition-all duration-200 ease-in-out cursor-pointer">
                 <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20">

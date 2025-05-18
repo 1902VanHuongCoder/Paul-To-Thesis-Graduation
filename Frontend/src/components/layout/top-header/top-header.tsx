@@ -1,10 +1,12 @@
 import React from "react";
-export default function TopHeader() {
+import { dictionaries } from '@/lib/dictionaries'; // Adjust this path as needed
+export default async function TopHeader({ params }: { params: { lang: 'en' | 'vi' } }) {
+    const t = await dictionaries[params.lang](); // ✅ correct usage
     return (
         <div className="hidden sm:flex bg-primary text-white py-4 px-6 items-center justify-between font-sans text-sm w-full">
             {/* Left Section */}
             <div className="flex items-center max-w-[300px] py-2 rounded-lg capitalize bg-white/10 px-4 font-normal">
-                <span>Chào mừng đến với NFeamHouse</span>
+                <span>{t.topHeaderTitle}</span>
             </div>
 
             <div className="flex items-center gap-x-8">
@@ -13,18 +15,20 @@ export default function TopHeader() {
                     {/* Phone */}
                     <div className="flex items-center gap-2">
                         <span className="p-2 bg-secondary rounded-full"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 26 26"><path fill="#0D401C" d="M22.386 18.026c-1.548-1.324-3.119-2.126-4.648-.804l-.913.799c-.668.58-1.91 3.29-6.712-2.234c-4.801-5.517-1.944-6.376-1.275-6.951l.918-.8c1.521-1.325.947-2.993-.15-4.71l-.662-1.04C7.842.573 6.642-.552 5.117.771l-.824.72c-.674.491-2.558 2.087-3.015 5.119c-.55 3.638 1.185 7.804 5.16 12.375c3.97 4.573 7.857 6.87 11.539 6.83c3.06-.033 4.908-1.675 5.486-2.272l.827-.721c1.521-1.322.576-2.668-.973-3.995l-.931-.801z" /></svg></span>
-                        <span>+1 234 567 890</span>
+                        <span>+84 334745378</span>
                     </div>
 
                     {/* Email */}
                     <div className="flex items-center gap-2">
-                        <span className="p-2 bg-secondary rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#0D401C" d="M17.25 2.75H6.75A4.75 4.75 0 0 0 2 7.5v9a4.75 4.75 0 0 0 4.75 4.75h10.5A4.76 4.76 0 0 0 22 16.5v-9a4.76 4.76 0 0 0-4.75-4.75m-3.65 8.32a3.26 3.26 0 0 1-3.23 0L3.52 7.14a3.25 3.25 0 0 1 3.23-2.89h10.5a3.26 3.26 0 0 1 3.23 2.89z" /></svg></span>          <span>info@example.com</span>
+                        <span className="p-2 bg-secondary rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#0D401C" d="M17.25 2.75H6.75A4.75 4.75 0 0 0 2 7.5v9a4.75 4.75 0 0 0 4.75 4.75h10.5A4.76 4.76 0 0 0 22 16.5v-9a4.76 4.76 0 0 0-4.75-4.75m-3.65 8.32a3.26 3.26 0 0 1-3.23 0L3.52 7.14a3.25 3.25 0 0 1 3.23-2.89h10.5a3.26 3.26 0 0 1 3.23 2.89z" /></svg></span>          
+                        <span>nfeamhouse@gmail.com</span>
                     </div>
 
                     {/* Location */}
                     <div className="flex items-center gap-2">
                         <span className="p-2 bg-secondary rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20"><path fill="#0D401C" d="M10 20S3 10.87 3 7a7 7 0 1 1 14 0c0 3.87-7 13-7 13zm0-11a2 2 0 1 0 0-4a2 2 0 0 0 0 4z" /></svg></span>          <span>123 Main St, City, Country</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20"><path fill="#0D401C" d="M10 20S3 10.87 3 7a7 7 0 1 1 14 0c0 3.87-7 13-7 13zm0-11a2 2 0 1 0 0-4a2 2 0 0 0 0 4z" /></svg></span>          
+                            <span>{t.topHeaderAddress}</span>
                     </div>
                 </div>
 

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { SubCategory ,Product, Category } from "../models";
+import generateSlug from "../utils/createSlug";
 
 
 // GET all categories
@@ -38,10 +39,18 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
 
 // POST a new category
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
-  const { categoryName, categoryID, createdAt, updatedAt } = req.body;
+  const { categoryName, categoryID, categoryDescription, createdAt, updatedAt } = req.body;
 
   try {
-    const newCategory = await Category.create({ categoryName,categoryID, createdAt, updatedAt });
+    const categorySlug = generateSlug(categoryName);
+    const newCategory = await Category.create({
+      categoryName,
+      categoryID,
+      categoryDescription,
+      categorySlug,
+      createdAt,
+      updatedAt
+    });
     res.status(201).json(newCategory);
   } catch (error) {
     console.error("Error creating category:", error);

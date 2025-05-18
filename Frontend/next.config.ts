@@ -11,15 +11,18 @@ const nextConfig: NextConfig = {
       "shadcnblocks.com",
     ],
   },
+  // next.config.ts
   async redirects() {
     return [
+      { source: "/", destination: "/vi/homepage", permanent: false },
+      // Only redirect if NOT starting with /vi or /en
       {
-        source: "/((?!vi|en).*)", // Match all routes that do not start with /vi or /en
-        destination: "/vi/homepage", // Redirect to /vi and preserve the path
-        permanent: false, // Temporary redirect
+        source: "/((?!vi|en).*)",
+        destination: "/vi/$1",
+        permanent: false,
       },
     ];
-  },
+  }
 };
 
 export default nextConfig;

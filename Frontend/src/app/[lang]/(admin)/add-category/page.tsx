@@ -8,6 +8,7 @@ import { baseUrl } from "@/lib/base-url";
 
 type CategoryFormValues = {
   categoryName: string;
+  categoryDescription?: string; // Add this line
 };
 
 export default function AddCategoryPage() {
@@ -15,6 +16,7 @@ export default function AddCategoryPage() {
   const [message, setMessage] = useState("");
 
   const onSubmit = async (data: CategoryFormValues) => {
+    console.log("Form data:", data);
     setMessage("");
     const res = await fetch(`${baseUrl}/api/category`, {
       method: "POST",
@@ -39,6 +41,10 @@ export default function AddCategoryPage() {
           {errors.categoryName && (
             <div className="text-red-500 text-sm mt-1">Category name is required</div>
           )}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Category Description</label>
+          <Input {...register("categoryDescription")} />
         </div>
         <Button type="submit" className="mt-4">Add Category</Button>
         {message && <div className="mt-2 text-green-600">{message}</div>}

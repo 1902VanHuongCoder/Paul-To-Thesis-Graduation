@@ -30,6 +30,7 @@ export { default as PromoCodeInput } from './ui/input/promo-code-input';
 export { default as LanguageSwitcher } from './ui/language-switcher/language-switcher';
 export { default as ChatBot } from './section/chatbot/chatbot';
 export { default as NewsItem } from './ui/news-item/news-item';
+export { default as TypewriterText } from './ui/typewriter-text/typewriter-text';
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     NavigationMenu,
     NavigationMenuList,
@@ -7,6 +7,7 @@ import {
     NavigationMenuTrigger,
     NavigationMenuContent,
     NavigationMenuLink,
+    navigationMenuTriggerStyle,
 } from "./navigation-menu-shadcn";
 import Image from "next/image";
 import darkLogo from "@public/images/dark+logo.png";
@@ -18,7 +19,7 @@ import ShoppingCart from "../shopping-cart/shopping-cart";
 import WishlistDialog from "../dialog/wishlist-dialog";
 import MobileDrawer from "../drawer/mobile-drawer";
 import LanguageSwitcher from "../language-switcher/language-switcher";
-
+import { baseUrl } from "@/lib/base-url";
 const ListItem = React.forwardRef<
     React.ElementRef<"a">,
     React.ComponentPropsWithoutRef<"a">
@@ -45,46 +46,15 @@ const ListItem = React.forwardRef<
 })
 ListItem.displayName = "ListItem"
 
+interface Category {
+    categoryID: number;
+    categoryName: string;
+    categoryDescription?: string;
+    categorySlug: string;
+  }
 
-
-export default function Navigation() {
-    const components: { title: string; href: string; description: string }[] = [
-        {
-            title: "Alert Dialog",
-            href: "/docs/primitives/alert-dialog",
-            description:
-                "A modal dialog that interrupts the user with important content and expects a response.",
-        },
-        {
-            title: "Hover Card",
-            href: "/docs/primitives/hover-card",
-            description:
-                "For sighted users to preview content available behind a link.",
-        },
-        {
-            title: "Progress",
-            href: "/docs/primitives/progress",
-            description:
-                "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
-        },
-        {
-            title: "Scroll-area",
-            href: "/docs/primitives/scroll-area",
-            description: "Visually or semantically separates content.",
-        },
-        {
-            title: "Tabs",
-            href: "/docs/primitives/tabs",
-            description:
-                "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
-        },
-        {
-            title: "Tooltip",
-            href: "/docs/primitives/tooltip",
-            description:
-                "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
-        },
-    ]
+export default function Navigation({ params }: { params: { lang: string } }) {
+    const [categories, setCategories] = useState<Category[]>([]);
 
     // Template data for WishlistDialog
     const wishlistItems = [
@@ -120,100 +90,65 @@ export default function Navigation() {
         console.log("Add to cart:", id);
     };
 
+    useEffect(() => {
+        fetch(`${baseUrl}/api/category`)
+            .then((res) => res.json())
+            .then((data) => {
+                setCategories(data);
+                console.log("Categories:", data);
+            });
+    }, []);
+
     return (
         <div className="relative w-full h-fit bg-white">
-            <div className="absolute -bottom-7 left-0 w-full h-auto z-1">
+            <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
                 <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" />
             </div>
-            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 py-0 md:py-4">
+            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:py-4">
                 <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
                         {/* Home */}
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="text-lg font-semibold">Trang chủ</NavigationMenuTrigger>
+                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                                Trang chủ
+                            </Link>
+                        </NavigationMenuItem>
+
+                        {/* Categories Dropdown */}
+                        <NavigationMenuItem>
+                            <NavigationMenuTrigger className="text-lg font-semibold">Danh mục</NavigationMenuTrigger>
                             <NavigationMenuContent>
-                                <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                    <li className="row-span-3">
-                                        <NavigationMenuLink asChild className="active:bg-primary/50">
-                                            <Link
-                                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                                href="/"
+                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                    {categories.map((category) => (
+                                        <li key={category.categoryID}>
+                                            <a
+                                                href={`/category/${category.categorySlug}`}
+                                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             >
-                                                {/* <Icons.logo className="h-6 w-6" /> */}
-                                                <div className="mb-2 mt-4 text-lg font-medium">
-                                                    shadcn/ui
-                                                </div>
-                                                <p className="text-sm leading-tight text-muted-foreground">
-                                                    Beautifully designed components built with Radix UI and
-                                                    Tailwind CSS.
+                                                <div className="text-sm font-medium leading-none">{category.categoryName}</div>
+                                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                    {category.categoryDescription}
                                                 </p>
-                                            </Link>
-                                        </NavigationMenuLink>
-                                    </li>
-                                    <ListItem href="/docs" title="Introduction">
-                                        Re-usable components built using Radix UI and Tailwind CSS.
-                                    </ListItem>
-                                    <ListItem href="/docs/installation" title="Installation">
-                                        How to install dependencies and structure your app.
-                                    </ListItem>
-                                    <ListItem href="/docs/primitives/typography" title="Typography">
-                                        Styles for headings, paragraphs, lists...etc
-                                    </ListItem>
-                                </ul>
-                            </NavigationMenuContent>
-                        </NavigationMenuItem>
-
-                        {/* About */}
-                        <NavigationMenuItem className="">
-                            <NavigationMenuTrigger className="text-lg font-semibold">Thuốc trừ sâu</NavigationMenuTrigger>
-                            <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                    {components.map((component) => (
-                                        <ListItem
-                                            key={component.title}
-                                            title={component.title}
-                                            href={component.href}
-                                        >
-                                            {component.description}
-                                        </ListItem>
+                                            </a>
+                                        </li>
                                     ))}
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
 
-                        <NavigationMenuItem className="">
-                            <NavigationMenuTrigger className="text-lg font-semibold">Phân bón</NavigationMenuTrigger>
-                            <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                    {components.map((component) => (
-                                        <ListItem
-                                            key={component.title}
-                                            title={component.title}
-                                            href={component.href}
-                                        >
-                                            {component.description}
-                                        </ListItem>
-                                    ))}
-                                </ul>
-                            </NavigationMenuContent>
+                        {/* News */}
+                        <NavigationMenuItem>
+                            <Link href={`/vi/news`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                                Tin tức
+                            </Link>
                         </NavigationMenuItem>
+
                         {/* Contact */}
-                        <NavigationMenuItem className="">
-                            <NavigationMenuTrigger className="text-lg font-semibold">Dụng cụ</NavigationMenuTrigger>
-                            <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                    {components.map((component) => (
-                                        <ListItem
-                                            key={component.title}
-                                            title={component.title}
-                                            href={component.href}
-                                        >
-                                            {component.description}
-                                        </ListItem>
-                                    ))}
-                                </ul>
-                            </NavigationMenuContent>
+                        <NavigationMenuItem>
+                            <Link href={`/vi/contact`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                                Liên hệ
+                            </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>

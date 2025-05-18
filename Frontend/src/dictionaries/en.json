@@ -2,5 +2,7 @@
   "title": "Welcome to our website!",
   "description": "This is the English version of the website.",
   "topabout" : "About Us",
-  "bottomabout" : "Bottom about"
+  "bottomabout" : "Bottom about",
+  "topHeaderTitle": "Welcome to NFeam House!",
+  "topHeaderAddress": "30/04, Hưng Lợi Ward, Ninh Kiều District, Cần Thơ"
 }
