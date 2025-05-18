@@ -1,7 +1,7 @@
 import React from "react";
 export default function TopHeader() {
     return (
-        <div className="hidden sm:flex bg-primary text-white py-4 px-8 items-center justify-between font-sans text-sm w-full">
+        <div className="hidden sm:flex bg-primary text-white py-4 px-6 items-center justify-between font-sans text-sm w-full">
             {/* Left Section */}
             <div className="flex items-center max-w-[300px] py-2 rounded-lg capitalize bg-white/10 px-4 font-normal">
                 <span>Chào mừng đến với NFeamHouse</span>

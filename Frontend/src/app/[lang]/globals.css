@@ -127,3 +127,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add this to your global CSS or a module */
+.filter-kit-transition {
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}

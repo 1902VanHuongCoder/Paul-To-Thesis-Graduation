@@ -26,7 +26,7 @@ interface Logos3Props {
 }
 
 const ParterCarousel = ({
-    heading = "Trusted by these companies",
+    heading = "Sự đồng hành của các thương hiệu uy tín",
     logos = [
         {
             id: "logo-1",
@@ -79,13 +79,13 @@ const ParterCarousel = ({
     ],
 }: Logos3Props) => {
     return (
-        <section className="py-32">
-            <div className="container flex flex-col items-center text-center">
-                <h1 className="my-6 text-pretty text-2xl font-bold lg:text-4xl">
+        <section className="py-20 w-full font-sans border-t-2 border-primary/10">
+            <div className="flex flex-col items-center text-center w-full px-6">
+                <h1 className="my-6 text-pretty text-2xl font-bold lg:text-4xl">    
                     {heading}
                 </h1>
             </div>
-            <div className="pt-10 md:pt-16 lg:pt-20">
+            <div className="pt-10 md:pt-16">
                 <div className="relative mx-auto flex items-center justify-center lg:max-w-5xl">
                     <Carousel
                         opts={{ loop: true }}

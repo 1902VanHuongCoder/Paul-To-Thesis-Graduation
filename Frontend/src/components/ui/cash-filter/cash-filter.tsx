@@ -30,10 +30,10 @@ export default function CashFilter({
   };
 
   return (
-    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden border-1 border-gray-300 ">
       {/* Header Section */}
       <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        Filter by Price
+        Lọc theo giá
       </div>
 
       {/* Slider Section */}

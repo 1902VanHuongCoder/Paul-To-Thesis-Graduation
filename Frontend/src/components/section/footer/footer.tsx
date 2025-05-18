@@ -6,7 +6,7 @@ import grazzvector from "@public/vectors/Grazz+vector.png";
 function Footerdemo() {
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans">
-            <div className="absolute -top-1 md:-top-4 overflow-hidden w-full">
+            <div className="absolute -top-1 md:-top-3 overflow-hidden w-full">
                 <Image src={grazzvector} alt="Grazz Vector" className="w-full h-full object-contain" /> 
             </div>
             <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">

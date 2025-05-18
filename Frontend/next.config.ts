@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       "img.freepik.com",
       "cdn-icons-png.freepik.com",
       "www.congtyhai.com",
+      "shadcnblocks.com",
     ],
   },
   async redirects() {

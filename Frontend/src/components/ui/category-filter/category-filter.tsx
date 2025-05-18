@@ -17,10 +17,10 @@ export default function CategoryFilter({
   onCategorySelect,
 }: CategoryFilterProps) {
   return (
-    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full max-w-sm rounded-lg shadow-md overflow-hidden border-1 border-gray-300 bg-white">
       {/* Header Section */}
       <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        Categories
+        Danh mục sản phẩm
       </div>
 
       {/* Category List */}

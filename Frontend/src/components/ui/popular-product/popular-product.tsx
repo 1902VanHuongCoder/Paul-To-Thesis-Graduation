@@ -17,10 +17,10 @@ interface PopularProductProps {
 
 export default function PopularProduct({ products }: PopularProductProps) {
   return (
-    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden font-sans">
+    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden font-sans border-1 border-gray-300 h-fit">
       {/* Header Section */}
       <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        Popular Products
+        Sản phẩm phổ biến
       </div>
 
       {/* Product Listing Section */}

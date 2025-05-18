@@ -11,13 +11,13 @@ import {
 import Image from "next/image";
 import darkLogo from "@public/images/dark+logo.png";
 import vector02 from "@public/vectors/Vector+02.png";
-import Button from "../button/button-brand";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import SearchForm from "../search-form/search-form";
 import ShoppingCart from "../shopping-cart/shopping-cart";
 import WishlistDialog from "../dialog/wishlist-dialog";
 import MobileDrawer from "../drawer/mobile-drawer";
+import LanguageSwitcher from "../language-switcher/language-switcher";
 
 const ListItem = React.forwardRef<
     React.ElementRef<"a">,
@@ -125,8 +125,8 @@ export default function Navigation() {
             <div className="absolute -bottom-7 left-0 w-full h-auto z-1">
                 <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" />
             </div>
-            <div className="relative z-2 flex items-center justify-between bg-white font-sans text-primary px-4 md:px-8 py-0 md:py-4 translate-y-1">
-                <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-4" />
+            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 py-0 md:py-4">
+                <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
                         {/* Home */}
@@ -217,8 +217,9 @@ export default function Navigation() {
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>
-                <div className="items-center flex md:gap-x-4">
-                    <div className="hidden md:block"><Button size="sm">Tìm hiểu ngay!</Button></div>
+                <div className="items-center flex gap-x-4 w-full justify-center md:justify-end">
+                    {/* <div className="hidden md:block"><Button size="sm">Tìm hiểu ngay!</Button></div> */}
+                    <LanguageSwitcher />
                     <div className="flex items-center gap-x-2">
                         {/* <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M8.195 0c4.527 0 8.196 3.62 8.196 8.084a7.989 7.989 0 0 1-1.977 5.267l5.388 5.473a.686.686 0 0 1-.015.98a.71.71 0 0 1-.993-.014l-5.383-5.47a8.23 8.23 0 0 1-5.216 1.849C3.67 16.169 0 12.549 0 8.084C0 3.62 3.67 0 8.195 0Zm0 1.386c-3.75 0-6.79 2.999-6.79 6.698c0 3.7 3.04 6.699 6.79 6.699s6.791-3 6.791-6.699c0-3.7-3.04-6.698-6.79-6.698Z" /></svg>
@@ -236,7 +237,6 @@ export default function Navigation() {
                     {/* <div className="p-2 rounded-full bg-transparent md:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 1024 1024"><path fill="currentColor" d="M27 193.6c-8.2-8.2-12.2-18.6-12.2-31.2s4-23 12.2-31.2S45.6 119 58.2 119h912.4c12.6 0 23 4 31.2 12.2s12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2zm974.8 285.2c8.2 8.2 12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2S14.8 522.6 14.8 510s4-23 12.2-31.2s18.6-12.2 31.2-12.2h912.4c12.6 0 23 4 31.2 12.2zm0 347.4c8.2 8.2 12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2S14.8 870 14.8 857.4s4-23 12.2-31.2S45.6 814 58.2 814h912.4c12.6 0 23 4.2 31.2 12.2z" /></svg>                </div> */}
                 </div>
-
             </div>
         </div>
 

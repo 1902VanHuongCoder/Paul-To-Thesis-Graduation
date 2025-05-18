@@ -45,7 +45,7 @@ export default function LanguageSwitcher() {
     router.push(newPath);
   };
   return (
-    <div className="relative w-full max-w-xs">
+    <div className="relative md:w-fit max-w-xs">
 
       {/* Dropdown Container */}
       <div
@@ -53,8 +53,8 @@ export default function LanguageSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
       >
         {/* Selected Language */}
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-2 pr-2">
             <Image
               src={selectedLanguage.flag}
               alt={`${selectedLanguage.name} flag`}
@@ -62,19 +62,19 @@ export default function LanguageSwitcher() {
               width={24}
               height={24}
             />
-            <span>{selectedLanguage.name}</span>
+            <span className="md:block hidden">{selectedLanguage.name}</span>
           </div>
           <ChevronDown />
         </div>
 
         {/* Dropdown Options */}
         {isOpen && (
-          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+          <ul className="absolute z-10 mt-1 w-fit bg-white border border-gray-300 rounded-lg shadow-lg py-2">
             {languages.map((language) => (
               <li
                 key={language.code}
                 onClick={() => handleLanguageChange(language)}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer pr-12"
               >
                 <Image
                   src={language.flag}

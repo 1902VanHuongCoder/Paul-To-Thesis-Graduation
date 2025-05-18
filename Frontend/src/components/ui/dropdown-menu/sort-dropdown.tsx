@@ -34,7 +34,7 @@ export default function SortDropdown({
         <DropdownMenu>
             {/* Trigger Button */}
             <DropdownMenuTrigger
-                className="group relative font-sans bg-secondary border-[1px] overflow-hidden border-gray-200 text-black font-normal text-md px-6 py-3 rounded-full flex items-center gap-2 focus:outline-none"
+                className="group relative font-sans bg-secondary border-[1px] overflow-hidden border-gray-200 text-black font-normal text-md px-4 py-2 rounded-full flex items-center gap-2 focus:outline-none"
                 aria-label="Sort options"
             >
                 <span className="text-lg relative z-2 text-primary">{selectedOption}</span>

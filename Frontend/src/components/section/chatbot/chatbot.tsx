@@ -70,7 +70,7 @@ export default function ChatBot() {
     }
 
     return (
-        <div className="h-[600px] relative">
+        <div className="h-auto relative z-110">
             <ExpandableChat
                 size="lg"
                 position="bottom-right"

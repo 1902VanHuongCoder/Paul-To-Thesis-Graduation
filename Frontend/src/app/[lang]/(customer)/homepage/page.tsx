@@ -1,5 +1,5 @@
 "use client";
-import { Card, CashFilter, CategoryFilter, CustomPagination, DisplayModeSwitcher, Footer, IconButton, PopularProduct, SortDropdown, TagFilter, ToTopButton, WishlistDialog } from "@/components";
+import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Footer, IconButton, ParterCarousel, PopularProduct, SortDropdown, TagFilter, ToTopButton, WishlistDialog } from "@/components";
 import { Funnel } from "lucide-react";
 import React from "react";
 
@@ -93,39 +93,55 @@ const Homepage = () => {
     ];
     return (
         <div className="relative mx-auto">
-            <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 py-10 transition-all">
+            <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:py-10 transition-all">
                 {/* Sidebar */}
-                <div className={`col-start-1 col-end-2 w-full max-w-full md:flex flex-col gap-y-6 md:h-fit ${showFilterKit ? "h-fit" : "h-0"} md:block origin-top overflow-hidden transition-all duration-300`}>
+                <div className={`col-start-1 col-end-2 w-full max-w-full flex flex-col gap-y-6 md:max-h-fit  filter-kit-transition  ${showFilterKit ? "max-h-[1600px]" : "max-h-0"}
+    ${showFilterKit ? "h-fit" : ""}
+     origin-top overflow-hidden transition-all duration-300 px-1`}>
                     <CategoryFilter categories={sampleCategories} />
                     <CashFilter />
                     <PopularProduct products={sampleProducts} />
                     <TagFilter tags={sampleTags} />
+                    <Button
+                        variant="normal"
+                        className="w-full mt-4 flex items-center justify-center gap-x-2"
+                        onClick={() => {
+                            setShowFilterKit(false);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                    >
+                        Thực hiện lọc
+                    </Button>
                 </div>
-
                 {/* Divider */}
-                <div className="col-start-2 col-end-3 bg-white w-[1px] h-full md:block hidden" />
+                <div className="col-start-2 col-end-3 bg-[#eee9e9] w-[1px] h-full md:block hidden" />
 
                 {/* Main content */}
-                <div className="col-start-3 col-end-4 w-full mt-10 md:mt-0">
-                    <div className="flex items-start md:items-center md:justify-between mb-4 md:flex-row gap-y-6 flex-col-reverse">
-                        <DisplayModeSwitcher {...displayModeProps} />
-                        <div className="flex items-center md:justify-end justify-between w-full">
-                            <SortDropdown options={sortOptions} defaultOption="Mặc định" onSortChange={(option) => { /* handle sort */ }} />
-                            <IconButton className="md:hidden border-2 border-solid border-primary/10 hover:bg-secondary" iconColor="#0D401C"  icon={Funnel} onClick={() => { setShowFilterKit(!showFilterKit) }} />
+                <div className="col-start-3 col-end-4 w-full mt-10 md:mt-0 md:pl-1 flex flex-col justify-between gap-y-10">
+                    <div>
+                        <div className="flex items-start md:items-center md:justify-between mb-4 md:flex-row gap-y-6 flex-col-reverse">
+                            <DisplayModeSwitcher {...displayModeProps} />
+                            <div className="flex items-center md:justify-end justify-between w-full md:w-fit">
+                                <SortDropdown options={sortOptions} defaultOption="Mặc định" onSortChange={(option) => { /* handle sort */ }} />
+                                <IconButton className="md:hidden border-2 border-solid border-primary/10 hover:bg-secondary" iconColor="#0D401C" icon={Funnel} onClick={() => {
+                                    setShowFilterKit(!showFilterKit);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                }} />
+                            </div>
                         </div>
-                    </div>
-            
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-                        {sampleProducts.map((product) => (
-                            <Card
-                                key={product.id}
-                                image={product.image}
-                                title={product.title}
-                                discountPrice={product.price}
-                                price={product.price}
-                                rating={product.rating}
-                            />
-                        ))}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+                            {sampleProducts.map((product) => (
+                                <Card
+                                    key={product.id}
+                                    image={product.image}
+                                    title={product.title}
+                                    discountPrice={product.price}
+                                    price={product.price}
+                                    rating={product.rating}
+                                />
+                            ))}
+                        </div>
                     </div>
                     <CustomPagination
                         totalPages={5}
@@ -134,6 +150,8 @@ const Homepage = () => {
                     />
                 </div>
             </div>
+            <ChatBot />
+            <ParterCarousel />
             <ToTopButton />
             <Footer />
         </div>
