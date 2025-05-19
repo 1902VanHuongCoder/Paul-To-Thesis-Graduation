@@ -2,36 +2,44 @@
 
 import React from "react";
 import Image from "next/image";
+import { useDictionary } from "@/contexts/dictonary-context";
 
 interface Product {
-  id: string;
-  image: string;
-  title: string;
-  price: string;
-  rating: number; // Rating out of 5
+  productID: number;
+  productName: string;
+  productPrice: string;
+  productPriceSale: string;
+  quantityAvailable: number;
+  categoryID: number;
+  originID: number;
+  subcategoryID: number;
+  images: string[];
+  rating: number;
 }
 
 interface PopularProductProps {
   products: Product[];
 }
 
-export default function PopularProduct({ products }: PopularProductProps) {
+export default function NewestProduct({ products }: PopularProductProps) {
+  const {dictionary} = useDictionary();
   return (
     <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden font-sans border-1 border-gray-300 h-fit">
       {/* Header Section */}
       <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        Sản phẩm phổ biến
+        { dictionary?.newestProduct || "Sản phẩm mới nhất" }
       </div>
 
       {/* Product Listing Section */}
       <ul className="divide-y divide-dashed divide-gray-300">
-        {products.map((product) => (
-          <li key={product.id} className="flex items-center p-4 gap-4">
+        {products.map((product, index) => (
+          index < 5 && (
+          <li key={product.productID} className="flex items-center p-4 gap-4">
             {/* Product Image */}
             <div className="w-16 h-16 flex-shrink-0">
               <Image
-                src={product.image}
-                alt={product.title}
+                src={product.images[0]}
+                alt={product.productName}
                 width={50}
                 height={40}
                 className="rounded-lg object-cover"
@@ -42,11 +50,11 @@ export default function PopularProduct({ products }: PopularProductProps) {
             <div className="flex-1">
               {/* Title */}
                     <h3 className="text-primary hover:text-primary-hover cursor-pointer transition-all font-bold text-sm truncate">
-                {product.title}
+                {product.productName}
               </h3>
 
               {/* Price */}
-              <p className="text-green-700 font-bold text-sm">{product.price}</p>
+              <p className="text-green-700 font-bold text-sm">{product.productPrice ? product.productPrice : "Liên hệ"}</p>
 
               {/* Rating */}
               <div className="flex items-center mt-1">
@@ -89,7 +97,7 @@ export default function PopularProduct({ products }: PopularProductProps) {
                 })}
               </div>
             </div>
-          </li>
+          </li> )
         ))}
       </ul>
     </div>

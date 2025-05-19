@@ -23,7 +23,11 @@ Product.init(
     },
     productPrice: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
+    },
+    productPriceSale: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
     },
     quantityAvailable: {
       type: DataTypes.INTEGER,
@@ -65,6 +69,10 @@ Product.init(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    rating: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    }
   },
   {
     sequelize,

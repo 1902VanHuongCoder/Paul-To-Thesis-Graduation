@@ -9,19 +9,19 @@ import {
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useDictionary } from "@/contexts/dictonary-context";
 
 interface SortDropdownProps {
     options: string[];
-    defaultOption?: string;
     onSortChange?: (option: string) => void; // Callback for when a sort option is selected
 }
 
 export default function SortDropdown({
     options,
-    defaultOption = "Mặc định",
     onSortChange,
 }: SortDropdownProps) {
-    const [selectedOption, setSelectedOption] = useState(defaultOption);
+    const { dictionary } = useDictionary();
+    const [selectedOption, setSelectedOption] = useState(dictionary?.sortDropdownDV || "Mặc định");
 
     const handleOptionSelect = (option: string) => {
         setSelectedOption(option);

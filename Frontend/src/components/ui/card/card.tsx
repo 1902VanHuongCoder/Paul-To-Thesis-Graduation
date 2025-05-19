@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import formatVND from "@/lib/format-vnd";
 // import { FaShoppingCart, FaHeart, FaEye } from "react-icons/fa";
 
 interface CardProps {
@@ -34,8 +35,8 @@ export default function Card({
 
                 {/* Prices */}
                 <div className="flex items-center gap-x-4 mt-2 font-mono">
-                    <span className="text-primary-hover font-bold text-md">{discountPrice} VND</span>
-                    <span className="text-primary/40 line-through text-sm">{price} VND</span>
+                    <span className="text-primary-hover font-bold text-md">{price ? formatVND(parseInt(price)) + " VND" : "Liên hệ"}</span>
+                    <span className="text-primary/40 line-through text-sm">{discountPrice ? formatVND(parseInt(discountPrice)) + " VND" : "" }</span>
                 </div>
                 {/* Rating */}
 

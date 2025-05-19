@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Category, SubCategory } from "../models";
+import generateSlug from "../utils/createSlug";
 
 // GET all subcategories
 export const getAllSubCategories = async (
@@ -61,12 +62,14 @@ export const createSubCategory = async (
     req.body;
 
   try {
+    const slug = generateSlug(subcategoryName);
     const newSubCategory = await SubCategory.create({
       subcategoryID,
       createdAt,
       updatedAt,
       subcategoryName,
       categoryID,
+      subcategorySlug: slug,
     });
     res.status(201).json(newSubCategory);
   } catch (error) {

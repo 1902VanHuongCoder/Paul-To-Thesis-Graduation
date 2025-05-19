@@ -6,9 +6,7 @@ import generateSlug from "../utils/createSlug";
 // GET all categories
 export const getAllCategories = async (req: Request, res: Response): Promise<void> => {
   try {
-    const categories = await Category.findAll({
-      include: [Product, SubCategory], // Include related Products and SubCategories
-    });
+    const categories = await Category.findAll();
     res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -37,20 +35,27 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
   }
 };
 
-// POST a new category
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
-  const { categoryName, categoryID, categoryDescription, createdAt, updatedAt } = req.body;
+  const { categoryName, categoryDescription } = req.body;
 
   try {
     const categorySlug = generateSlug(categoryName);
+
+    // Check if category with this slug already exists
+    const existingCategory = await Category.findOne({ where: { categorySlug } });
+    if (existingCategory) {
+      res.status(409).json({ error: "Category with this name already exists." });
+      return;
+    }
+
+    // Initial count is 0
     const newCategory = await Category.create({
       categoryName,
-      categoryID,
       categoryDescription,
       categorySlug,
-      createdAt,
-      updatedAt
+      count: 0,
     });
+
     res.status(201).json(newCategory);
   } catch (error) {
     console.error("Error creating category:", error);

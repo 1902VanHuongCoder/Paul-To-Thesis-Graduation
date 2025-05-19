@@ -20,8 +20,10 @@ import WishlistDialog from "../dialog/wishlist-dialog";
 import MobileDrawer from "../drawer/mobile-drawer";
 import LanguageSwitcher from "../language-switcher/language-switcher";
 import { baseUrl } from "@/lib/base-url";
+import { useDictionary } from "@/contexts/dictonary-context";
+
 const ListItem = React.forwardRef<
-    React.ElementRef<"a">,
+    HTMLAnchorElement,
     React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {
     return (
@@ -43,7 +45,7 @@ const ListItem = React.forwardRef<
             </NavigationMenuLink>
         </li>
     )
-})
+});
 ListItem.displayName = "ListItem"
 
 interface Category {
@@ -51,10 +53,11 @@ interface Category {
     categoryName: string;
     categoryDescription?: string;
     categorySlug: string;
-  }
+}
 
-export default function Navigation({ params }: { params: { lang: string } }) {
+export default function Navigation() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const { lang, dictionary: t} = useDictionary();
 
     // Template data for WishlistDialog
     const wishlistItems = [
@@ -90,19 +93,21 @@ export default function Navigation({ params }: { params: { lang: string } }) {
         console.log("Add to cart:", id);
     };
 
+
     useEffect(() => {
         fetch(`${baseUrl}/api/category`)
             .then((res) => res.json())
             .then((data) => {
                 setCategories(data);
                 console.log("Categories:", data);
-            });
+            }
+            )
     }, []);
 
     return (
-        <div className="relative w-full h-fit bg-white">
+        <div className="relative w-full h-fit bg-white font-sans">
             <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
-                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" />
+                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority/>
             </div>
             <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:py-4">
                 <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
@@ -111,26 +116,26 @@ export default function Navigation({ params }: { params: { lang: string } }) {
                         {/* Home */}
                         <NavigationMenuItem>
                             <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
-                                Trang chủ
+                                {t?.navHomepage ? t.navHomepage : "Trang chủ"}
                             </Link>
                         </NavigationMenuItem>
 
                         {/* Categories Dropdown */}
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="text-lg font-semibold">Danh mục</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="text-lg font-semibold">{t?.navCategory ? t.navCategory : "Danh mục"}</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                                     {categories.map((category) => (
                                         <li key={category.categoryID}>
-                                            <a
-                                                href={`/category/${category.categorySlug}`}
+                                            <Link
+                                                href={`/${lang}/category/${category.categorySlug}`}
                                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             >
                                                 <div className="text-sm font-medium leading-none">{category.categoryName}</div>
                                                 <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                                                     {category.categoryDescription}
                                                 </p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -139,15 +144,15 @@ export default function Navigation({ params }: { params: { lang: string } }) {
 
                         {/* News */}
                         <NavigationMenuItem>
-                            <Link href={`/vi/news`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
-                                Tin tức
+                            <Link href={`/${lang}/news`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                                {t?.navNews ? t.navNews : "Tin tức"}
                             </Link>
                         </NavigationMenuItem>
 
                         {/* Contact */}
                         <NavigationMenuItem>
-                            <Link href={`/vi/contact`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
-                                Liên hệ
+                            <Link href={`/${lang}/contact`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                                {t?.navContact ? t.navContact : "Liên hệ"}
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>

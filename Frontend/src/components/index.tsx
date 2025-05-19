@@ -12,7 +12,7 @@ export { default as NewsCard } from './ui/card/news-card';
 export { default as ParterCarousel } from './section/carousel/partner-carousel';
 export { default as CategoryFilter } from './ui/category-filter/category-filter';
 export { default as CashFilter } from './ui/cash-filter/cash-filter';
-export { default as PopularProduct } from './ui/popular-product/popular-product';
+export { default as NewestProduct } from './ui/newest-product/newest-product';
 export { default as TagFilter } from './ui/tag-filter/tag-filter';
 export { default as SortDropdown } from './ui/dropdown-menu/sort-dropdown';
 export { default as DisplayModeSwitcher } from './ui/display-mode-switcher/display-mode-switcher';

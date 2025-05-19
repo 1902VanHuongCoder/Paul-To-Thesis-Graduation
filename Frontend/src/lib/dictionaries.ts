@@ -1,4 +1,4 @@
 export const dictionaries = {
-  en: () => (import('../dictionaries/en.json')),
-  vi: () => ( import('../dictionaries/vi.json'))
+  en: async () => (await import('../dictionaries/en.json')),
+  vi: async () => (await import('../dictionaries/vi.json'))
 };

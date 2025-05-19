@@ -4,9 +4,7 @@ import {  Product, Tag } from "../models";
 // GET all tags
 export const getAllTags = async (req: Request, res: Response): Promise<void> => {
   try {
-    const tags = await Tag.findAll({
-      include: [Product], // Include associated products
-    });
+    const tags = await Tag.findAll();
     res.status(200).json(tags);
   } catch (error) {
     console.error("Error fetching tags:", error);

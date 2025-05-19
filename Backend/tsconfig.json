@@ -9,7 +9,8 @@
     "outDir": "./dist",               // Output directory for compiled files
     "baseUrl": ".",                   // Base URL for module resolution
     "paths": {
-      "*": ["node_modules/*"]         // Resolve modules correctly
+      "*": ["node_modules/*"],
+      "@utils/*": ["utils/*"]         // Resolve modules correctly
     },
     "allowSyntheticDefaultImports": true, // Allow synthetic default imports
     "types": ["jest", "node"],        // Include Jest and Node.js types

@@ -24,6 +24,10 @@ SubCategory.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    subcategorySlug: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,

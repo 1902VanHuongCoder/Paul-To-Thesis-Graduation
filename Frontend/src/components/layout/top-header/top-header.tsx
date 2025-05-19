@@ -1,12 +1,14 @@
 import React from "react";
-import { dictionaries } from '@/lib/dictionaries'; // Adjust this path as needed
-export default async function TopHeader({ params }: { params: { lang: 'en' | 'vi' } }) {
-    const t = await dictionaries[params.lang](); // ✅ correct usage
+import { useDictionary } from "@/contexts/dictonary-context";
+
+export default function TopHeader() {
+    const { dictionary: t} = useDictionary(); 
+
     return (
         <div className="hidden sm:flex bg-primary text-white py-4 px-6 items-center justify-between font-sans text-sm w-full">
             {/* Left Section */}
             <div className="flex items-center max-w-[300px] py-2 rounded-lg capitalize bg-white/10 px-4 font-normal">
-                <span>{t.topHeaderTitle}</span>
+                <span>{t?.topHeaderTitle ? t.topHeaderTitle : "Chào mừng đến với NFeamHouse"}</span>
             </div>
 
             <div className="flex items-center gap-x-8">
@@ -20,15 +22,15 @@ export default async function TopHeader({ params }: { params: { lang: 'en' | 'vi
 
                     {/* Email */}
                     <div className="flex items-center gap-2">
-                        <span className="p-2 bg-secondary rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#0D401C" d="M17.25 2.75H6.75A4.75 4.75 0 0 0 2 7.5v9a4.75 4.75 0 0 0 4.75 4.75h10.5A4.76 4.76 0 0 0 22 16.5v-9a4.76 4.76 0 0 0-4.75-4.75m-3.65 8.32a3.26 3.26 0 0 1-3.23 0L3.52 7.14a3.25 3.25 0 0 1 3.23-2.89h10.5a3.26 3.26 0 0 1 3.23 2.89z" /></svg></span>          
+                        <span className="p-2 bg-secondary rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#0D401C" d="M17.25 2.75H6.75A4.75 4.75 0 0 0 2 7.5v9a4.75 4.75 0 0 0 4.75 4.75h10.5A4.76 4.76 0 0 0 22 16.5v-9a4.76 4.76 0 0 0-4.75-4.75m-3.65 8.32a3.26 3.26 0 0 1-3.23 0L3.52 7.14a3.25 3.25 0 0 1 3.23-2.89h10.5a3.26 3.26 0 0 1 3.23 2.89z" /></svg></span>
                         <span>nfeamhouse@gmail.com</span>
                     </div>
 
                     {/* Location */}
                     <div className="flex items-center gap-2">
                         <span className="p-2 bg-secondary rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20"><path fill="#0D401C" d="M10 20S3 10.87 3 7a7 7 0 1 1 14 0c0 3.87-7 13-7 13zm0-11a2 2 0 1 0 0-4a2 2 0 0 0 0 4z" /></svg></span>          
-                            <span>{t.topHeaderAddress}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20"><path fill="#0D401C" d="M10 20S3 10.87 3 7a7 7 0 1 1 14 0c0 3.87-7 13-7 13zm0-11a2 2 0 1 0 0-4a2 2 0 0 0 0 4z" /></svg></span>
+                        <span>{t?.topHeaderAddress ? t.topHeaderAddress : "30/04, phường Hưng Lợi, quận Ninh Kiều, Cần Thơ"}</span>
                     </div>
                 </div>
 

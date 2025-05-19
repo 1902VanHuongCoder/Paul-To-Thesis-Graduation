@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDictionary } from "@/contexts/dictonary-context";
 
 interface LanguageOption {
   code: string;
@@ -12,20 +13,22 @@ interface LanguageOption {
   flag: string; // Path to the flag image
 }
 
-const languages: LanguageOption[] = [
-  {
-    code: "en",
-    name: "English",
-    flag: "https://cdn-icons-png.freepik.com/256/197/197374.png",
-  },
-  {
-    code: "vi",
-    name: "Vietnamese",
-    flag: "https://cdn-icons-png.freepik.com/256/197/197452.png",
-  },
-];
 
 export default function LanguageSwitcher() {
+  const { lang } = useDictionary();
+  const languages: LanguageOption[] = [
+    {
+      code: "en",
+      name: lang === "en" ? "English" : "Tiếng Anh",
+      flag: "https://cdn-icons-png.freepik.com/256/197/197374.png",
+    },
+    {
+      code: "vi",
+      name: lang === "en" ? "Vietnamese" : "Tiếng Việt",
+      flag: "https://cdn-icons-png.freepik.com/256/11849/11849331.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid",
+    },
+  ];
+
   const pathname = usePathname();
   const router = useRouter();
 
@@ -69,7 +72,7 @@ export default function LanguageSwitcher() {
 
         {/* Dropdown Options */}
         {isOpen && (
-          <ul className="absolute z-10 mt-1 w-fit bg-white border border-gray-300 rounded-lg shadow-lg py-2">
+          <ul className="absolute z-10 mt-1 w-fit border bg-white border-gray-300 rounded-lg shadow-lg py-2 md:min-w-[180px]">
             {languages.map((language) => (
               <li
                 key={language.code}

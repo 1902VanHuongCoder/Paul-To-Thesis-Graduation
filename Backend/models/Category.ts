@@ -23,7 +23,9 @@ Category.init(
     categorySlug: {
       type: DataTypes.STRING,
       allowNull: false,
-    }
+    }, 
+    count: {type: DataTypes.INTEGER, allowNull: false },
+
   },
   {
     sequelize,

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       "cdn-icons-png.freepik.com",
       "www.congtyhai.com",
       "shadcnblocks.com",
+      "res.cloudinary.com",
     ],
   },
   // next.config.ts
@@ -16,13 +17,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/", destination: "/vi/homepage", permanent: false },
       // Only redirect if NOT starting with /vi or /en
-      {
-        source: "/((?!vi|en).*)",
-        destination: "/vi/$1",
-        permanent: false,
-      },
     ];
-  }
+  },
 };
 
 export default nextConfig;

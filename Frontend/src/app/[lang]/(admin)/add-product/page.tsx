@@ -15,6 +15,7 @@ type ProductFormValues = {
   subcategoryID: string;
   tagIDs: string[];
   images: FileList;
+  productPriceSale?: string;
   [key: `attribute_${number}`]: number | string | boolean | Date; // Dynamic attributes
 };
 
@@ -198,13 +199,23 @@ export default function AddProductPage() {
       value: data["attribute_" + attr.attributeID as keyof ProductFormValues]
     }));
 
+    console.log({
+      ...data,
+      productPrice: data.productPrice ? parseFloat(data.productPrice) : null,
+      productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale) : null,
+      quantityAvailable: parseInt(data.quantityAvailable, 10),
+      tagIDs: data.tagIDs ? data.tagIDs : [],
+      images: uploadedImages ? uploadedImages : [],
+      attributes: attributesPayload || [],
+    });
     // 3. Submit product
     const res = await fetch(`${baseUrl}/api/product`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...data,
-        productPrice: parseFloat(data.productPrice),
+        productPrice: data.productPrice ? parseFloat(data.productPrice) : null,
+        productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale) : null, 
         quantityAvailable: parseInt(data.quantityAvailable, 10),
         tagIDs: data.tagIDs,
         images: uploadedImages,
@@ -212,14 +223,7 @@ export default function AddProductPage() {
       }),
     });
 
-    console.log({
-      ...data,
-      productPrice: parseFloat(data.productPrice),
-      quantityAvailable: parseInt(data.quantityAvailable, 10),
-      tagIDs: data.tagIDs,
-      images: uploadedImages,
-      attributes: attributesPayload,
-    });
+
     if (res.ok) {
       setMessage("Product added successfully!");
       reset();
@@ -244,9 +248,15 @@ export default function AddProductPage() {
           <FormItem>
             <FormLabel>Price</FormLabel>
             <FormControl>
-              <Input type="number" {...register("productPrice", { required: true })} />
+              <Input type="number" {...register("productPrice", { required: false })} />
             </FormControl>
             {errors.productPrice && <FormMessage>Price is required</FormMessage>}
+          </FormItem>
+          <FormItem>
+            <FormLabel>Product price sale</FormLabel>
+            <FormControl>
+              <Input type="number" {...register("productPriceSale", { required: false })} />
+            </FormControl>
           </FormItem>
           <FormItem>
             <FormLabel>Quantity</FormLabel>
