@@ -5,6 +5,8 @@ import "./globals.css";
 import { use } from "react";
 import { DictionaryProvider } from "@/contexts/dictonary-context";
 import { LoadingProvider } from "@/contexts/loading-context";
+import { ShoppingCartProvider } from "@/contexts/shopping-cart-context";
+import { WishlistProvider } from "@/contexts/wishlist-context";
 
 const nunito = Nunito_Sans({
     variable: "--font-nunito",
@@ -39,7 +41,11 @@ export default function LangLayout({
             <body className={`${nunito.variable} ${itim.variable} antialiased`}>
                 <DictionaryProvider lang={lang}>
                     <LoadingProvider>
-                        {children}
+                        <ShoppingCartProvider>
+                            <WishlistProvider>
+                                {children}
+                            </WishlistProvider>
+                        </ShoppingCartProvider>
                     </LoadingProvider>
 
                 </DictionaryProvider>

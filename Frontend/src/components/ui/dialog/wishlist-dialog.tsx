@@ -14,22 +14,35 @@ import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 import Link from "next/link";
 
-interface WishlistItem {
-    id: string;
-    name: string;
-    price: string;
-    date: string;
-    image: string;
+export interface Product {
+    productID: number;
+    productName: string;
+    productPrice: number;
+    productPriceSale: number;
+    quantityAvailable: number;
+    images: string[];
+    rating: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+
+export interface WishlistItem {
+    wishlistID: number;
+    customerID: number;
+    productID: number;
+    product: Product;
 }
 
 interface WishlistDialogProps {
-    items: WishlistItem[];
-    onRemoveItem: (id: string) => void;
-    onAddToCart: (id: string) => void;
+    wishlists: WishlistItem[];
+    onRemoveItem: (productID: number, customerID: number) => void;
+    onAddToCart: (productID: number, customerID: number) => void;
+    clearAll: (customerID: number) => void;
 }
 
 export default function WishlistDialog({
-    items,
+    wishlists,
     onRemoveItem,
     onAddToCart,
 }: WishlistDialogProps) {
@@ -46,7 +59,7 @@ export default function WishlistDialog({
             <DialogContent className="p-0 rounded-none">
                 {/* Header */}
                 <div className="bg-primary text-white flex justify-between items-center px-6 py-4">
-                    <DialogTitle>Danh sách yêu thích ({items.length})</DialogTitle>
+                    <DialogTitle>Danh sách yêu thích ({wishlists.length})</DialogTitle>
                     <DialogClose asChild className="text-white hover:text-white">
                         <X size={20} />
                     </DialogClose>
@@ -55,32 +68,32 @@ export default function WishlistDialog({
 
                 {/* Body */}
                 <div className="p-6 space-y-4">
-                    {items.map((item) => (
+                    {wishlists.length > 0 && wishlists.map((item) => (
                         <div
-                            key={item.id}
+                            key={item.wishlistID}
                             className="flex flex-col md:flex-row gap-y-5 items-start md:items-center justify-between border-b pb-4"
                         >
                             {/* Product Thumbnail */}
                             <div className="flex items-center gap-4">
                                 <button
-                                    onClick={() => onRemoveItem(item.id)}
+                                    onClick={() => onRemoveItem(item.productID, item.customerID)}
                                     className="text-red-500 hover:text-red-700"
-                                    aria-label={`Remove ${item.name} from wishlist`}
+                                    aria-label={`Remove ${item.product.productName} from wishlist`}
                                 >
                                     <X width={18} height={18} />
                                 </button>
                                 <Image
-                                    src={item.image}
-                                    alt={item.name}
+                                    src={item.product.images[0]} // Assuming images is an array and you want the first image
+                                    alt={item.product.productName}
                                     width={50}
                                     height={50}
                                     className="rounded-lg"
                                 />
                                 {/* Product Details */}
                                 <div>
-                                    <p className="text-gray-800 font-medium">{item.name}</p>
-                                    <p className="text-gray-600 text-sm">{item.price}</p>
-                                    <p className="text-gray-500 text-xs">{item.date}</p>
+                                    <p className="text-gray-800 font-medium">{item.product.productName}</p>
+                                    <p className="text-gray-600 text-sm">{item.product.productPrice}</p>
+                                    <p className="text-gray-500 text-xs">{item.product.createdAt}</p>
                                 </div>
                             </div>
 
@@ -90,7 +103,7 @@ export default function WishlistDialog({
                                 <Button
                                     size="sm"
                                     variant="primary"
-                                    onClick={() => onAddToCart(item.id)}
+                                    onClick={() => onAddToCart(item.productID, item.customerID)}
                                 >
                                     Add To Cart
                                 </Button>

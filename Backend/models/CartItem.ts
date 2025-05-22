@@ -8,6 +8,7 @@ class CartItem extends Model {
   public productID!: number;
   public quantity!: number;
   public price!: number;
+  public discount!: number;
 }
 
 CartItem.init(
@@ -39,8 +40,13 @@ CartItem.init(
       defaultValue: 1,
     },
     price: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    discount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
   },
   {

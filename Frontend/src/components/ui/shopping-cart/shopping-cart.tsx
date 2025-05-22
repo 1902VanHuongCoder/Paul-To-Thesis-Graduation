@@ -4,28 +4,77 @@ import React from "react";
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer/drawer";
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
+import { useShoppingCart } from "@/contexts/shopping-cart-context";
+import formatVND from "@/lib/format-vnd";
+
+export interface CartItem {
+    quantity: number;
+    price: number;
+    discount: number;
+}
+export interface Product {
+    productID: number;
+    productName: string;
+    productPrice: number;
+    productPriceSale: number;
+    quantityAvailable: number;
+    images: string[];
+    rating: number;
+    createdAt: string;
+    updatedAt: string;
+    CartItem: CartItem;
+}
+
+export interface Cart {
+    cartID: number;
+    totalQuantity: number;
+    products: Product[];
+}
 
 export default function ShoppingCart() {
-    const cartItems = [
-        {
-            id: 1,
-            name: "Häagen-Dazs Salted",
-            variant: "Blue LG",
-            price: 10.0,
-            quantity: 1,
-            image: "https://cdn-front.freepik.com/images/ai/image-generator/gallery/resource-tti-12.webp", // Replace with the actual image path
-        },
-        {
-            id: 2,
-            name: "Häagen-Dazs Salted",
-            variant: "Blue LG",
-            price: 10.0,
-            quantity: 1,
-            image: "https://cdn-front.freepik.com/images/ai/image-generator/gallery/resource-tti-13.webp", // Replace with the actual image path
-        },
-    ];
+    const { cart, updateCart, setCart } = useShoppingCart();
 
-    const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    const handleChangeProductQuantity = (productID: number, quantity: number) => {
+        // Find the current product
+        const product = cart.products.find(p => p.productID === productID);
+        if (!product) {
+            alert("Sản phẩm không tồn tại trong giỏ hàng");
+            return;
+        };
+        // Prevent quantity less than 1
+        if (quantity < 1){
+            alert("Số lượng sản phẩm không thể nhỏ hơn 1");
+            return;
+        };
+        const updatedProducts = cart.products.map(p => {
+            if (p.productID === productID) {
+                return {
+                    ...p,
+                    CartItem: {
+                        ...p.CartItem,
+                        quantity: quantity
+                    }
+                };
+            }
+            return p;
+        });
+        setCart({
+            ...cart,
+            products: updatedProducts
+        });
+        updateCart(cart.cartID, productID, quantity);
+    };
+
+    const totalPayment = cart.products.reduce((sum, item) => {
+        // Use sale price if available, otherwise use regular price
+        const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
+        const quantity = item.CartItem?.quantity || 0;
+        const discount = item.CartItem?.discount || 0;
+        // Apply discount if present (assuming discount is a number like 10 for 10%)
+        const discountedPrice = price * (1 - discount / 100);
+        return sum + discountedPrice * quantity;
+    }, 0);
+
 
     return (
         <Drawer direction="right">
@@ -38,20 +87,20 @@ export default function ShoppingCart() {
             <DrawerContent className="!w-[100%] bg-white text-black font-sans">
                 {/* Header */}
                 <DrawerHeader className="flex items-center w-full flex-row justify-between border-b pb-4">
-                    <DrawerTitle className="text-lg font-bold">Giỏ hàng ({cartItems.length})</DrawerTitle>
+                    <DrawerTitle className="text-lg font-bold">Giỏ hàng ({cart.products?.length ? cart.products?.length : 0})</DrawerTitle>
                     <DrawerClose className="text-gray-500 hover:text-black">
                         <X size={20} />
                     </DrawerClose>
                 </DrawerHeader>
 
                 {/* Cart Items */}
-                <div className="p-4 space-y-4">
-                    {cartItems.map((item) => (
-                        <div key={item.id} className="flex items-center gap-4 border-b pb-4">
+                <div className="p-4 space-y-4 h-fit overflow-y-auto">
+                    {cart.products.length > 0 && cart.products.map((item) => (
+                        <div key={item.productID} className="flex items-center gap-4 border-b pb-4">
                             {/* Product Image */}
                             <Image
-                                src={item.image}
-                                alt={item.name}
+                                src={item.images[0]} // Assuming images is an array and you want the first image
+                                alt={item.productName}
                                 width={60}
                                 height={60}
                                 className="rounded-md"
@@ -59,18 +108,24 @@ export default function ShoppingCart() {
 
                             {/* Product Details */}
                             <div className="flex-1">
-                                <h4 className="font-semibold">{item.name}</h4>
-                                <p className="text-sm text-gray-500">Variant: {item.variant}</p>
-                                <p className="text-sm font-semibold">{item.price.toFixed(2)}$</p>
+                                <h4 className="font-semibold">{item.productName}</h4>
+                                <p className={`text-sm font-semibold ${item.productPriceSale ? 'line-through' : ''} `}>{item.productPrice ? formatVND(item.productPrice) + " VND" : "Liên hệ"}</p>
+                                <p className="text-sm text-gray-500">{item.productPriceSale ? formatVND(item.productPriceSale) + " VND" : ""}</p>
                             </div>
 
                             {/* Quantity Controls */}
                             <div className="flex items-center gap-2">
-                                <button className="p-1 bg-gray-200 rounded-full hover:bg-gray-300">
+                                <button
+                                    className="p-1 bg-gray-200 rounded-full hover:bg-gray-300"
+                                    onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity - 1)}
+                                >
                                     <Minus size={16} />
                                 </button>
-                                <span className="w-6 text-center">{item.quantity}</span>
-                                <button className="p-1 bg-gray-200 rounded-full hover:bg-gray-300">
+                                <span className="w-6 text-center">{item?.CartItem?.quantity ? item.CartItem?.quantity : 0}</span>
+                                <button
+                                    className="p-1 bg-gray-200 rounded-full hover:bg-gray-300"
+                                    onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity + 1)}
+                                >
                                     <Plus size={16} />
                                 </button>
                             </div>
@@ -88,7 +143,7 @@ export default function ShoppingCart() {
 
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-lg font-semibold">Tổng tiền</span>
-                        <span className="text-lg font-semibold">{subtotal.toFixed(2)}$</span>
+                        <span className="text-lg font-semibold">{formatVND(totalPayment)} VND</span>
                     </div>
 
 

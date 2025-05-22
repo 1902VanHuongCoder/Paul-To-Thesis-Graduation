@@ -15,7 +15,7 @@ interface Category {
 
 interface CategoryFilterProps {
   categories: Category[];
-  onCategorySelect?: (category: string) => void; // Optional callback for category selection
+  onCategorySelect?: (category: number) => void; // Optional callback for category selection
 }
 
 export default function CategoryFilter({
@@ -36,7 +36,7 @@ export default function CategoryFilter({
           <li
             key={category.categoryID}
             className="flex justify-between items-center p-4 hover:bg-gray-100 cursor-pointer"
-            onClick={() => onCategorySelect?.(category.categoryName)}
+            onClick={() => onCategorySelect?.(category.categoryID)}
             role="button"
             tabIndex={0}
             aria-label={`Filter by ${category.categoryName}`}

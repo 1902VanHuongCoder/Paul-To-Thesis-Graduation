@@ -18,6 +18,7 @@ import Comment from "./Comment";
 import News from "./News";
 import TagOfNews from "./TagOfNew";
 import NewsTagOfNews from "./NewsTagOfNews";
+import Wishlist from "./Wislist";
 
 
 SubCategory.hasMany(Product, {
@@ -120,6 +121,10 @@ TagOfNews.belongsToMany(News, {
   as: "hasnews",
 });
 
+// Associations
+Wishlist.belongsTo(User, { foreignKey: "customerID", as: "customer" });
+Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
+
 export {
   User,
   Product,
@@ -141,5 +146,6 @@ export {
   News,
   TagOfNews,
   NewsTagOfNews,
+  Wishlist,
 };
 

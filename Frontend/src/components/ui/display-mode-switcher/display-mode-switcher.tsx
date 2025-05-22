@@ -26,7 +26,7 @@ export default function DisplayModeSwitcher({
     }
   };
 
-  const startResult = (currentPage - 1) * resultsPerPage + 1;
+  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   return (
@@ -36,7 +36,7 @@ export default function DisplayModeSwitcher({
         <button
           onClick={() => handleViewChange("grid")}
           className={`p-3 rounded-full ${viewMode === "grid" ? "bg-primary text-secondary" : "bg-gray-200 text-gray-500"
-            } hover:bg-primary hover:text-secondary focus:outline-none`}
+            } hover:bg-primary hover:text-secondary focus:outline-none cursor-pointer`}
           aria-label="Switch to grid view"
         >
           <Grid size={20} />
@@ -44,7 +44,7 @@ export default function DisplayModeSwitcher({
         <button
           onClick={() => handleViewChange("list")}
           className={`p-3 rounded-full ${viewMode === "list" ? "bg-primary text-secondary" : "bg-gray-200 text-gray-500"
-            } hover:bg-primary hover:text-secondary focus:outline-none`}
+            } hover:bg-primary hover:text-secondary focus:outline-none cursor-pointer`}
           aria-label="Switch to list view"
         >
           <List size={20} />

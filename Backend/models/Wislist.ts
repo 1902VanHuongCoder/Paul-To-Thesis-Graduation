@@ -1,20 +1,19 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 import User from "./User";
+import Product from "./Product";
 
-class ShoppingCart extends Model {
-  public cartID!: number;
+class Wishlist extends Model {
+  public wishlistID!: number;
   public customerID!: number;
-  public totalQuantity!: number;
-  public payment!: number;
-  public discount!: number;
+  public productID!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
-ShoppingCart.init(
+Wishlist.init(
   {
-    cartID: {
+    wishlistID: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -27,23 +26,22 @@ ShoppingCart.init(
         key: "userID",
       },
     },
-    totalQuantity: {
+    productID: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 1,
-    },
-    payment: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: 0.0,
+      allowNull: false,
+      references: {
+        model: Product,
+        key: "productID",
+      },
     },
   },
   {
     sequelize,
-    modelName: "ShoppingCart",
-    tableName: "shopping_carts",
-    timestamps: true, // Enables createdAt and updatedAt
+    modelName: "Wishlist",
+    tableName: "wishlists",
+    timestamps: true,
   }
 );
 
-export default ShoppingCart;
+
+export default Wishlist;

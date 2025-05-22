@@ -1,15 +1,18 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 
-class ProductTag extends Model {}
+class ProductTag extends Model {
+    productID!: number;
+    tagID!: number;
+}
 
 ProductTag.init(
   {
-    productID: {
+    tagID: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tagID: {
+    productID: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

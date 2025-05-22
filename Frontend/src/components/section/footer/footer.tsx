@@ -3,16 +3,26 @@ import * as React from "react"
 import Image from "next/image"
 import lightlogo from "@public/images/light+logo.png";
 import grazzvector from "@public/vectors/Grazz+vector.png";
-function Footerdemo() {
+import { useDictionary } from "@/contexts/dictonary-context";
+import { useRouter } from "next/navigation";
+// interface NewsProps {
+//     newsID: number,
+//     newsTitle: string,
+//     newsImage: string,
+//     createdAt: string,
+// }
+function Footerdemo({ }) {
+    const { dictionary, lang } = useDictionary();
+    const router = useRouter();
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans">
             <div className="absolute -top-1 md:-top-3 overflow-hidden w-full">
-                <Image src={grazzvector} alt="Grazz Vector" className="w-full h-full object-contain" /> 
+                <Image src={grazzvector} alt="Grazz Vector" className="w-full h-full object-contain" />
             </div>
             <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
                 <div className="flex flex-col gap-y-4 md:flex-row items-start md:items-center justify-between border-b-[1px] border-dashed border-white/40 pb-8">
                     <Image src={lightlogo} width={200} alt="logo" />
-                    <p className="text-white text-xl font-mono">TRAO NIỀM TIN NHẬN NIỀM VUI</p>
+                    <p className="text-white text-xl font-mono uppercase">{dictionary?.footerMoto || "TRAO NIỀM TIN NHẬN TÀI LỘC"}</p>
                     <div className="flex items-center gap-4 justify-center rounded-full">
                         <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white text-brown p-2 bg-secondary rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669c1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>                </a>
@@ -26,36 +36,36 @@ function Footerdemo() {
                 </div>
                 <div className="grid gap-12 md:grid-cols-3 lg:grid-cols-3 py-8 text-white max-w-screen overflow-hidden border-b-[1px] border-dashed border-white/40">
                     <div>
-                        <h3 className="mb-4 text-lg font-semibold">Liên hệ với chúng tôi</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerContactUsTitle || "Liên hệ với chúng tôi"}</h3>
                         <div className="flex items-start gap-6 flex-col">
                             {/* Phone */}
                             <div className="flex items-center gap-2">
                                 <span className=""> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 26 26"><path fill="#F8C32C" d="M22.386 18.026c-1.548-1.324-3.119-2.126-4.648-.804l-.913.799c-.668.58-1.91 3.29-6.712-2.234c-4.801-5.517-1.944-6.376-1.275-6.951l.918-.8c1.521-1.325.947-2.993-.15-4.71l-.662-1.04C7.842.573 6.642-.552 5.117.771l-.824.72c-.674.491-2.558 2.087-3.015 5.119c-.55 3.638 1.185 7.804 5.16 12.375c3.97 4.573 7.857 6.87 11.539 6.83c3.06-.033 4.908-1.675 5.486-2.272l.827-.721c1.521-1.322.576-2.668-.973-3.995l-.931-.801z" /></svg></span>
-                                <span className="text-sm">+1 234 567 890</span>
+                                <span className="text-sm">+84 334745377</span>
                             </div>
 
                             {/* Email */}
                             <div className="flex items-center gap-2">
                                 <span className=""><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="#F8C32C" d="M17.25 2.75H6.75A4.75 4.75 0 0 0 2 7.5v9a4.75 4.75 0 0 0 4.75 4.75h10.5A4.76 4.76 0 0 0 22 16.5v-9a4.76 4.76 0 0 0-4.75-4.75m-3.65 8.32a3.26 3.26 0 0 1-3.23 0L3.52 7.14a3.25 3.25 0 0 1 3.23-2.89h10.5a3.26 3.26 0 0 1 3.23 2.89z" /></svg></span>
-                                <span className="text-sm">info@example.com</span>
+                                <span className="text-sm">nfeamhouse@gmail.com</span>
                             </div>
 
                             {/* Location */}
                             <div className="flex items-center gap-2">
                                 <span className="">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20"><path fill="#F8C32C" d="M10 20S3 10.87 3 7a7 7 0 1 1 14 0c0 3.87-7 13-7 13zm0-11a2 2 0 1 0 0-4a2 2 0 0 0 0 4z" /></svg></span>
-                                <span className="text-sm">123 Main St, City, Country</span>
+                                <span className="text-sm">{dictionary?.topHeaderAddress || "30/04, phường Hưng Lợi, quận Ninh Kiều, Cần Thơ"}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <span className="">
                                     <svg width="16" height="16" fill="#F8C32C" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>time</title> <path d="M0 16q0-3.232 1.28-6.208t3.392-5.12 5.12-3.392 6.208-1.28q3.264 0 6.24 1.28t5.088 3.392 3.392 5.12 1.28 6.208q0 3.264-1.28 6.208t-3.392 5.12-5.12 3.424-6.208 1.248-6.208-1.248-5.12-3.424-3.392-5.12-1.28-6.208zM4 16q0 3.264 1.6 6.048t4.384 4.352 6.016 1.6 6.016-1.6 4.384-4.352 1.6-6.048-1.6-6.016-4.384-4.352-6.016-1.632-6.016 1.632-4.384 4.352-1.6 6.016zM14.016 16v-5.984q0-0.832 0.576-1.408t1.408-0.608 1.408 0.608 0.608 1.408v4h4q0.8 0 1.408 0.576t0.576 1.408-0.576 1.44-1.408 0.576h-6.016q-0.832 0-1.408-0.576t-0.576-1.44z"></path> </g></svg></span>
-                                <span className="text-sm">Thứ hai - thứ sáu: 8:0000am - 18:00pm</span>
+                                <span className="text-sm">{dictionary?.footerWorkingTime || "Từ thứ hai - thứ sáu, 8:00 AM - 17:00 PM"}</span>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <h3 className="mb-4 text-lg font-semibold">Bài đăng mới</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerNewestProductTitle || "Bài đăng mới"}</h3>
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-[70px] h-[50px] bg-white rounded-md"></div>
@@ -81,15 +91,11 @@ function Footerdemo() {
                         </div>
                     </div>
                     <div className="relative">
-                        <h3 className="mb-4 text-lg font-semibold">Liên kết nhanh</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerQuickLink || "Liên kết nhanh"}</h3>
                         <ul className="font-normal space-y-2">
-                            <li>Trang chủ</li>
-                            <li>Về chúng tôi</li>
-                            <li>Liên hệ</li>
-                            <li>Blog</li>
-                            <li>Hỗ trợ</li>
-                            <li>Điều khoản dịch vụ</li>
-                            <li>Chính sách bảo mật</li>
+                            <li onClick={() => { router.push("/") }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navHomepage || "Trang chủ"}</li>
+                            <li onClick={() => { router.push(`/${lang}/news`) }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navNews || "Tin tức"}</li>
+                            <li onClick={() => { router.push(`/${lang}/contact`) }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navContact || "Liên hệ"}</li>
                         </ul>
                     </div>
                 </div>

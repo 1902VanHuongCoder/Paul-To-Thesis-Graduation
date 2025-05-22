@@ -21,6 +21,7 @@ import MobileDrawer from "../drawer/mobile-drawer";
 import LanguageSwitcher from "../language-switcher/language-switcher";
 import { baseUrl } from "@/lib/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
+import { useWishlist } from "@/contexts/wishlist-context";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -57,40 +58,17 @@ interface Category {
 
 export default function Navigation() {
     const [categories, setCategories] = useState<Category[]>([]);
-    const { lang, dictionary: t} = useDictionary();
+    const { lang, dictionary: t } = useDictionary();
+    const { wishlists, addToWishlist, removeFromWishlist } = useWishlist();
 
-    // Template data for WishlistDialog
-    const wishlistItems = [
-        {
-            id: "1",
-            name: "Wireless Headphones",
-            price: "59.99",
-            date: "2024-05-01",
-            image: "http://www.congtyhai.com/Data/Sites/1/News/1426/1erase-2.png",
-        },
-        {
-            id: "2",
-            name: "Smart Watch",
-            price: "129.99",
-            date: "2024-05-03",
-            image: "http://www.congtyhai.com/Data/Sites/1/News/1426/1erase-2.png",
-        },
-        {
-            id: "3",
-            name: "Bluetooth Speaker",
-            price: "39.99",
-            date: "2024-05-05",
-            image: "http://www.congtyhai.com/Data/Sites/1/News/1426/1erase-2.png",
-        },
-    ];
 
     // Example handlers
-    const handleRemoveItem = (id: string) => {
-        console.log("Remove from wishlist:", id);
+    const handleRemoveItem = (productID: number, customerID: number) => {
+        removeFromWishlist(customerID, productID);
     };
 
-    const handleAddToCart = (id: string) => {
-        console.log("Add to cart:", id);
+    const handleAddToCart = (productID: number, customerID: number) => {
+        addToWishlist(customerID, productID);
     };
 
 
@@ -107,7 +85,7 @@ export default function Navigation() {
     return (
         <div className="relative w-full h-fit bg-white font-sans">
             <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
-                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority/>
+                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority />
             </div>
             <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:py-4">
                 <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
@@ -168,9 +146,10 @@ export default function Navigation() {
                         {/* <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8.5 19a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 8.5 19ZM19 16H7a1 1 0 0 1 0-2h8.491a3.013 3.013 0 0 0 2.885-2.176l1.585-5.55A1 1 0 0 0 19 5H6.74a3.007 3.007 0 0 0-2.82-2H3a1 1 0 0 0 0 2h.921a1.005 1.005 0 0 1 .962.725l.155.545v.005l1.641 5.742A3 3 0 0 0 7 18h12a1 1 0 0 0 0-2Zm-1.326-9l-1.22 4.274a1.005 1.005 0 0 1-.963.726H8.754l-.255-.892L7.326 7ZM16.5 19a1.5 1.5 0 1 0 1.5 1.5a1.5 1.5 0 0 0-1.5-1.5Z" /></svg></span> */}
                         <ShoppingCart />
                         <WishlistDialog
-                            items={wishlistItems}
-                            onRemoveItem={handleRemoveItem}
-                            onAddToCart={handleAddToCart}
+                            wishlists={wishlists}
+                            onRemoveItem={(productID, customerID) => handleRemoveItem(productID, customerID)}
+                            onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
+                            clearAll={() => { }}
                         />
                     </div>
                     <MobileDrawer />

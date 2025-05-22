@@ -11,78 +11,37 @@ import {
     CarouselItem,
 } from "./carousel";
 import Image from "next/image";
+import { useDictionary } from "@/contexts/dictonary-context";
+import { useEffect, useState } from "react";
+import { baseUrl } from "@/lib/base-url";
 
-interface Logo {
-    id: string;
-    description: string;
-    image: string;
+interface Origin {
+    originID: string;
+    originName: string;
+    originImage: string;
     className?: string;
 }
 
-interface Logos3Props {
-    heading?: string;
-    logos?: Logo[];
-    className?: string;
-}
 
-const ParterCarousel = ({
-    heading = "Sự đồng hành của các thương hiệu uy tín",
-    logos = [
-        {
-            id: "logo-1",
-            description: "Logo 1",
-            image: "https://shadcnblocks.com/images/block/logos/astro.svg",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-2",
-            description: "Logo 2",
-            image: "https://shadcnblocks.com/images/block/logos/figma.svg",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-3",
-            description: "Logo 3",
-            image: "https://shadcnblocks.com/images/block/logos/nextjs.svg",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-4",
-            description: "Logo 4",
-            image: "https://shadcnblocks.com/images/block/logos/react.png",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-5",
-            description: "Logo 5",
-            image: "https://shadcnblocks.com/images/block/logos/shadcn-ui.svg",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-6",
-            description: "Logo 6",
-            image: "https://shadcnblocks.com/images/block/logos/supabase.svg",
-            className: "h-7 w-auto",
-        },
-        {
-            id: "logo-7",
-            description: "Logo 7",
-            image: "https://shadcnblocks.com/images/block/logos/tailwind.svg",
-            className: "h-4 w-auto",
-        },
-        {
-            id: "logo-8",
-            description: "Logo 8",
-            image: "https://shadcnblocks.com/images/block/logos/vercel.svg",
-            className: "h-7 w-auto",
-        },
-    ],
-}: Logos3Props) => {
+const ParterCarousel = () => {
+    const { dictionary } = useDictionary(); 
+    const [origins, setOrigins] = useState<Origin[]>([]); 
+
+    useEffect(() => {
+        const fetchOrigins = async () => {
+            try{
+                fetch(`${baseUrl}/api/origin`).then((res)=>res.json()).then((data)=> setOrigins(data));
+            }catch(error){
+                console.error("Error fetching origins:", error); 
+            }
+        }
+        fetchOrigins();
+    },[])
     return (
         <section className="py-20 w-full font-sans border-t-2 border-primary/10">
             <div className="flex flex-col items-center text-center w-full px-6">
                 <h1 className="my-6 text-pretty text-2xl font-bold lg:text-4xl">    
-                    {heading}
+                    {dictionary?.partnerCarouselTitle || "Sự đồng hành của các thương hiệu uy tín"}
                 </h1>
             </div>
             <div className="pt-10 md:pt-16">
@@ -92,9 +51,9 @@ const ParterCarousel = ({
                         plugins={[AutoScroll({ playOnInit: true })]}
                     >
                         <CarouselContent className="ml-0">
-                            {logos.map((logo) => (
+                            {origins.length > 0 && origins.map((logo) => (
                                 <CarouselItem
-                                    key={logo.id}
+                                    key={logo.originID}
                                     className="flex basis-1/3 justify-center pl-0 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
                                 >
                                     <div className="mx-10 flex shrink-0 items-center justify-center">
@@ -102,8 +61,8 @@ const ParterCarousel = ({
                                             <Image
                                                 width={100}
                                                 height={100}
-                                                src={logo.image}
-                                                alt={logo.description}
+                                                src={logo.originImage}
+                                                alt={logo.originName}
                                                 className={logo.className}
                                             />
                                         </div>

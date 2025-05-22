@@ -21,7 +21,8 @@ import commentRoutes from "./routes/commentRoutes";
 import newsRoutes from "./routes/newsRoutes";
 import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
 import vnpayRoutes from "./routes/vnpayRoutes";
-
+import productTagRoutes from "./routes/productTagRoutes";
+import wishlistRoutes from "./routes/wishlistRoutes";
 const app = express();
 
 // Enable CORS
@@ -32,6 +33,7 @@ app.use(cors({
 }));
 
 // Connect to MySQL and Sync DB
+
 sequelize
   .authenticate()
   .then(() => {
@@ -61,6 +63,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/product",productRoutes);
+app.use("/api/product-tag",productTagRoutes);
+
 app.use("/api/category", categoryRoutes);  
 app.use("/api/subcategory", subCategoryRoutes); 
 app.use("/api/tag", tagRoutes);
@@ -70,6 +74,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/location", locationRoutes); 
 app.use("/api/order", orderRoutes);
 app.use("/api/shopping-cart", shoppingCartRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/inventory-transaction", inventoryTransactionRoutes);
 app.use("/api/product-attributes",productAttributeRoutes);
