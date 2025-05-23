@@ -14,7 +14,6 @@ export interface Product {
   updatedAt: string;
 }
 
-
 export interface WishlistItem {
   wishlistID: number;
   customerID: number;
@@ -24,6 +23,7 @@ export interface WishlistItem {
 
 interface WishlistContextProps {
   wishlists: WishlistItem[];
+  setWishlist: React.Dispatch<React.SetStateAction<WishlistItem[]>>;
   fetchWishlist: (customerID: number) => Promise<void>;
   addToWishlist: (customerID: number, productID: number) => Promise<void>;
   removeFromWishlist: (customerID: number, productID: number) => Promise<void>;
@@ -48,14 +48,20 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToWishlist = async (customerID: number, productID: number) => {
-    const res = await fetch(`${baseUrl}/api/wishlist`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customerID, productID }),
-    });
-    if (res.ok) {
-      await fetchWishlist(customerID);
+    try {
+      const res = await fetch(`${baseUrl}/api/wishlist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerID, productID }),
+      });
+      if (res.ok) {
+        await fetchWishlist(customerID);
+      }
+    }catch (error) { 
+      console.error("Error adding to wishlist:", error);
     }
+    
+    
   };
 
   const removeFromWishlist = async (customerID: number, productID: number) => {
@@ -82,7 +88,6 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     const customerID = 1; // Replace with actual customer ID
     fetchWishlist(customerID);
 
-    alert("wishlist fetched successfully");
   }, []);
 
   return (
@@ -93,6 +98,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         addToWishlist,
         removeFromWishlist,
         clearWishlist,
+        setWishlist
       }}
     >
       {children}

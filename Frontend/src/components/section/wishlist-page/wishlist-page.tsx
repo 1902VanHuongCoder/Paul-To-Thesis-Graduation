@@ -1,66 +1,84 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
+import { useWishlist } from "@/contexts/wishlist-context";
+import { useDictionary } from "@/contexts/dictonary-context";
+import formatVND from "@/lib/format-vnd";
+import formatDate from "@/lib/format-date";
+import { useShoppingCart } from "@/contexts/shopping-cart-context";
 
-interface WishlistItem {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  dateAdded: string;
+export interface Product {
+  productID: number;
+  productName: string;
+  productPrice: number;
+  productPriceSale: number;
+  quantityAvailable: number;
+  images: string[];
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WishlistItem {
+  wishlistID: number;
+  customerID: number;
+  productID: number;
+  product: Product;
 }
 
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([
-    {
-      id: "1",
-      name: "Vimto Squash Remix",
-          image: "https://img.freepik.com/free-vector/watermelon-party-serving-triangle-wedge-piece-realistic-composition-with-juice-splash-fresh-basil-leaves-vector-illustration_1284-30332.jpg?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid&w=740",
-      price: 18.0,
-      dateAdded: "24 February 2025",
-    },
-    {
-      id: "2",
-      name: "Another Product",
-        image: "https://img.freepik.com/free-vector/watermelon-party-serving-triangle-wedge-piece-realistic-composition-with-juice-splash-fresh-basil-leaves-vector-illustration_1284-30332.jpg?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid&w=740",
-      price: 20.0,
-      dateAdded: "20 February 2025",
-    },
-  ]);
-
-  const handleRemoveItem = (id: string) => {
-    setWishlistItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
+  const { addToCart, fetchCart } = useShoppingCart();
+  const {dictionary:d} = useDictionary();
+  
+  // Example handlers
+  const handleRemoveItem = (productID: number, customerID: number) => {
+    removeFromWishlist(customerID, productID);
+    const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
+    setWishlist(wishlistUpdated);
   };
 
-  const handleAddToCart = (id: string) => {
-    console.log(`Added item with id ${id} to cart`);
+  const handleAddToCart = async (productID: number, customerID: number) => {
+    addToCart(productID);
+    fetchCart(customerID);
+    removeFromWishlist(customerID, productID);
+    const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
+    setWishlist(wishlistUpdated);
   };
 
   return (
-    <div className="p-6 bg-white">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Your Wishlist</h2>
+    <div className="w-full">
+      <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.wishlistPageTitle || "Danh sách yêu thích của bạn"}</h2>
       <table className="w-full border-collapse">
-        <thead>
+        <thead className="border-b border-[rgba(0,0,0,.2)]">
           <tr className="text-left text-gray-600">
-            <th className="py-2">Remove</th>
-            <th className="py-2">Product</th>
-            <th className="py-2">Price</th>
-            <th className="py-2">Date Added</th>
-            <th className="py-2">Action</th>
+            <th className="py-2">{d?.wishlistPageTableRemoveCol || "Xóa"}</th>
+            <th className="py-2">
+              {d?.wishlistPageTableProductCol || "Sản phẩm"}
+            </th>
+            <th className="py-2">
+              {d?.wishlistPageTablePriceCol || "Giá"}
+            </th>
+            <th className="py-2">
+              {d?.wishlistPageTableDateCol || "Ngày thêm"}
+            </th>
+            <th className="py-2">
+              {d?.wishlistPageTableAddToCartCol || "Thêm vào giỏ hàng"}
+            </th>
           </tr>
         </thead>
         <tbody>
-          {wishlistItems.map((item) => (
-            <tr key={item.id} className="border-b">
+          {wishlists.length > 0 ? wishlists.map((item) => (
+            <tr key={item.wishlistID} className="border-b">
               {/* Remove Icon */}
               <td className="py-4">
                 <button
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveItem(item.productID, item.customerID)}
                   className="text-red-500 hover:text-red-700 text-center"
-                  aria-label={`Remove ${item.name}`}
+                  aria-label={`Remove ${item.product.productName} from wishlist`}
                 >
                   <X />
                 </button>
@@ -69,33 +87,41 @@ export default function WishlistPage() {
               {/* Product Details */}
               <td className="py-4 flex items-center gap-4">
                 <Image
-                  src={item.image}
-                  alt={item.name}
+                  src={item.product.images[0]} // Assuming images is an array and you want the first image
+                  alt={item.product.productName}
                   width={50}
                   height={50}
                   className="rounded-lg"
                 />
-                <span className="text-gray-800">{item.name}</span>
+                <span className="text-gray-800">{item.product.productName}</span>
               </td>
 
               {/* Price */}
-              <td className="py-4 text-gray-700">${item.price.toFixed(2)}</td>
+              <td className="py-4 text-gray-700">
+                {item.product.productPriceSale
+                  ? `${formatVND(item.product.productPriceSale)} VND`
+                  : item.product.productPrice
+                  ? `${formatVND(item.product.productPrice)} VND`
+                  : "Liên hệ"}
+              </td>
 
               {/* Date Added */}
-              <td className="py-4 text-gray-500">{item.dateAdded}</td>
+              <td className="py-4 text-gray-500">{formatDate(item.product.createdAt)}</td>
 
               {/* Add To Cart Button */}
               <td className="py-4">
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={() => handleAddToCart(item.id)}
+                  onClick={() => handleAddToCart(item.productID, item.customerID)}
                 >
-                  Add To Cart
+                  {d?.wishlistDialogAddToCart || "Thêm vào giỏ hàng"}
                 </Button>
               </td>
             </tr>
-          ))}
+          )) : <tr className="w-full">
+              <td colSpan={5} className="text-center py-6">{d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</td>
+            </tr>}
         </tbody>
       </table>
     </div>

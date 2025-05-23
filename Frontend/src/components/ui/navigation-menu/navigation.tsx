@@ -22,6 +22,7 @@ import LanguageSwitcher from "../language-switcher/language-switcher";
 import { baseUrl } from "@/lib/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useWishlist } from "@/contexts/wishlist-context";
+import { useShoppingCart } from "@/contexts/shopping-cart-context";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -59,16 +60,23 @@ interface Category {
 export default function Navigation() {
     const [categories, setCategories] = useState<Category[]>([]);
     const { lang, dictionary: t } = useDictionary();
-    const { wishlists, addToWishlist, removeFromWishlist } = useWishlist();
+    const { wishlists, removeFromWishlist,setWishlist  } = useWishlist();
+    const { addToCart, fetchCart } = useShoppingCart();
 
 
     // Example handlers
     const handleRemoveItem = (productID: number, customerID: number) => {
         removeFromWishlist(customerID, productID);
+        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
+        setWishlist(wishlistUpdated);
     };
 
-    const handleAddToCart = (productID: number, customerID: number) => {
-        addToWishlist(customerID, productID);
+    const handleAddToCart = async (productID: number, customerID: number) => {
+        addToCart(productID); 
+        fetchCart(customerID);
+        removeFromWishlist(customerID, productID);
+        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
+        setWishlist(wishlistUpdated);
     };
 
 
@@ -83,7 +91,7 @@ export default function Navigation() {
     }, []);
 
     return (
-        <div className="relative w-full h-fit bg-white font-sans">
+        <div className="relative w-full h-fit bg-white font-sans shadow-lg">
             <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
                 <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority />
             </div>
@@ -147,7 +155,7 @@ export default function Navigation() {
                         <ShoppingCart />
                         <WishlistDialog
                             wishlists={wishlists}
-                            onRemoveItem={(productID, customerID) => handleRemoveItem(productID, customerID)}
+                            onRemoveItemOutWishlist={(productID, customerID) => handleRemoveItem(productID, customerID)}
                             onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
                             clearAll={() => { }}
                         />

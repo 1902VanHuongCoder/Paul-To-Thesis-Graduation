@@ -1,5 +1,5 @@
 "use client";
-import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Footer, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton, TypewriterText } from "@/components";
+import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton, TypewriterText } from "@/components";
 import { Funnel, Hand } from "lucide-react";
 import React, { useEffect } from "react";
 import greenField from "@public/images/rice-banner.png";
@@ -320,7 +320,6 @@ const Homepage = () => {
             <ChatBot />
             <ParterCarousel />
             <ToTopButton />
-            <Footer />
         </div>
     )
 }

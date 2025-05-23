@@ -92,7 +92,7 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
             console.error("Update cart error:", error);
             throw error;
         }
-      }
+    }
 
     const removeFromCart = async (productID: number, cartID: number) => {
         try {
@@ -123,7 +123,7 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
                 totalQuantity: 0,
                 products: [],
             });
-        } catch (error) { 
+        } catch (error) {
             console.error("Clear cart error:", error);
             throw error;
         }
@@ -134,9 +134,8 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
         fetchCart(customerID).catch((error) => {
             console.error("Error fetching cart on mount:", error);
         });
-        
-        alert("Cart fetched successfully");
-     }, []);
+
+    }, []);
 
     return (
         <ShoppingCartContext.Provider

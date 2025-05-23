@@ -29,5 +29,21 @@
   "footerContactUsTitle": "Liên hệ với chúng tôi",
   "footerWorkingTime":"Từ thứ hai - thứ sáu, 8:00 AM - 17:00 PM",
   "footerNewestProductTitle": "Sản phẩm mới nhất",
-  "footerQuickLink": "Liên kết nhanh"
+  "footerQuickLink": "Liên kết nhanh",
+  "shoppingCartTitle": "Giỏ hàng",
+  "shoppingCartEmpty": "Giỏ hàng của bạn đang trống",
+  "shoppingCartTotal": "Tổng cộng",
+  "shoppingCartCheckout": "Thanh toán",
+  "shoppingCartDetailsButton": "Xem chi tiết",
+  "wishlistDialogTitle": "Danh sách yêu thích",
+  "wishlistDialogAddToCart": "Thêm vào giỏ hàng",
+  "wishlishDialogEmpty": "Danh sách yêu thích của bạn đang trống",
+  "wishlistDialogOpenWishlistPageLink": "Mở trang danh sách yêu thích",
+  "wishlistDialogContinueShopping": "Tiếp tục mua sắm",
+  "wishlistPageTitle": "Danh sách yêu thích",
+  "wishlistPageTableRemoveCol": "Xóa",
+  "wishlistPageTableProductCol": "Sản phẩm",
+  "wishlistPageTablePriceCol": "Giá",
+  "wishlistPageTableDateCol": "Ngày thêm",
+  "wishlistPageTableAddToCartCol": "Thêm vào giỏ hàng"
 }

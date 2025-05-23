@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import {Product, Wishlist} from "../models";
+import { Product, Wishlist } from "../models";
 
 // GET all wishlists
 export const getAllWishlists = async (req: Request, res: Response) => {
   try {
     const wishlists = await Wishlist.findAll({
-      include: [{ model: Product, as: "product" }]
+      include: [{ model: Product, as: "product" }],
     });
     res.status(200).json(wishlists);
   } catch (error) {
@@ -20,7 +20,7 @@ export const getWishlistByCustomerId = async (req: Request, res: Response) => {
   try {
     const wishlist = await Wishlist.findAll({
       where: { customerID },
-      include: [{ model: Product, as: "product" }]
+      include: [{ model: Product, as: "product" }],
     });
     res.status(200).json(wishlist);
   } catch (error) {
@@ -30,16 +30,21 @@ export const getWishlistByCustomerId = async (req: Request, res: Response) => {
 };
 
 // POST add product to wishlist
-export const addToWishlist = async (req: Request, res: Response) : Promise<void> => {
+export const addToWishlist = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { customerID, productID } = req.body;
+  console.log("Adding to wishlist:", { customerID, productID });
   try {
     // Prevent duplicate wishlist entries
     const exists = await Wishlist.findOne({ where: { customerID, productID } });
     if (exists) {
       res.status(409).json({ message: "Product already in wishlist" });
+    } else {
+      const wishlist = await Wishlist.create({ customerID, productID });
+      res.status(201).json(wishlist);
     }
-    const wishlist = await Wishlist.create({ customerID, productID });
-    res.status(201).json(wishlist);
   } catch (error) {
     console.error("Error adding to wishlist:", error);
     res.status(500).json({ error: (error as Error).message });
@@ -50,7 +55,9 @@ export const addToWishlist = async (req: Request, res: Response) : Promise<void>
 export const removeFromWishlist = async (req: Request, res: Response) => {
   const { customerID, productID } = req.body;
   try {
-    const deleted = await Wishlist.destroy({ where: { customerID, productID } });
+    const deleted = await Wishlist.destroy({
+      where: { customerID, productID },
+    });
     if (deleted) {
       res.status(200).json({ message: "Product removed from wishlist" });
     } else {
