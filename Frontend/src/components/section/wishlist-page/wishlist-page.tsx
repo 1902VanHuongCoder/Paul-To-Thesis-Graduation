@@ -54,7 +54,7 @@ export default function WishlistPage() {
       <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.wishlistPageTitle || "Danh sách yêu thích của bạn"}</h2>
       <table className="w-full border-collapse">
         <thead className="border-b border-[rgba(0,0,0,.2)]">
-          <tr className="text-left text-gray-600">
+          <tr className="text-center text-gray-600">
             <th className="py-2">{d?.wishlistPageTableRemoveCol || "Xóa"}</th>
             <th className="py-2">
               {d?.wishlistPageTableProductCol || "Sản phẩm"}
@@ -72,7 +72,7 @@ export default function WishlistPage() {
         </thead>
         <tbody>
           {wishlists.length > 0 ? wishlists.map((item) => (
-            <tr key={item.wishlistID} className="border-b">
+            <tr key={item.wishlistID} className="border-b text-center">
               {/* Remove Icon */}
               <td className="py-4">
                 <button
@@ -85,7 +85,7 @@ export default function WishlistPage() {
               </td>
 
               {/* Product Details */}
-              <td className="py-4 flex items-center gap-4">
+              <td className="py-4 flex items-center justify-center gap-4">
                 <Image
                   src={item.product.images[0]} // Assuming images is an array and you want the first image
                   alt={item.product.productName}
@@ -98,22 +98,21 @@ export default function WishlistPage() {
 
               {/* Price */}
               <td className="py-4 text-gray-700">
-                {item.product.productPriceSale
-                  ? `${formatVND(item.product.productPriceSale)} VND`
-                  : item.product.productPrice
-                  ? `${formatVND(item.product.productPrice)} VND`
-                  : "Liên hệ"}
+                <span className={`${item.product.productPriceSale ? "hidden" : "text-primary-hover"}`}>{item.product.productPrice ? formatVND(item.product.productPrice) + " VND" : ""}</span>
+                <span className="text-primary-hover">{item.product.productPriceSale ? formatVND(item.product.productPriceSale) + " VND" : ""}</span>
               </td>
 
               {/* Date Added */}
               <td className="py-4 text-gray-500">{formatDate(item.product.createdAt)}</td>
 
               {/* Add To Cart Button */}
-              <td className="py-4">
+              <td className="">
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => handleAddToCart(item.productID, item.customerID)}
+                  className="mx-auto"
+                  
                 >
                   {d?.wishlistDialogAddToCart || "Thêm vào giỏ hàng"}
                 </Button>

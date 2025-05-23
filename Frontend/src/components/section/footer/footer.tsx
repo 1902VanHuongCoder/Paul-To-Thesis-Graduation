@@ -4,7 +4,7 @@ import Image from "next/image"
 import lightlogo from "@public/images/light+logo.png";
 import grazzvector from "@public/vectors/Grazz+vector.png";
 import { useDictionary } from "@/contexts/dictonary-context";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 // interface NewsProps {
 //     newsID: number,
 //     newsTitle: string,
@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 // }
 function Footerdemo({ }) {
     const { dictionary, lang } = useDictionary();
-    const router = useRouter();
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans">
             <div className="absolute -top-1 md:-top-3 overflow-hidden w-full">
@@ -93,9 +92,9 @@ function Footerdemo({ }) {
                     <div className="relative">
                         <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerQuickLink || "Liên kết nhanh"}</h3>
                         <ul className="font-normal space-y-2">
-                            <li onClick={() => { router.push("/") }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navHomepage || "Trang chủ"}</li>
-                            <li onClick={() => { router.push(`/${lang}/news`) }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navNews || "Tin tức"}</li>
-                            <li onClick={() => { router.push(`/${lang}/contact`) }} className="flex items-center gap-x-2 cursor-pointer">{dictionary?.navContact || "Liên hệ"}</li>
+                            <li className="flex items-center gap-x-2 cursor-pointer"><Link href="/">{dictionary?.navHomepage || "Trang chủ"}</Link></li>
+                            <li className="flex items-center gap-x-2 cursor-pointer"><Link href={`/${lang}/news`} >{dictionary?.navNews || "Tin tức"}</Link></li>
+                            <li className="flex items-center gap-x-2 cursor-pointer"><Link href={`/${lang}/contact`} >{dictionary?.navContact || "Liên hệ"}</Link></li>
                         </ul>
                     </div>
                 </div>
