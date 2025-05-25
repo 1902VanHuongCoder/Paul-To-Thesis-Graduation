@@ -1,6 +1,8 @@
 "use client";
 import { baseUrl } from "@/lib/base-url";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useDictionary } from "./dictonary-context";
 
 export interface CartItem {
     quantity: number;
@@ -45,6 +47,7 @@ export function useShoppingCart() {
 }
 
 export function ShoppingCartProvider({ children }: { children: React.ReactNode }) {
+    const {dictionary: d} = useDictionary();
     const [cart, setCart] = useState<Cart>({
         cartID: 0,
         totalQuantity: 0,
@@ -71,11 +74,12 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
                 body: JSON.stringify({ productID, customerID: 1, quantity: 1 }),
             });
             if (!res.ok) throw new Error("Failed to add to cart");
-            alert("Product added to cart successfully");
+            toast.success(d?.toastAddToCartSuccess || "Thêm vào giỏ hàng thành công");
             fetchCart(1);
             return await res.json();
         } catch (error) {
             console.error("Add to cart error:", error);
+            toast.error(d?.toastAddToCartError || "Thêm vào giỏ hàng thất bại");
             throw error;
         }
     };

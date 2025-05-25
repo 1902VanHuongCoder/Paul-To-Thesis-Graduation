@@ -15,7 +15,7 @@ import { X } from "lucide-react";
 import formatVND from "@/lib/format-vnd";
 import formatDate from "@/lib/format-date";
 import { useDictionary } from "@/contexts/dictonary-context";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export interface Product {
     productID: number;
@@ -50,8 +50,10 @@ export default function WishlistDialog({
     onAddToCart,
 }: WishlistDialogProps) {
     const { dictionary:d, lang } = useDictionary();
+    const [open, setOpen] = React.useState(false);
+    const router = useRouter();
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen} modal={true}>
             {/* Trigger Button */}
             <DialogTrigger className="relative flex items-center justify-center rounded-full hover:bg-secondary transition-all duration-200 ease-in-out cursor-pointer">
                 <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20">
@@ -121,17 +123,21 @@ export default function WishlistDialog({
 
                 {/* Footer */}
                 <DialogFooter className="flex !justify-between items-center px-6 py-4 w-full ">
-                    <Link   
-                        href={`/${lang}/homepage/wishlists`}
+                    <button   
+                        onClick={() => {
+                            router.push(`/${lang}/homepage/wishlists`);
+                            setOpen(false);
+                        }}
                         className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer"
                     >
                         {d?.wishlistDialogOpenWishlistPageLink || "MỞ TRANG DANH SÁCH YÊU THÍCH"}
-                    </Link>
+                    </button>
                     <DialogClose asChild>
 
                         <button
                             onClick={() => {
-                                // Handle continue shopping action
+                                setOpen(false);
+                                router.push(`/${lang}/homepage`);
                             }}
                             className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer"
                         >

@@ -36,8 +36,8 @@ export default function Card({
             <Image
                 src={image}
                 alt={title}
-                width={500} // Replace with the actual width of the image
-                height={300} // Replace with the actual height of the image
+                width={500}
+                height={300}
                 className="w-full h-48 object-contain p-2 pt-8"
             />
             {/* Content */}

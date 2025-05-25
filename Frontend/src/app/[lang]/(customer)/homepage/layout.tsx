@@ -2,11 +2,13 @@
 import { Footer, Navigation, TopHeader, TypewriterText } from "@/components";
 import { useLoading } from "@/contexts/loading-context";
 import { Spinner } from "@/components/ui/spinner/spinner";
+import { Toaster } from "react-hot-toast";
 
 const HomepageLayout = ({ children }: { children: React.ReactNode }) => {
     const { loading, } = useLoading();
     return (
         <div className="relative max-w-screen min-h-screen overflow-hidden font-sans">
+            <Toaster position="top-right" />
             <TopHeader />
             <Navigation />
             {loading && <div className="w-full h-full fixed inset-0 flex flex-col justify-center items-center z-100 bg-[rgba(0,0,0,.8)]">

@@ -19,6 +19,7 @@ import News from "./News";
 import TagOfNews from "./TagOfNew";
 import NewsTagOfNews from "./NewsTagOfNews";
 import Wishlist from "./Wislist";
+import Delivery from "./Delivery";
 
 
 SubCategory.hasMany(Product, {
@@ -147,5 +148,6 @@ export {
   TagOfNews,
   NewsTagOfNews,
   Wishlist,
+  Delivery,
 };
 

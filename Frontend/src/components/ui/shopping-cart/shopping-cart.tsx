@@ -7,6 +7,8 @@ import { Minus, Plus, X } from "lucide-react";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import formatVND from "@/lib/format-vnd";
 import { useDictionary } from "@/contexts/dictonary-context";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export interface CartItem {
     quantity: number;
@@ -34,18 +36,19 @@ export interface Cart {
 
 export default function ShoppingCart() {
     const { cart, updateCart, setCart, removeFromCart } = useShoppingCart();
-    const { dictionary:d} = useDictionary(); 
-
+    const { dictionary: d, lang } = useDictionary();
+    const [open, setOpen] = React.useState(false);
+    const router = useRouter();
     const handleChangeProductQuantity = (productID: number, quantity: number) => {
         // Find the current product
         const product = cart.products.find(p => p.productID === productID);
         if (!product) {
-            alert("Sản phẩm không tồn tại trong giỏ hàng");
+            toast.success(d?.shoppingCartProductNotFound || "Sản phẩm không tìm thấy");
             return;
         };
         // Prevent quantity less than 1
         if (quantity < 1) {
-            alert("Số lượng sản phẩm không thể nhỏ hơn 1");
+            toast.error(d?.shoppingCartQuantityError || "Số lượng sản phẩm không thể nhỏ hơn 1");
             return;
         };
         const updatedProducts = cart.products.map(p => {
@@ -84,14 +87,13 @@ export default function ShoppingCart() {
             products: updatedProducts
         });
         removeFromCart(productID, cart.cartID);
-        alert("Xóa sản phẩm thành công");
     }
 
 
     return (
-        <Drawer direction="right">
+        <Drawer direction="right" open={open} onOpenChange={setOpen}>
             {/* Trigger */}
-            <DrawerTrigger className="relative flex items-center justify-center rounded-full hover:bg-secondary transition-all duration-200 ease-in-out cursor-pointer">
+            <DrawerTrigger onClick={() => setOpen(true)} className="relative flex items-center justify-center rounded-full hover:bg-secondary transition-all duration-200 ease-in-out cursor-pointer">
                 <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8.5 19a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 8.5 19ZM19 16H7a1 1 0 0 1 0-2h8.491a3.013 3.013 0 0 0 2.885-2.176l1.585-5.55A1 1 0 0 0 19 5H6.74a3.007 3.007 0 0 0-2.82-2H3a1 1 0 0 0 0 2h.921a1.005 1.005 0 0 1 .962.725l.155.545v.005l1.641 5.742A3 3 0 0 0 7 18h12a1 1 0 0 0 0-2Zm-1.326-9l-1.22 4.274a1.005 1.005 0 0 1-.963.726H8.754l-.255-.892L7.326 7ZM16.5 19a1.5 1.5 0 1 0 1.5 1.5a1.5 1.5 0 0 0-1.5-1.5Z" /></svg></span>
                 {cart.products.length > 0 &&
                     <span className="absolute -top-1 -left-1 w-[22px] h-[22px] bg-white rounded-full flex justify-center items-center">
@@ -165,11 +167,21 @@ export default function ShoppingCart() {
 
 
                     <div className="flex flex-col gap-2">
-                        <button className="w-full py-2 bg-primary text-white rounded-md hover:bg-primary-hover">
+                        <button
+                            onClick={() => {
+                                setOpen(false); // Close the drawer
+                                router.push(`/${lang}/homepage/checkout`);
+                            }}
+                            className="w-full py-2 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer">
                             {d?.shoppingCartCheckout ? d.shoppingCartCheckout : "Thanh toán"}
                         </button>
-                        <button className="w-full py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300">
-                            {d?.shoppingCartDetailsButton ? d.shoppingCartDetailsButton : "Tiếp tục mua sắm"}
+                        <button onClick={
+                            () => {
+                                setOpen(false); // Close the drawer
+                                router.push(`/${lang}/homepage/shopping-cart`);
+                            }
+                        } className="w-full py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300 text-center cursor-pointer">
+                            {d?.shoppingCartDetailsButton ? d.shoppingCartDetailsButton : "Xem chi tiết đơn hàng"}
                         </button>
                     </div>
                 </DrawerFooter>

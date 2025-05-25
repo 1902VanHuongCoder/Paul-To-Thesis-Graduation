@@ -10,6 +10,7 @@ import { useDictionary } from "@/contexts/dictonary-context";
 import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
 import removeDuplicates from "@/lib/remove-duplicate";
+import toast from "react-hot-toast";
 interface Category {
     categoryDescription: string,
     categoryID: number,
@@ -81,6 +82,7 @@ const Homepage = () => {
 
     const handleStopHeroAnimation = () => {
         setHeroAnimation(!heroAnimation);
+        toast.success(heroAnimation ? dictionary?.stopHeroAnimationSuccess || "Dừng hiệu ứng thành công" : dictionary?.startHeroAnimationSuccess || "Chạy hiệu ứng thành công");
     };
 
     const paginatedProducts = React.useMemo(() => {
@@ -192,10 +194,8 @@ const Homepage = () => {
         }
         const fetchAll = async () => {
             setLoading(true);
-            setTimeout(() => {
-                setLoading(false);
-            }, 5000);
             await Promise.all([fetchCategories(), fetchTags(), fetchProducts()]);
+            setLoading(false);
         }
         fetchAll();
     }, []);
@@ -209,7 +209,8 @@ const Homepage = () => {
             }
         }
         fetchCategories();
-    }, [])
+    }, []);
+
     // setLoading(true);
     return (
         <div className="relative mx-auto">
@@ -268,19 +269,6 @@ const Homepage = () => {
                                 }} />
                             </div>
                         </div>
-
-                        {/* <div className={`${productView === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col items-start"}  gap-6 justify-items-center`}>
-                            {paginatedProducts.length > 0 && paginatedProducts.map((product) => (
-                                <Card
-                                    key={product.productID}
-                                    image={product.images[0]}
-                                    title={product.productName}
-                                    discountPrice={product.productPriceSale}
-                                    price={product.productPrice}
-                                    rating={product.rating}
-                                />
-                            ))}
-                        </div> */}
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={productView}
@@ -315,8 +303,6 @@ const Homepage = () => {
                     />
                 </div>
             </div>
-
-            {/* Chatbot and Footer */}
             <ChatBot />
             <ParterCarousel />
             <ToTopButton />

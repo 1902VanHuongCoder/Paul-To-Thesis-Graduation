@@ -1,6 +1,8 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { baseUrl } from "@/lib/base-url";
+import toast from "react-hot-toast";
+import { useDictionary } from "./dictonary-context";
 
 export interface Product {
   productID: number;
@@ -39,6 +41,7 @@ export function useWishlist() {
 }
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
+  const {dictionary:d} = useDictionary();
   const [wishlists, setWishlist] = useState<WishlistItem[]>([]);
 
   const fetchWishlist = async (customerID: number) => {
@@ -56,9 +59,11 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         await fetchWishlist(customerID);
+        toast.success(d?.wishlistAddToWishlistSuccess || "Thêm vào danh sách yêu thích thành công");
       }
     }catch (error) { 
       console.error("Error adding to wishlist:", error);
+      toast.error(d?.wishlistAddToWishlistError || "Lỗi khi thêm vào danh sách yêu thích");
     }
     
     

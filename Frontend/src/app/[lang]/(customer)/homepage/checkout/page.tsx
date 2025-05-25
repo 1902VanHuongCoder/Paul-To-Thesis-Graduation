@@ -1,9 +1,11 @@
-import { CartPage } from "@/components";
+"use client";
+import { CheckoutPage } from "@/components";
 
 const ShoppingCart = () => {
+   
     return (
         <div className="mb-20">
-            <CartPage />
+            <CheckoutPage />
         </div>
     );
 }
