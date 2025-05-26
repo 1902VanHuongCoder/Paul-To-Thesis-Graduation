@@ -10,12 +10,12 @@ import formatVND from "@/lib/format-vnd";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useCheckout } from "@/contexts/checkout-context";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, set, useForm } from "react-hook-form";
 import { FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form/form";
 import { provinceCoordinate } from "@/lib/vietnam-province-coordinate";
 import PayPalButton from "@/components/ui/button/paypal-button";
-
-
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -68,10 +68,12 @@ type CheckoutFormValues = {
     note?: string;
 };
 export default function CheckoutPage() {
-    const { cart } = useShoppingCart();
+    const { cart, setCart } = useShoppingCart();
+    const router = useRouter();
     const { dictionary: d, lang } = useDictionary();
-    const { checkoutData } = useCheckout();
-    const [paymentMethod, setPaymentMethod] = useState("cash");
+    const { checkoutData, setCheckoutData } = useCheckout();
+    const [showPaypal, setShowPaypal] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("");
     const [promoCode, setPromoCode] = useState({
         code: "",
         discount: 0,
@@ -175,7 +177,6 @@ export default function CheckoutPage() {
     }
 
     const onSubmit = async (data: CheckoutFormValues) => {
-
         const productQuantity = cart.products.reduce((total, product) => {
             return total + product.CartItem.quantity;
         }, 0);
@@ -183,7 +184,23 @@ export default function CheckoutPage() {
         const orderDescription = `${d?.orderDescription || "Thanh toán đơn hàng"} ${data.fullName} ${d?.orderDescriptionOnWord || "trên"} ${new Date().toLocaleDateString()}`;
         const bankCode = "NCB"; // Default bank code, can be changed based on user selection
         const language = lang; // Default language, can be changed based on user selection
+        const checkoutData = {
+            orderID: orderID,
+            userID: 1,
+            fullName: data.fullName,
+            totalPayment: totalPayment,
+            totalQuantity: productQuantity,
+            note: data.note || "",
+            phone: data.phone,
+            address: `${data.detailAddress}, ${data.ward}, ${data.district}, ${data.province}`,
+            paymentMethod: paymentMethod,
+            deliveryMethod: delivery.selectMethod.deliveryID || 0,
+            cartID: cart.cartID,
+            discount: promoCode.discount || 0,
+        };
+        setCheckoutData(checkoutData);
         if (paymentMethod === "vn-pay") {
+            localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
             payWithVnPay({
                 orderID,
                 amount: totalPayment,
@@ -192,26 +209,45 @@ export default function CheckoutPage() {
                 language
             });
         } else if (paymentMethod === "paypal") {
-            // Handle PayPal payment here
-            console.log("PayPal payment not implemented yet");
+            setShowPaypal(true);
         } else if (paymentMethod === "cash") {
-            // Handle cash on delivery here
-            console.log("Cash on delivery selected");
-        }
+            await fetch(`${baseUrl}/api/order`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
 
-        // const orderData = {
-        //     userID: 1,
-        //     fullName: data.fullName,
-        //     totalPayment: totalPayment,
-        //     totalQuantity: productQuantity,
-        //     note: data.note || "",
-        //     phone: data.phone,
-        //     address: data.detailAddress + ", " + data.ward + ", " + data.district + ", " + data.province,
-        //     paymentMethod: paymentMethod,
-        //     deliveryMethod: delivery.selectMethod.deliveryID || null,
-        //     cartID: cart.cartID,
-        // }
-        // console.log("Order Data:", orderData);
+                },
+                body: JSON.stringify({
+                    orderID: orderID,
+                    userID: 1,
+                    fullName: data.fullName,
+                    totalPayment: totalPayment,
+                    totalQuantity: productQuantity,
+                    note: data.note || "",
+                    phone: data.phone,
+                    address: `${data.detailAddress}, ${data.ward}, ${data.district}, ${data.province}`,
+                    paymentMethod: paymentMethod,
+                    deliveryMethod: delivery.selectMethod.deliveryID || null,
+                    cartID: cart.cartID,
+                    discount: promoCode.discount || 0,
+                })
+            }).then((res) => {
+                if (!res.ok) {
+                    toast.error(d?.checkoutOrderError || "Đặt hàng thất bại, vui lòng thử lại sau!");
+                    throw new Error("Failed to place order");
+                } else {
+                    toast.success(d?.checkoutOrderSuccess || "Đặt hàng thành công!");
+                    // Reset cart and checkout data
+                    setCart({
+                        cartID: 0,
+                        totalQuantity: 0,
+                        products: []
+                    });
+                    router.push("/"); // Redirect to order success page
+
+                }
+            })
+        }
     };
 
 
@@ -527,7 +563,10 @@ export default function CheckoutPage() {
                                     name="payment"
                                     value="paypal"
                                     checked={paymentMethod === "paypal"}
-                                    onChange={() => setPaymentMethod("paypal")}
+                                    onChange={() => {
+                                        setPaymentMethod("paypal");
+                                        onSubmit(methods.getValues());
+                                    }}
                                 />
                                 PayPal
                             </label>
@@ -554,23 +593,31 @@ export default function CheckoutPage() {
 
                     {/* Place Order Button */}
                     <div className="flex justify-center">
-                        {paymentMethod === "paypal" ?
-                            (<PayPalButton amount={totalPayment} />)
-                            : (
+                        {paymentMethod === "paypal" ? (
+                            showPaypal ? (
+                                <PayPalButton amount={totalPayment} />
+                            ) : (
                                 <Button
                                     type="submit"
                                     form="checkout-form"
                                     variant="primary"
                                     size="md"
                                     className="mt-4"
-                                // onClick={handlePlaceOrder}
                                 >
-                                    {
-                                        d?.checkoutPlaceOrder || "Đặt hàng"
-                                    }
+                                    {d?.checkoutPlaceOrder || "Đặt hàng"}
                                 </Button>
-                            )}
-
+                            )
+                        ) : (
+                            <Button
+                                type="submit"
+                                form="checkout-form"
+                                variant="primary"
+                                size="md"
+                                className="mt-4"
+                            >
+                                {d?.checkoutPlaceOrder || "Đặt hàng"}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -3,13 +3,20 @@ import sequelize from "../configs/mysql-database-connect";
 import User from "./User";
 
 class Order extends Model {
-  public orderID!: number;
+  public orderID!: string;
   public userID!: number;
-  public orderDate!: Date;
-  public total!: number;
-  public totalAmount!: number;
+  public totalPayment!: number;
+  public totalQuantity!: number;
   public note?: string;
-  public orderStatus!: string;
+  public fullName!: string;
+  public phone!: string;
+  public address!: string;
+  public paymentMethod!: string;
+  public deliveryMethod!: string;
+  public cartID!: number;
+  public discount?: number;
+
+  // timestamps!
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -17,45 +24,60 @@ class Order extends Model {
 Order.init(
   {
     orderID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
     },
     userID: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: User,
+        key: "userID",
+      },
     },
-    orderDate: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    total: {
+    totalPayment: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    totalAmount: {
-      type: DataTypes.FLOAT,
+    totalQuantity: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     note: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    orderStatus: {
+    fullName: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "pending", // Default status is "pending"
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    paymentMethod: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    deliveryMethod: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    discount: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
     sequelize,
     modelName: "Order",
     tableName: "orders",
-    timestamps: true, // Enables createdAt and updatedAt
+    timestamps: true,
   }
 );
-
-
 
 export default Order;

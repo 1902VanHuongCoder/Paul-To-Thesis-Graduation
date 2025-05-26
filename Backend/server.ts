@@ -23,7 +23,8 @@ import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
 import vnpayRoutes from "./routes/vnpayRoutes";
 import productTagRoutes from "./routes/productTagRoutes";
 import wishlistRoutes from "./routes/wishlistRoutes";
-import deliveryRoutes from "./routes/deliveryRoutes"; 
+import deliveryRoutes from "./routes/deliveryRoutes";
+import discountRoutes from "./routes/discountRoutes";
 const app = express();
 
 // Enable CORS
@@ -83,7 +84,7 @@ app.use("/api/news", newsRoutes);
 app.use("/api/tag-of-news", tagOfNewsRoutes); 
 app.use("/api/create-payment", vnpayRoutes);
 app.use("/api/delivery", deliveryRoutes); // Add this line to include the delivery routes
-
+app.use("/api/discount", discountRoutes);
 // Define the port
 const PORT = 3001;
 

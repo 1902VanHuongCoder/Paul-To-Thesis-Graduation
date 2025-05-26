@@ -100,5 +100,25 @@
   "wishlistAddToWishlistError": "Error adding product to wishlist",
   "stopHeroAnimationSuccess": "Hero animation stopped successfully",
   "startHeroAnimationSuccess": "Hero animation started successfully",
-  "shoppingCartQuantityError": "Quantity must be greater than 0"
+  "shoppingCartQuantityError": "Quantity must be greater than 0",
+
+
+  "checkoutOrderSuccess": "Order placed successfully",
+  "checkoutOrderError": "Error placing order",
+
+  "paypalReturnSuccessConfirm": "PayPal payment successful!",
+  "paypalReturnSuccessMessage": "Thank you for your order via PayPal.",
+  "paypalReturnFailConfirm": "Payment failed!",
+  "paypalReturnFailMessage": "An error occurred during PayPal payment.",
+  "paypalReturnProcessing": "Processing your payment result...",
+  "paypalReturnHomeButton": "Home",
+
+  "vnpayReturnSuccessConfirm": "Payment successful!",
+  "vnpayReturnSuccessMessage": "Thank you for your order.",
+  "vnpayReturnOrderInfo": "Order info:",
+  "vnpayReturnAmount": "Amount:",
+  "vnpayReturnFailConfirm": "Payment failed!",
+  "vnpayReturnFailMessage": "An error occurred during payment.",
+  "vnpayReturnErrorCode": "Error code:",
+  "vnpayReturnHomeButton": "Home"
 }

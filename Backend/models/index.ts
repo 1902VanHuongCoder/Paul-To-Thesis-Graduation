@@ -20,6 +20,7 @@ import TagOfNews from "./TagOfNew";
 import NewsTagOfNews from "./NewsTagOfNews";
 import Wishlist from "./Wislist";
 import Delivery from "./Delivery";
+import Discount from "./Discount";
 
 
 SubCategory.hasMany(Product, {
@@ -90,11 +91,15 @@ Product.belongsToMany(Order, {
   as: "orders",
 });
 
+Order.belongsTo(User, { foreignKey: "userID", as: "user" }); 
+Order.belongsTo(ShoppingCart, { foreignKey: "cartID", as: "cart" });
+
 ShoppingCart.belongsToMany(Product, {
   through: CartItem,
   foreignKey: "cartID",
   as: "products",
 });
+
 Product.belongsToMany(ShoppingCart, {
   through: CartItem,
   foreignKey: "productID",
@@ -149,5 +154,6 @@ export {
   NewsTagOfNews,
   Wishlist,
   Delivery,
+  Discount
 };
 
