@@ -136,9 +136,9 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
     useEffect(() => {
         const customerID = 1; // Replace with actual customer ID
         fetchCart(customerID).catch((error) => {
+            toast.success(d?.toastFetchCartError || "Tai gio hang thanh cong");
             console.error("Error fetching cart on mount:", error);
         });
-
     }, []);
 
     return (

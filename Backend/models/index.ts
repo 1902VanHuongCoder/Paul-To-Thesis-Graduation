@@ -92,7 +92,6 @@ Product.belongsToMany(Order, {
 });
 
 Order.belongsTo(User, { foreignKey: "userID", as: "user" }); 
-Order.belongsTo(ShoppingCart, { foreignKey: "cartID", as: "cart" });
 
 ShoppingCart.belongsToMany(Product, {
   through: CartItem,

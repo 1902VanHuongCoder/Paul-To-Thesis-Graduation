@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Order, User, Product, OrderProduct, ShoppingCart, CartItem } from "../models";
+import { Order, User, Product, OrderProduct, ShoppingCart, CartItem, Discount } from "../models";
 import { Transaction } from "sequelize";
 
 // GET all orders
@@ -75,11 +75,10 @@ export const createOrder = async (
     totalPayment,
     totalQuantity,
     note,
-    discount,
+    discount, // {discountID, discountValue}
   } = req.body;
 
-  console.log(req.body);
-
+  const discountValue = req.body.discount?.discountValue || 0;
   const t = await Order.sequelize?.transaction();
 
   try {
@@ -93,7 +92,7 @@ export const createOrder = async (
       await t?.rollback();
       res.status(400).json({ error: "Cart is empty or not found" });
       return;
-    }else{
+    } else {
       // 2. Create the order
       const newOrder = await Order.create(
         {
@@ -107,7 +106,7 @@ export const createOrder = async (
           totalPayment,
           totalQuantity,
           note,
-          discount,
+          discountValue,
         },
         { transaction: t }
       );
@@ -122,6 +121,19 @@ export const createOrder = async (
 
       await OrderProduct.bulkCreate(orderProducts, { transaction: t });
 
+      // 4. If discount is applied, increase usedCount
+      if (discount && discount.discountID) {
+        const discountRecord = await Discount.findByPk(discount.discountID, {
+          transaction: t,
+        });
+        if (discountRecord) {
+          await discountRecord.increment("usedCount", {
+            by: 1,
+            transaction: t,
+          });
+        }
+      }
+
       await CartItem.destroy({
         where: { cartID },
         transaction: t,
@@ -135,15 +147,12 @@ export const createOrder = async (
       await t?.commit();
       res.status(201).json(newOrder);
     }
-
-   
   } catch (error) {
     await t?.rollback();
     console.error("Error creating order:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
-
 // PUT (update) an existing order by ID
 export const updateOrder = async (
   req: Request,

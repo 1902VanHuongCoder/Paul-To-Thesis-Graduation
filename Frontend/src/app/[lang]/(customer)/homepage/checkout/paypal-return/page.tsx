@@ -14,12 +14,11 @@ export default function PaypalReturnPage() {
   const params = useSearchParams();
   const orderID = params.get("orderID");
   const { checkoutData } = useCheckout();
-  const { setCart } = useShoppingCart();
+  const { setCart, fetchCart } = useShoppingCart();
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const { dictionary: d } = useDictionary();
   const router = useRouter();
   const effectRan = useRef(false);
-
 
   useEffect(() => {
     if (effectRan.current) return;
@@ -44,6 +43,7 @@ export default function PaypalReturnPage() {
             totalQuantity: 0,
             products: []
           });
+          fetchCart(1);
         }
       })
     }

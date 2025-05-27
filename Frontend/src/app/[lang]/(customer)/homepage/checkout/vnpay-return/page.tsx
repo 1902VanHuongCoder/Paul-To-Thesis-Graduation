@@ -40,11 +40,12 @@ export default function VNPayReturnPage() {
             toast.error(d?.checkoutOrderError || "Đặt hàng thất bại, vui lòng thử lại sau!");
             throw new Error("Failed to place order");
           } else {
+            localStorage.removeItem("checkoutData");
             toast.success(d?.checkoutOrderSuccess || "Đặt hàng thành công!");
             setCart({
               cartID: 0,
               totalQuantity: 0,
-              products: []
+              products: [],
             });
           }
         });

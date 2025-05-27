@@ -2,15 +2,12 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 
 class Discount extends Model {
-  public discountID!: number;
+  public discountID!: string;
   public discountDescription!: string;
   public discountPercent!: number;
-  public discountPriceBase!: number;
   public expireDate!: Date;
   public isActive!: boolean;
 
-  // Suggested additional properties:
-  public code?: string; // Discount code for users to enter
   public usageLimit?: number; // Max times this discount can be used
   public usedCount?: number; // How many times it has been used
   public minOrderValue?: number; // Minimum order value to apply discount
@@ -22,19 +19,14 @@ class Discount extends Model {
 Discount.init(
   {
     discountID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
     },
     discountDescription: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     discountPercent: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    discountPriceBase: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
@@ -46,12 +38,6 @@ Discount.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-    },
-    // Suggested additional fields:
-    code: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      unique: true,
     },
     usageLimit: {
       type: DataTypes.INTEGER,

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
@@ -10,9 +10,13 @@ import formatVND from "@/lib/format-vnd";
 // import { useNavigate } from "react-router-dom";
 // import { useCheckout } from "@/contexts/checkout-context";
 import { useRouter } from "next/navigation";
+import { baseUrl } from "@/lib/base-url";
+import toast from "react-hot-toast";
+import { useCheckout } from "@/contexts/checkout-context";
 
 export default function CartPage() {
     const { cart, setCart, removeFromCart, updateCart } = useShoppingCart();
+    const { checkoutData, setCheckoutData } = useCheckout();
     const { dictionary: d, lang } = useDictionary();
     // const { setCheckoutData} = useCheckout(); 
     const [promoCode, setPromoCode] = useState({
@@ -23,7 +27,60 @@ export default function CartPage() {
 
     // const [selectedShipping, setSelectedShipping] = useState("local");
     const [termsAccepted, setTermsAccepted] = useState(false);
-    
+
+    const totalPayment = useMemo(()=> {
+        const subtotal = cart.products.reduce((total, item) => {
+            const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
+            return total + (price * (item.CartItem?.quantity || 0));
+        }, 0);
+        const discountValue = checkoutData?.discount?.discountValue || 0;
+        return subtotal - discountValue;
+    }, [cart.products, checkoutData?.discount?.discountValue]);
+
+    const handleCheckPromoCode = async () => {
+        try {
+            await fetch(`${baseUrl}/api/discount/${promoCode.code}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then((res) => {
+                if (!res.ok) {
+                    throw new Error("Failed to fetch promo codes");
+                } else {
+                    return res.json();
+                }
+            }).then((data) => {
+                toast.success("Áp dụng mã giảm giá thành công!");
+                if (data.discount.isActive === false || data.discount.expireDate < new Date().toISOString() || data.discount.usedCount >= data.discount.usageLimit) {
+                    toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
+                    return;
+                } else if (data.discount.minOrderValue && totalPayment < data.discount.minOrderValue) {
+                    toast.error(`Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(data.discount.minOrderValue)} VND.`);
+                    return;
+                } else {
+                    const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
+                    setCheckoutData({
+                        ...checkoutData,
+                        discount: {
+                            discountID: data.discount.discountID,
+                            discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
+                        }
+                    })
+                    setPromoCode({
+                        ...promoCode,
+                        discount: data.discount.discountPercent || 0 * totalPayment / 100,
+                    });
+                }
+
+            })
+
+        } catch (error) {
+            console.error("Error checking promo code:", error);
+            toast.error("Đã xảy ra lỗi khi kiểm tra mã giảm giá. Vui lòng thử lại sau.");
+        }
+    }
+
     const handleCheckout = () => {
         if (cart.products.length === 0) {
             alert("Giỏ hàng của bạn đang trống");
@@ -33,15 +90,8 @@ export default function CartPage() {
             alert("Vui lòng đồng ý với các điều khoản và điều kiện");
             return;
         }
-
-        // setCheckoutData({ 
-        //     totalPayment: totalPayment,
-        //     discount: promoCode.discount,
-        //     shippingMethod: selectedShipping,
-        // })
         router.push(`/${lang}/homepage/checkout`);
     };
-
 
     const handleChangeProductQuantity = (productID: number, quantity: number) => {
         // Find the current product
@@ -82,16 +132,6 @@ export default function CartPage() {
         });
         removeFromCart(productID, cart.cartID);
     }
-
-    const totalPayment = cart.products.reduce((sum, item) => {
-        // Use sale price if available, otherwise use regular price
-        const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
-        const quantity = item.CartItem?.quantity || 0;
-        const discount = item.CartItem?.discount || 0;
-        // Apply discount if present (assuming discount is a number like 10 for 10%)
-        const discountedPrice = price * (1 - discount / 100);
-        return sum + discountedPrice * quantity;
-    }, 0);
 
     return (
         <div className="flex flex-col md:flex-row gap-8">
@@ -134,11 +174,11 @@ export default function CartPage() {
                                 <td className="p-2 md:p-4">{formatVND(item.productPriceSale ? item.productPriceSale : item.productPrice)}</td>
                                 <td className="p-2 md:p-4">
                                     <div className="flex items-center w-full gap-x-2 justify-start">
-                                         <button className=" rounded-sm border-1 border-primary/10 px-4 py-2"  onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity - 1)}>-</button>
-                                    {item?.CartItem?.quantity ? item.CartItem?.quantity : 0}
-                                    <button className=" rounded-sm border-1 border-primary/10 px-4 py-2" onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity + 1)}>+</button>
+                                        <button className=" rounded-sm border-1 border-primary/10 px-4 py-2" onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity - 1)}>-</button>
+                                        {item?.CartItem?.quantity ? item.CartItem?.quantity : 0}
+                                        <button className=" rounded-sm border-1 border-primary/10 px-4 py-2" onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity + 1)}>+</button>
                                     </div>
-                                   
+
                                 </td>
                                 <td className="p-2 md:p-4">{formatVND((item.productPriceSale ? item.productPriceSale : item.productPrice) * (item.CartItem?.quantity || 0))}</td>
                                 <td className="p-2 md:p-4">
@@ -161,10 +201,10 @@ export default function CartPage() {
                         type="text"
                         placeholder={d?.shoppingCartPagePromoCodeInput || "Nhập mã giảm giá"}
                         value={promoCode.code}
-                        onChange={(e) => setPromoCode({...promoCode, code:e.target.value})}
+                        onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                     />
-                    <Button variant="normal" size="sm" className="w-fit">
+                    <Button variant="normal" size="sm" className="w-fit" onClick={handleCheckPromoCode}>
                         {d?.shoppingCartPageApplyCoupon || "Áp dụng mã giảm giá"}
                     </Button>
                 </div>
@@ -202,7 +242,7 @@ export default function CartPage() {
                                 d?.shoppingCartPageSumOrderDiscount || "Giảm giá"
                             }
                         </span>
-                        <span>- 0 VND</span>
+                        <span>- {formatVND(checkoutData?.discount?.discountValue || 0)} VND</span>
                     </div>
                     {/* <div className="flex flex-col gap-2">
                         <span className="text-gray-700">{
@@ -243,7 +283,7 @@ export default function CartPage() {
                         <span>{
                             d?.shoppingCartPageSumOrderTotal || "Tổng"
                         }</span>
-                        <span>{formatVND(totalPayment + 25000)} VND  </span>
+                        <span>{formatVND(totalPayment - (checkoutData?.discount?.discountValue || 0))} VND </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <input

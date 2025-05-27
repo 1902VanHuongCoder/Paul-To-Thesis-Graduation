@@ -3,18 +3,21 @@
 import React, { createContext, useContext, useState } from "react";
 
 interface CheckoutData {
-    orderID: string;
-    userID: number;
-    fullName: string;
-    totalPayment: number;
-    totalQuantity: number;
+    orderID?: string;
+    userID?: number;
+    fullName?: string;
+    totalPayment?: number;
+    totalQuantity?: number;
     note?: string;
-    phone: string;
-    address: string;
-    paymentMethod: string;
-    deliveryMethod: number;
-    cartID: number;
-    discount: number;
+    phone?: string;
+    address?: string;
+    paymentMethod?: string;
+    deliveryMethod?: number;
+    cartID?: number;
+    discount?: {
+      discountID: string;
+      discountValue: number;
+    };
 }
 
 interface CheckoutContextValue {

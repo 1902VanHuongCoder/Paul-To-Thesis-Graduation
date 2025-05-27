@@ -13,7 +13,7 @@ const router = express.Router();
 router.get("/", getAllDiscounts);
 
 // GET a discount by ID
-router.get("/:id", getDiscountById);
+router.get("/:discountID", getDiscountById);
 
 // POST create a new discount
 router.post("/", createDiscount);

@@ -10,7 +10,7 @@ import formatVND from "@/lib/format-vnd";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useCheckout } from "@/contexts/checkout-context";
-import { FormProvider, set, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form/form";
 import { provinceCoordinate } from "@/lib/vietnam-province-coordinate";
 import PayPalButton from "@/components/ui/button/paypal-button";
@@ -76,8 +76,9 @@ export default function CheckoutPage() {
     const [paymentMethod, setPaymentMethod] = useState("");
     const [promoCode, setPromoCode] = useState({
         code: "",
-        discount: 0,
+        discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
     });
+    console.log("Promo Code:", promoCode);
     const [delivery, setDelivery] = useState<{
         allMethods: DeliveryMethod[];
         selectMethod: Partial<DeliveryMethod>;
@@ -176,6 +177,58 @@ export default function CheckoutPage() {
         }
     }
 
+    const handleCheckPromoCode = async () => {
+        if (!promoCode.code) {
+            toast.error("Vui lòng nhập mã giảm giá.");
+            return;
+        }
+        try {
+            const discountID = promoCode.code;
+            const res = await fetch(`${baseUrl}/api/discount/${discountID}`);
+            if (!res.ok) {
+                throw new Error("Failed to fetch promo codes");
+            }
+            const data = await res.json();
+            const discount = data.discount || data; // Support both API shapes
+            const now = new Date();
+            const expireDate = new Date(discount.expireDate);
+
+            if (
+                discount.isActive === false ||
+                expireDate < now ||
+                (discount.usageLimit && discount.usedCount >= discount.usageLimit)
+            ) {
+                toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
+                return;
+            } else if (discount.minOrderValue && totalPayment < discount.minOrderValue) {
+                toast.error(
+                    `Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(
+                        discount.minOrderValue
+                    )} VND.`
+                );
+                return;
+            } else {
+                const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
+                console.log("Discount Value:", formatVND(discountValue));
+                toast.success("Áp dụng mã giảm giá thành công!");
+                setCheckoutData({
+                    ...checkoutData,
+                    discount: {
+                        discountID: data.discount.discountID,
+                        discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
+                    }
+                })
+                setPromoCode({
+                    code: "",
+                    discount: 0,
+                });
+            }
+        } catch (error) {
+            console.error("Error checking promo code:", error);
+            toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+        }
+    };
+
     const onSubmit = async (data: CheckoutFormValues) => {
         const productQuantity = cart.products.reduce((total, product) => {
             return total + product.CartItem.quantity;
@@ -184,7 +237,8 @@ export default function CheckoutPage() {
         const orderDescription = `${d?.orderDescription || "Thanh toán đơn hàng"} ${data.fullName} ${d?.orderDescriptionOnWord || "trên"} ${new Date().toLocaleDateString()}`;
         const bankCode = "NCB"; // Default bank code, can be changed based on user selection
         const language = lang; // Default language, can be changed based on user selection
-        const checkoutData = {
+        const orderDataSendToServer = {
+            ...checkoutData,
             orderID: orderID,
             userID: 1,
             fullName: data.fullName,
@@ -196,11 +250,10 @@ export default function CheckoutPage() {
             paymentMethod: paymentMethod,
             deliveryMethod: delivery.selectMethod.deliveryID || 0,
             cartID: cart.cartID,
-            discount: promoCode.discount || 0,
         };
-        setCheckoutData(checkoutData);
+        setCheckoutData(orderDataSendToServer);
         if (paymentMethod === "vn-pay") {
-            localStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+            localStorage.setItem("checkoutData", JSON.stringify(orderDataSendToServer));
             payWithVnPay({
                 orderID,
                 amount: totalPayment,
@@ -215,22 +268,8 @@ export default function CheckoutPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-
                 },
-                body: JSON.stringify({
-                    orderID: orderID,
-                    userID: 1,
-                    fullName: data.fullName,
-                    totalPayment: totalPayment,
-                    totalQuantity: productQuantity,
-                    note: data.note || "",
-                    phone: data.phone,
-                    address: `${data.detailAddress}, ${data.ward}, ${data.district}, ${data.province}`,
-                    paymentMethod: paymentMethod,
-                    deliveryMethod: delivery.selectMethod.deliveryID || null,
-                    cartID: cart.cartID,
-                    discount: promoCode.discount || 0,
-                })
+                body: JSON.stringify(orderDataSendToServer)
             }).then((res) => {
                 if (!res.ok) {
                     toast.error(d?.checkoutOrderError || "Đặt hàng thất bại, vui lòng thử lại sau!");
@@ -243,7 +282,7 @@ export default function CheckoutPage() {
                         totalQuantity: 0,
                         products: []
                     });
-                    router.push("/"); // Redirect to order success page
+                    router.push(`/${lang}/homepage/checkout/cash-return`); // Redirect to order success page
 
                 }
             })
@@ -322,10 +361,23 @@ export default function CheckoutPage() {
         const totalPrice = cart.products.reduce((total, product) => {
             return total + (product.CartItem.price * product.CartItem.quantity);
         }, 0);
-        const discount = checkoutData?.discount || 0;
+        const discount = checkoutData?.discount?.discountValue || 0;
         const deliveryMethod = delivery.selectMethod.base_price || 0;
-        return totalPrice - discount + deliveryMethod + deliveryCost;
-    }, [cart.products, checkoutData?.discount, delivery.selectMethod.base_price, deliveryCost]);
+        return totalPrice + (discount + deliveryMethod + deliveryCost);
+    }, [cart.products, delivery.selectMethod.base_price, deliveryCost, checkoutData?.discount?.discountValue]);
+
+    useEffect(() => {
+        // If you want to clear discount on unmount or before navigation,
+        // you can do it here or handle it after order placement.
+        return () => {
+            setCheckoutData((prev) => ({
+                ...prev,
+                discount: undefined, // or discount: null
+            }));
+        };
+    }, [setCheckoutData]);
+
+    console.log("Checkout Data:", checkoutData?.discount);
 
     return (
         <div className="flex flex-col md:flex-row gap-8 bg-white">
@@ -334,7 +386,7 @@ export default function CheckoutPage() {
 
                 <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.checkoutPageTitle || "Thông tin giao hàng"}</h2>
                 {/* Discount Section */}
-                {checkoutData?.discount ? "" : (
+                {promoCode.discount !== 0 ? "" : (
                     <div className="mt-6 flex items-center gap-4 mb-4">
                         <input
                             type="text"
@@ -343,7 +395,7 @@ export default function CheckoutPage() {
                             onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                         />
-                        <Button variant="normal" size="sm" className="w-fit">
+                        <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="w-fit">
                             {d?.shoppingCartPageApplyCoupon || "Áp dụng mã giảm giá"}
                         </Button>
                     </div>
@@ -506,7 +558,12 @@ export default function CheckoutPage() {
                         <span>
                             {d?.checkoutDiscount || "Giảm giá"}
                         </span>
-                        <span>- {checkoutData?.discount ? formatVND(checkoutData?.discount) : 0} VND</span>
+                        {/* <span>- {checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0} VND</span> */}
+                        <span>- {promoCode.discount !== 0 ?
+                            formatVND(promoCode.discount)
+                            : checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0
+                        } 
+                        VND</span>
                     </div>
                     <div className=" text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span className="flex flex-col">
