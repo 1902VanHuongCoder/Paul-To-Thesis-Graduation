@@ -15,13 +15,14 @@ export default function IconButton({
   backgroundColor = "bg-gray-200",
   onClick,
   className = "",
+
 }: IconButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`p-3 rounded-full flex items-center justify-center ${className} bg-${backgroundColor}`}
+      className={`p-3 rounded-full flex items-center justify-center gap-x-4 ${className} bg-${backgroundColor}`}
     >
-      <Icon fill={iconColor} className={`w-5 h-5 text-${iconColor}`} stroke={iconColor}/>
+     <Icon className={`w-5 h-5 text-${iconColor}`} stroke={iconColor}/>
     </button>
   );
 }

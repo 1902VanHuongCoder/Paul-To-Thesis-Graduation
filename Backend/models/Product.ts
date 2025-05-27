@@ -8,6 +8,7 @@ import ProductTag from "./ProductTag";
 
 class Product extends Model {
   productID: any;
+  productPrice!: number;
 }
 
 Product.init(
@@ -22,8 +23,12 @@ Product.init(
       allowNull: false,
     },
     productPrice: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    productPriceSale: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     quantityAvailable: {
       type: DataTypes.INTEGER,
@@ -65,6 +70,10 @@ Product.init(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    rating: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    }
   },
   {
     sequelize,

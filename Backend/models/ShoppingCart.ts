@@ -18,6 +18,7 @@ ShoppingCart.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+      allowNull: false,
     },
     customerID: {
       type: DataTypes.INTEGER,
@@ -29,16 +30,11 @@ ShoppingCart.init(
     },
     totalQuantity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
+      allowNull: true,
+      defaultValue: 1,
     },
     payment: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-      defaultValue: 0.0,
-    },
-    discount: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.STRING,
       allowNull: true,
       defaultValue: 0.0,
     },

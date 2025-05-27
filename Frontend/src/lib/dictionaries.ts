@@ -1,5 +1,4 @@
-// lib/dictionaries.ts
 export const dictionaries = {
-  en: () => import('../dictionaries/en.json').then((m) => m.default),
-  vi: () => import('../dictionaries/vi.json').then((m) => m.default),
+  en: async () => (await import('../dictionaries/en.json')),
+  vi: async () => (await import('../dictionaries/vi.json'))
 };

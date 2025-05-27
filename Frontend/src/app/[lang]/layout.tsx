@@ -1,28 +1,27 @@
 import type { Metadata } from "next";
-import Itim from "next/font/local";
-import Nunito_Sans from "next/font/local";
+import { Nunito_Sans } from "next/font/google";
+import { Itim } from "next/font/google";
 import "./globals.css";
+import { use } from "react";
+import { DictionaryProvider } from "@/contexts/dictonary-context";
+import { LoadingProvider } from "@/contexts/loading-context";
+import { ShoppingCartProvider } from "@/contexts/shopping-cart-context";
+import { WishlistProvider } from "@/contexts/wishlist-context";
+import { CheckoutProvider } from "@/contexts/checkout-context";
 
 const nunito = Nunito_Sans({
     variable: "--font-nunito",
-    src: [{
-        path: '../../../public/fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf',
-        weight: '100 900',
-        style: 'normal',
-    },
-    {
-        path: '../../../public/fonts/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf',
-        weight: '100 900',
-        style: 'italic',
-    }
-    ],
+    subsets: ["latin"],
+    weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+    style: ["normal", "italic"],
+    display: "swap",
 });
 
 const itim = Itim({
     variable: "--font-itim",
-    src: [
-        { path: '../../../public/fonts/Itim-Regular.ttf', weight: '400', style: 'normal' },
-    ],
+    subsets: ["latin"],
+    weight: ["400"],
+    display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -35,16 +34,24 @@ export default function LangLayout({
     params,
 }: {
     children: React.ReactNode;
-    params: { lang: string };
+    params: Promise<{ lang: "en" | "vi" }>;
 }) {
-
+    const { lang } = use(params);
     return (
-        <html lang={params.lang}>
-            <body
-                className={`${nunito.variable} ${itim.variable} antialiased`}
-            >
-               
-                {children}
+        <html lang={lang}>
+            <body className={`${nunito.variable} ${itim.variable} antialiased`}>
+                <DictionaryProvider lang={lang}>
+                    <LoadingProvider>
+                        <ShoppingCartProvider>
+                            <WishlistProvider>
+                                <CheckoutProvider>
+                                {children}
+                                </CheckoutProvider>
+                            </WishlistProvider>
+                        </ShoppingCartProvider>
+                    </LoadingProvider>
+
+                </DictionaryProvider>
             </body>
         </html>
     );

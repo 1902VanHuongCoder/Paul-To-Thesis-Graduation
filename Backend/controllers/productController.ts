@@ -3,14 +3,9 @@ import { Category, Origin, Product, ProductAttribute, ProductTag, SubCategory, T
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Sort products by createdAt in descending order (latest first)
     const products = await Product.findAll({
-      include: [
-        { model: Category },
-        { model: SubCategory },
-        { model: Tag }, // Include associated tags
-        { model: Origin },
-        { model: ProductAttribute }, // Include associated attributes
-      ],
+      order: [['createdAt', 'DESC']],
     });
     res.status(200).json(products);
   } catch (error) {
@@ -49,6 +44,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   const {
     productName,
     productPrice,
+    productPriceSale,
     quantityAvailable,
     categoryID,
     tagIDs, // Array of tag IDs
@@ -58,17 +54,29 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     attributes, // Additional attributes specific to the category
   } = req.body;
 
+  console.log("Request body:", req.body);
+
   try {
     // Create the product
     const newProduct = await Product.create({
       productName,
       productPrice,
+      productPriceSale,
       quantityAvailable,
       categoryID,
       originID,
       subcategoryID,
       images,
+      rating: 5,
     });
+
+    // Increment the count of the selected category
+    if (categoryID) {
+      await Category.increment("count", {
+        by: 1,
+        where: { categoryID: categoryID },
+      });
+    }
 
     // Handle tags
     if (tagIDs && Array.isArray(tagIDs)) {

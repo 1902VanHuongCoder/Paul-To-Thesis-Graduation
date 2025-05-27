@@ -5,7 +5,7 @@ import Product from "./Product";
 
 class OrderProduct extends Model {
   public orderProductID!: number;
-  public orderID!: number;
+  public orderID!: string;
   public productID!: number;
   public quantity!: number;
   public price!: number;
@@ -19,7 +19,7 @@ OrderProduct.init(
       autoIncrement: true,
     },
     orderID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: Order,

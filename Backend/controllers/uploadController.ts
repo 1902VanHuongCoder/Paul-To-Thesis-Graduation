@@ -10,7 +10,7 @@ export const uploadFile = (req: Request, res: Response): void => {
     // Cloudinary response is available in req.file
     res.status(200).json({
       message: "File uploaded successfully",
-      file: req.file,
+      url: req.file.path,
     });
   } catch (error) {
     console.error("Error uploading file:", error);

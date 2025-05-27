@@ -18,6 +18,9 @@ import Comment from "./Comment";
 import News from "./News";
 import TagOfNews from "./TagOfNew";
 import NewsTagOfNews from "./NewsTagOfNews";
+import Wishlist from "./Wislist";
+import Delivery from "./Delivery";
+import Discount from "./Discount";
 
 
 SubCategory.hasMany(Product, {
@@ -88,11 +91,14 @@ Product.belongsToMany(Order, {
   as: "orders",
 });
 
+Order.belongsTo(User, { foreignKey: "userID", as: "user" }); 
+
 ShoppingCart.belongsToMany(Product, {
   through: CartItem,
   foreignKey: "cartID",
   as: "products",
 });
+
 Product.belongsToMany(ShoppingCart, {
   through: CartItem,
   foreignKey: "productID",
@@ -120,6 +126,10 @@ TagOfNews.belongsToMany(News, {
   as: "hasnews",
 });
 
+// Associations
+Wishlist.belongsTo(User, { foreignKey: "customerID", as: "customer" });
+Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
+
 export {
   User,
   Product,
@@ -141,5 +151,8 @@ export {
   News,
   TagOfNews,
   NewsTagOfNews,
+  Wishlist,
+  Delivery,
+  Discount
 };
 

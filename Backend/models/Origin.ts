@@ -14,6 +14,10 @@ Origin.init(
     originName: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    originImage: {
+      type: DataTypes.STRING,
+      allowNull: false,
     }
   },
   {

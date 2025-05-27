@@ -9,24 +9,29 @@ import {
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useDictionary } from "@/contexts/dictonary-context";
+
+interface SortOption {
+    value: string; // The value of the sort option
+    label: string; // The display label for the sort option
+}
 
 interface SortDropdownProps {
-    options: string[];
-    defaultOption?: string;
+    options: SortOption[];
     onSortChange?: (option: string) => void; // Callback for when a sort option is selected
 }
 
 export default function SortDropdown({
     options,
-    defaultOption = "Mặc định",
     onSortChange,
 }: SortDropdownProps) {
-    const [selectedOption, setSelectedOption] = useState(defaultOption);
+    const { dictionary } = useDictionary();
+    const [selectedOption, setSelectedOption] = useState(dictionary?.sortDropdownDV || "Mặc định");
 
-    const handleOptionSelect = (option: string) => {
+    const handleOptionSelect = (option: string, value: string) => {
         setSelectedOption(option);
         if (onSortChange) {
-            onSortChange(option);
+            onSortChange(value);
         }
     };
 
@@ -34,7 +39,7 @@ export default function SortDropdown({
         <DropdownMenu>
             {/* Trigger Button */}
             <DropdownMenuTrigger
-                className="group relative font-sans bg-secondary border-[1px] overflow-hidden border-gray-200 text-black font-normal text-md px-6 py-3 rounded-full flex items-center gap-2 focus:outline-none"
+                className="group relative font-sans bg-secondary border-[1px] overflow-hidden border-gray-200 text-black font-normal text-md px-4 py-2 rounded-full flex items-center gap-2 focus:outline-none"
                 aria-label="Sort options"
             >
                 <span className="text-lg relative z-2 text-primary">{selectedOption}</span>
@@ -48,14 +53,14 @@ export default function SortDropdown({
                 sideOffset={8}
             >
                 {options.map((option, index) => (
-                    <React.Fragment key={option}>
+                    <React.Fragment key={option.value}>
                         <DropdownMenuItem
-                            onClick={() => handleOptionSelect(option)}
-                            className={`px-4 py-2 text-sm cursor-pointer ${selectedOption === option ? "text-secondary font-bold" : "text-white"
+                            onClick={() => handleOptionSelect(option.label, option.value)}
+                            className={`px-4 py-2 text-sm cursor-pointer ${selectedOption === option.value ? "text-secondary font-bold" : "text-white"
                                 }`}
                             aria-label={`Sort by ${option}`}
                         >
-                            {option}
+                            {option.label}
                         </DropdownMenuItem>
                         {index < options.length - 1 && <DropdownMenuSeparator className="bg-white/10"/>} 
                     </React.Fragment>

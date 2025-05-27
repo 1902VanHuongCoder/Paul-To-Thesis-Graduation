@@ -1,126 +1,197 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
-interface CartItem {
-    id: string;
-    name: string;
-    image: string;
-    price: number;
-    quantity: number;
-}
+import { useShoppingCart } from "@/contexts/shopping-cart-context";
+import { useDictionary } from "@/contexts/dictonary-context";
+import formatVND from "@/lib/format-vnd";
+// import { useNavigate } from "react-router-dom";
+// import { useCheckout } from "@/contexts/checkout-context";
+import { useRouter } from "next/navigation";
+import { baseUrl } from "@/lib/base-url";
+import toast from "react-hot-toast";
+import { useCheckout } from "@/contexts/checkout-context";
 
 export default function CartPage() {
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        {
-            id: "1",
-            name: "Vimto Squash Remix",
-            image: "https://img.freepik.com/free-psd/fruits-composition-isolated_23-2151856344.jpg?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid&w=740",
-            price: 18.0,
-            quantity: 1,
-        },
-        {
-            id: "2",
-            name: "Another Product",
-            image: "https://img.freepik.com/free-psd/fruits-composition-isolated_23-2151856344.jpg?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid&w=740",
-            price: 20.0,
-            quantity: 2,
-        },
-    ]);
+    const { cart, setCart, removeFromCart, updateCart } = useShoppingCart();
+    const { checkoutData, setCheckoutData } = useCheckout();
+    const { dictionary: d, lang } = useDictionary();
+    // const { setCheckoutData} = useCheckout(); 
+    const [promoCode, setPromoCode] = useState({
+        code: "",
+        discount: 0,
+    });
+    const router = useRouter();
 
-    const [promoCode, setPromoCode] = useState("");
-    const [selectedShipping, setSelectedShipping] = useState("local");
+    // const [selectedShipping, setSelectedShipping] = useState("local");
     const [termsAccepted, setTermsAccepted] = useState(false);
 
-    const handleQuantityChange = (id: string, delta: number) => {
-        setCartItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === id
-                    ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-                    : item
-            )
-        );
+    const totalPayment = useMemo(()=> {
+        const subtotal = cart.products.reduce((total, item) => {
+            const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
+            return total + (price * (item.CartItem?.quantity || 0));
+        }, 0);
+        const discountValue = checkoutData?.discount?.discountValue || 0;
+        return subtotal - discountValue;
+    }, [cart.products, checkoutData?.discount?.discountValue]);
+
+    const handleCheckPromoCode = async () => {
+        try {
+            await fetch(`${baseUrl}/api/discount/${promoCode.code}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then((res) => {
+                if (!res.ok) {
+                    throw new Error("Failed to fetch promo codes");
+                } else {
+                    return res.json();
+                }
+            }).then((data) => {
+                toast.success("Áp dụng mã giảm giá thành công!");
+                if (data.discount.isActive === false || data.discount.expireDate < new Date().toISOString() || data.discount.usedCount >= data.discount.usageLimit) {
+                    toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
+                    return;
+                } else if (data.discount.minOrderValue && totalPayment < data.discount.minOrderValue) {
+                    toast.error(`Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(data.discount.minOrderValue)} VND.`);
+                    return;
+                } else {
+                    const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
+                    setCheckoutData({
+                        ...checkoutData,
+                        discount: {
+                            discountID: data.discount.discountID,
+                            discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
+                        }
+                    })
+                    setPromoCode({
+                        ...promoCode,
+                        discount: data.discount.discountPercent || 0 * totalPayment / 100,
+                    });
+                }
+
+            })
+
+        } catch (error) {
+            console.error("Error checking promo code:", error);
+            toast.error("Đã xảy ra lỗi khi kiểm tra mã giảm giá. Vui lòng thử lại sau.");
+        }
+    }
+
+    const handleCheckout = () => {
+        if (cart.products.length === 0) {
+            alert("Giỏ hàng của bạn đang trống");
+            return;
+        }
+        if (!termsAccepted) {
+            alert("Vui lòng đồng ý với các điều khoản và điều kiện");
+            return;
+        }
+        router.push(`/${lang}/homepage/checkout`);
     };
 
-    const handleRemoveItem = (id: string) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    const handleChangeProductQuantity = (productID: number, quantity: number) => {
+        // Find the current product
+        const product = cart.products.find(p => p.productID === productID);
+        if (!product) {
+            alert("Sản phẩm không tồn tại trong giỏ hàng");
+            return;
+        };
+        // Prevent quantity less than 1
+        if (quantity < 1) {
+            alert("Số lượng sản phẩm không thể nhỏ hơn 1");
+            return;
+        };
+        const updatedProducts = cart.products.map(p => {
+            if (p.productID === productID) {
+                return {
+                    ...p,
+                    CartItem: {
+                        ...p.CartItem,
+                        quantity: quantity
+                    }
+                };
+            }
+            return p;
+        });
+        setCart({
+            ...cart,
+            products: updatedProducts
+        });
+        updateCart(cart.cartID, productID, quantity);
     };
 
-    const subtotal = cartItems.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-    );
-
-    const shippingCost =
-        selectedShipping === "free" ? 0 : selectedShipping === "local" ? 35 : 35;
-
-    const total = subtotal + shippingCost;
+    const handleRemoveItem = (productID: number) => {
+        const updatedProducts = cart.products.filter(p => p.productID !== productID);
+        setCart({
+            ...cart,
+            products: updatedProducts
+        });
+        removeFromCart(productID, cart.cartID);
+    }
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 p-4 md:p-6">
+        <div className="flex flex-col md:flex-row gap-8">
             {/* Left Section – Cart Items */}
             <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Your Cart</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.shoppingCartPageTitle || "Giỏ hàng của bạn"}</h2>
                 <table className="w-full border-collapse">
-                    <thead>
+                    <thead className="border-b border-[rgba(0,0,0,.2)]">
                         <tr className="text-left text-gray-600">
-                            <th className="p-2 md:p-4">Product</th>
-                            <th className="p-2 md:p-4">Price</th>
-                            <th className="p-2 md:p-4">Quantity</th>
-                            <th className="p-2 md:p-4">Subtotal</th>
-                            <th className="p-2 md:p-4">Remove</th>
+                            <th className="p-2 md:p-4">{
+                                d?.shoppingCartPageProductName || "Tên sản phẩm"
+                            }</th>
+                            <th className="p-2 md:p-4">{
+                                d?.shoppingCartPageProductPrice || "Giá"
+                            }</th>
+                            <th className="p-2 md:p-4">{
+                                d?.shoppingCartPageProductQuantity || "Số lượng"
+                            }</th>
+                            <th className="p-2 md:p-4">{
+                                d?.shoppingCartPageProductTotal || "Tổng"
+                            }</th>
+                            <th className="p-2 md:p-4">{
+                                d?.shoppingCartPageProductAction || "Hành động"
+                            }</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {cartItems.map((item) => (
-                            <tr key={item.id} className="border-b">
-                                <td className="py-4 flex items-center gap-4">
+                        {cart.products.length > 0 ? cart.products.map((item) => (
+                            <tr key={item.productID} className="border-b">
+                                <td className="p-2 md:p-4 flex items-center gap-4">
                                     <Image
-                                        src={item.image}
-                                        alt={item.name}
-                                        width={50}
-                                        height={50}
-                                        className="rounded-lg"
+                                        src={item.images[0]}
+                                        alt={item.productName}
+                                        width={60}
+                                        height={60}
+                                        className="rounded-md"
                                     />
-                                    <span className="text-gray-800 hidden md:block">{item.name}</span>
+                                    <span>{item.productName}</span>
                                 </td>
-                                <td className="p-4 text-gray-700 text-center">${item.price.toFixed(2)}</td>
-                                <td className="p-4 text-center">
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleQuantityChange(item.id, -1)}
-                                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                                            aria-label="Decrease quantity"
-                                        >
-                                            −
-                                        </button>
-                                        <span>{item.quantity}</span>
-                                        <button
-                                            onClick={() => handleQuantityChange(item.id, 1)}
-                                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                                            aria-label="Increase quantity"
-                                        >
-                                            +
-                                        </button>
+                                <td className="p-2 md:p-4">{formatVND(item.productPriceSale ? item.productPriceSale : item.productPrice)}</td>
+                                <td className="p-2 md:p-4">
+                                    <div className="flex items-center w-full gap-x-2 justify-start">
+                                        <button className=" rounded-sm border-1 border-primary/10 px-4 py-2" onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity - 1)}>-</button>
+                                        {item?.CartItem?.quantity ? item.CartItem?.quantity : 0}
+                                        <button className=" rounded-sm border-1 border-primary/10 px-4 py-2" onClick={() => handleChangeProductQuantity(item.productID, item.CartItem.quantity + 1)}>+</button>
                                     </div>
+
                                 </td>
-                                <td className="py-4 text-gray-700 text-center">
-                                    ${(item.price * item.quantity).toFixed(2)}
-                                </td>
-                                <td className="py-4 text-center">
-                                    <button
-                                        onClick={() => handleRemoveItem(item.id)}
-                                        className="text-red-500 hover:text-red-700"
-                                        aria-label={`Remove ${item.name}`}
-                                    >
-                                        ×
-                                    </button>
+                                <td className="p-2 md:p-4">{formatVND((item.productPriceSale ? item.productPriceSale : item.productPrice) * (item.CartItem?.quantity || 0))}</td>
+                                <td className="p-2 md:p-4">
+                                    <Button variant="normal" size="sm" onClick={() => handleRemoveItem(item.productID)}>Remove</Button>
                                 </td>
                             </tr>
-                        ))}
+                        )) : (
+                            <tr>
+                                <td colSpan={5} className="py-4 text-center text-gray-500">
+                                    {d?.shoppingCartPageEmpty || "Giỏ hàng của bạn đang trống"}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
 
@@ -128,19 +199,19 @@ export default function CartPage() {
                 <div className="mt-6 flex items-center gap-4">
                     <input
                         type="text"
-                        placeholder="Enter promo code"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder={d?.shoppingCartPagePromoCodeInput || "Nhập mã giảm giá"}
+                        value={promoCode.code}
+                        onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                     />
-                    <Button variant="normal" size="sm" className="w-fit">
-                        Apply Coupon
+                    <Button variant="normal" size="sm" className="w-fit" onClick={handleCheckPromoCode}>
+                        {d?.shoppingCartPageApplyCoupon || "Áp dụng mã giảm giá"}
                     </Button>
                 </div>
             </div>
 
             {/* Right Section – Order Summary */}
-            <div className="relative w-full md:w-1/3 bg-gray-100 py-4 px-6">
+            <div className="relative w-full md:w-1/4 bg-gray-100 py-4 px-6">
                 <Image
                     src={carttotalshaptop}
                     alt="Cart Total Top Shape"
@@ -155,18 +226,28 @@ export default function CartPage() {
                     height={1000}
                     className="absolute -bottom-2 left-0 w-full h-auto"
                 />
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">{d?.shoppingCartPageSumOrderTitle || "Tổng quan giỏ hàng"}</h2>
                 <div className="space-y-4">
                     <div className="flex justify-between text-gray-700">
-                        <span>Subtotal</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>{
+                            d?.shoppingCartPageSumOrderSubtotal || "Tổng phụ"
+                        }</span>
+                        <span>
+                            {formatVND(totalPayment)} VND
+                        </span>
                     </div>
                     <div className="flex justify-between text-gray-700">
-                        <span>Discounts</span>
-                        <span>-$0.00</span>
+                        <span>
+                            {
+                                d?.shoppingCartPageSumOrderDiscount || "Giảm giá"
+                            }
+                        </span>
+                        <span>- {formatVND(checkoutData?.discount?.discountValue || 0)} VND</span>
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <span className="text-gray-700">Shipping Options</span>
+                    {/* <div className="flex flex-col gap-2">
+                        <span className="text-gray-700">{
+                            d?.shoppingCartPageSumOrderShipping || "Chọn hình thức giao hàng"
+                        }</span>
                         <label className="flex items-center gap-2">
                             <input
                                 type="radio"
@@ -197,10 +278,12 @@ export default function CartPage() {
                             />
                             Flat Rate – $35.00
                         </label>
-                    </div>
+                    </div> */}
                     <div className="flex justify-between text-gray-800 font-bold">
-                        <span>Total</span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>{
+                            d?.shoppingCartPageSumOrderTotal || "Tổng"
+                        }</span>
+                        <span>{formatVND(totalPayment - (checkoutData?.discount?.discountValue || 0))} VND </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <input
@@ -210,23 +293,29 @@ export default function CartPage() {
                             className="w-4 h-4"
                         />
                         <span className="text-sm text-gray-600">
-                            I agree to the terms and conditions
+                            {
+                                d?.shoppingCartPageSumOrderTerms || "Tôi đồng ý với các điều khoản và điều kiện"}
                         </span>
                     </div>
                     <div className="flex items-center gap-2 mt-4 flex-col">
                         <Button
+                            onClick={handleCheckout}
                             variant="primary"
                             size="md"
                             disabled={!termsAccepted}
                             className=""
                         >
-                            Thanh toán
+                            {
+                                d?.shoppingCartPageSumOrderCheckout || "Thanh toán"
+                            }
                         </Button>
                         <a
                             href="/shop"
                             className="text-sm text-green-700 underline hover:text-green-800 block text-center mt-2"
                         >
-                            Or continue shopping
+                            {
+                                d?.shoppingCartPageSumOrderContinueShopping || "Tiếp tục mua sắm"
+                            }
                         </a>
                     </div>
                 </div>

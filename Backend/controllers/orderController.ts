@@ -1,9 +1,6 @@
 import { Request, Response } from "express";
-import { Order, User, Product, OrderProduct } from "../models";
-import axios from "axios";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { Order, User, Product, OrderProduct, ShoppingCart, CartItem, Discount } from "../models";
+import { Transaction } from "sequelize";
 
 // GET all orders
 export const getAllOrders = async (
@@ -19,6 +16,7 @@ export const getAllOrders = async (
           as: "products",
           through: { attributes: ["quantity", "price"] },
         },
+        { model: ShoppingCart, as: "cart" },
       ],
     });
     res.status(200).json(orders);
@@ -44,6 +42,7 @@ export const getOrderById = async (
           as: "products",
           through: { attributes: ["quantity", "price"] },
         },
+        { model: ShoppingCart, as: "cart" },
       ],
     });
 
@@ -65,69 +64,117 @@ export const createOrder = async (
   res: Response
 ): Promise<void> => {
   const {
-    userID,
-    orderDate,
-    total,
-    totalAmount,
-    note,
-    orderStatus,
-    products,
     orderID,
+    userID,
+    fullName,
+    phone,
+    address,
+    paymentMethod,
+    deliveryMethod,
+    cartID,
+    totalPayment,
+    totalQuantity,
+    note,
+    discount, // {discountID, discountValue}
   } = req.body;
 
+  const discountValue = req.body.discount?.discountValue || 0;
+  const t = await Order.sequelize?.transaction();
+
   try {
-    const { data } = await axios.get(
-      `${process.env.PAYPAL_API}/v2/checkout/orders/${orderID}`,
-      {
-        auth: {
-          username: String(process.env.PAYPAL_CLIENT_ID),
-          password: String(process.env.PAYPAL_SECRET),
-        },
-      }
-    );
-    if (data.status !== "COMPLETED") {
-      res.status(400).json({ message: "Payment not completed." });
-      return;
-    }
-    // Create the order
-    const newOrder = await Order.create({
-      userID,
-      orderDate,
-      total,
-      totalAmount,
-      note,
-      orderStatus,
+    // 1. Find all cart items for this cartID
+    const cartItems = await CartItem.findAll({
+      where: { cartID },
+      transaction: t,
     });
 
-    // Handle products associated with the order
-    if (products && Array.isArray(products)) {
-      const orderProducts = products.map(
-        (product: { productID: number; quantity: number; price: number }) => ({
-          orderID: newOrder.orderID,
-          productID: product.productID,
-          quantity: product.quantity,
-          price: product.price,
-        })
+    if (!cartItems || cartItems.length === 0) {
+      await t?.rollback();
+      res.status(400).json({ error: "Cart is empty or not found" });
+      return;
+    } else {
+      // 2. Create the order
+      const newOrder = await Order.create(
+        {
+          orderID,
+          userID,
+          fullName,
+          phone,
+          address,
+          paymentMethod,
+          deliveryMethod,
+          totalPayment,
+          totalQuantity,
+          note,
+          discountValue,
+        },
+        { transaction: t }
       );
 
-      await OrderProduct.bulkCreate(orderProducts);
-    }
+      // 3. Add OrderProduct entries for each cart item
+      const orderProducts = cartItems.map((item: any) => ({
+        orderID: newOrder.orderID,
+        productID: item.productID,
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
-    res.status(201).json(newOrder);
+      await OrderProduct.bulkCreate(orderProducts, { transaction: t });
+
+      // 4. If discount is applied, increase usedCount
+      if (discount && discount.discountID) {
+        const discountRecord = await Discount.findByPk(discount.discountID, {
+          transaction: t,
+        });
+        if (discountRecord) {
+          await discountRecord.increment("usedCount", {
+            by: 1,
+            transaction: t,
+          });
+        }
+      }
+
+      await CartItem.destroy({
+        where: { cartID },
+        transaction: t,
+      });
+
+      await ShoppingCart.destroy({
+        where: { customerID: userID },
+        transaction: t,
+      });
+
+      await t?.commit();
+      res.status(201).json(newOrder);
+    }
   } catch (error) {
+    await t?.rollback();
     console.error("Error creating order:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
-
 // PUT (update) an existing order by ID
 export const updateOrder = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
-  const { userID, orderDate, total, totalAmount, note, orderStatus, products } =
-    req.body;
+  const {
+    userID,
+    fullName,
+    phone,
+    address,
+    paymentMethod,
+    deliveryMethod,
+    cartID,
+    totalPayment,
+    totalQuantity,
+    note,
+    discount,
+    products,
+  } = req.body;
+
+  const t = await Order.sequelize?.transaction();
 
   try {
     const order = await Order.findByPk(id);
@@ -138,19 +185,27 @@ export const updateOrder = async (
     }
 
     // Update the order
-    await order.update({
-      userID,
-      orderDate,
-      total,
-      totalAmount,
-      note,
-      orderStatus,
-    });
+    await order.update(
+      {
+        userID,
+        fullName,
+        phone,
+        address,
+        paymentMethod,
+        deliveryMethod,
+        cartID,
+        totalPayment,
+        totalQuantity,
+        note,
+        discount,
+      },
+      { transaction: t }
+    );
 
     // Handle products associated with the order
     if (products && Array.isArray(products)) {
       // Delete existing product associations
-      await OrderProduct.destroy({ where: { orderID: id } });
+      await OrderProduct.destroy({ where: { orderID: id }, transaction: t });
 
       // Add updated product associations
       const orderProducts = products.map(
@@ -162,11 +217,13 @@ export const updateOrder = async (
         })
       );
 
-      await OrderProduct.bulkCreate(orderProducts);
+      await OrderProduct.bulkCreate(orderProducts, { transaction: t });
     }
 
+    await t?.commit();
     res.status(200).json({ message: "Order updated successfully", order });
   } catch (error) {
+    await t?.rollback();
     console.error("Error updating order:", error);
     res.status(500).json({ error: (error as Error).message });
   }
@@ -179,6 +236,8 @@ export const deleteOrder = async (
 ): Promise<void> => {
   const { id } = req.params;
 
+  const t = await Order.sequelize?.transaction();
+
   try {
     const order = await Order.findByPk(id);
 
@@ -188,13 +247,15 @@ export const deleteOrder = async (
     }
 
     // Delete associated products
-    await OrderProduct.destroy({ where: { orderID: id } });
+    await OrderProduct.destroy({ where: { orderID: id }, transaction: t });
 
     // Delete the order
-    await order.destroy();
+    await order.destroy({ transaction: t });
 
+    await t?.commit();
     res.status(204).send();
   } catch (error) {
+    await t?.rollback();
     console.error("Error deleting order:", error);
     res.status(500).json({ error: (error as Error).message });
   }

@@ -1,12 +1,24 @@
 import { Request, Response } from "express";
-import {Attribute, Category} from "../models";
+import { Attribute, Category } from "../models";
 
 // GET all attributes
-export const getAllAttributes = async (req: Request, res: Response): Promise<void> => {
+export const getAllAttributes = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const attributes = await Attribute.findAll({
-      include: [Category], // Include associated Category
-    });
+    let attributes;
+    if (req.query.categoryID) {
+      const categoryID = req.query.categoryID as string;
+      attributes = await Attribute.findAll({
+        where: { categoryID },
+        include: [Category], // Include associated Category
+      });
+    } else {
+      attributes = await Attribute.findAll({
+        include: [Category], // Include associated Category
+      });
+    }
     res.status(200).json(attributes);
   } catch (error) {
     console.error("Error fetching attributes:", error);
@@ -15,7 +27,10 @@ export const getAllAttributes = async (req: Request, res: Response): Promise<voi
 };
 
 // GET an attribute by ID
-export const getAttributeById = async (req: Request, res: Response): Promise<void> => {
+export const getAttributeById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -36,7 +51,10 @@ export const getAttributeById = async (req: Request, res: Response): Promise<voi
 };
 
 // POST a new attribute
-export const createAttribute = async (req: Request, res: Response): Promise<void> => {
+export const createAttribute = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const {
     categoryID,
     name,
@@ -73,7 +91,10 @@ export const createAttribute = async (req: Request, res: Response): Promise<void
 };
 
 // PUT (update) an attribute by ID
-export const updateAttribute = async (req: Request, res: Response): Promise<void> => {
+export const updateAttribute = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const {
     categoryID,
@@ -111,7 +132,9 @@ export const updateAttribute = async (req: Request, res: Response): Promise<void
       is_active,
     });
 
-    res.status(200).json({ message: "Attribute updated successfully", attribute });
+    res
+      .status(200)
+      .json({ message: "Attribute updated successfully", attribute });
   } catch (error) {
     console.error("Error updating attribute:", error);
     res.status(500).json({ error: (error as Error).message });
@@ -119,7 +142,10 @@ export const updateAttribute = async (req: Request, res: Response): Promise<void
 };
 
 // DELETE an attribute by ID
-export const deleteAttribute = async (req: Request, res: Response): Promise<void> => {
+export const deleteAttribute = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {

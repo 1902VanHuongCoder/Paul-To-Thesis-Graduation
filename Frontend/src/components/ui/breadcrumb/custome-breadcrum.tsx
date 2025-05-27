@@ -16,10 +16,10 @@ interface CustomBreadcrumbProps {
 
 export default function CustomBreadcrumb({ items }: CustomBreadcrumbProps) {
   return (
-    <Breadcrumb className="mb-4">
+    <Breadcrumb className="mb-4 font-sans">
       <BreadcrumbList>
         {items.map((item, index) => (
-          <BreadcrumbItem key={index}>
+          <BreadcrumbItem key={index} className="text-lg">
             {item.href ? (
               <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
             ) : (

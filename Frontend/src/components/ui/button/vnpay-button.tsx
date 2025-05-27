@@ -1,41 +1,40 @@
 "use client";
 import React from "react";
 
-const VNPayButton = ({
-    orderId,
-    amount,
-    orderDescription,
-    bankCode,
-    language,
-}: {
-    orderId: string;
-    amount: number;
-        orderDescription: string;
-    bankCode: string;
-    language: string;
-}) => {
-      const handlePayment = async () => {
-        try {
-            const response = await fetch("http://localhost:3000/api/create-payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ orderId, amount, orderDescription, bankCode, language, orderType: "other" }),
-            });
-    
-            const data = await response.json();
-            if (data.url) {
-                // Redirect to VNPay payment URL
-                window.location.href = data.url;
-            } else {
-                alert(data.message || "Failed to create payment");
-            }
-        } catch (error) {
-            console.error("Error creating payment:", error);
-            alert("An error occurred. Please try again.");
-        }
+type CheckoutFormValues = {
+    fullName: string;
+    phone: string;
+    province: string;
+    district: string;
+    ward: string;
+    detailAddress: string;
+    note?: string;
+};
+
+type VNPayButtonProps = {
+
+    handlePayment: (data: CheckoutFormValues) => void;
+};
+
+const VNPayButton = ({ handlePayment }: VNPayButtonProps) => {
+    // You need to provide the CheckoutFormValues data here
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        // Replace the following with actual data from your form/context
+        const dummyData: CheckoutFormValues = {
+            fullName: "",
+            phone: "",
+            province: "",
+            district: "",
+            ward: "",
+            detailAddress: "",
+            note: "",
+        };
+        handlePayment(dummyData);
     };
+
     return (
-        <button onClick={handlePayment} className="bg-primary text-white px-4 py-2 rounded">
+        <button onClick={handleClick} className="bg-primary text-white px-4 py-2 rounded">
             Pay with VNPay
         </button>
     );

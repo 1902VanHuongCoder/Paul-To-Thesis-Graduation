@@ -37,12 +37,13 @@ export const getOriginById = async (req: Request, res: Response): Promise<void> 
 
 // POST a new origin
 export const createOrigin = async (req: Request, res: Response): Promise<void> => {
-  const { originID, originName, createdAt, updatedAt } = req.body;
+  const { originID, originName, originImage, createdAt, updatedAt } = req.body;
 
   try {
     const newOrigin = await Origin.create({
       originID,
       originName,
+      originImage,
       createdAt,
       updatedAt,
     });

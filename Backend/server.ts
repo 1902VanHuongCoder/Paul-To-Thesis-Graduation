@@ -21,17 +21,21 @@ import commentRoutes from "./routes/commentRoutes";
 import newsRoutes from "./routes/newsRoutes";
 import tagOfNewsRoutes from "./routes/tagOfNewsRoutes";
 import vnpayRoutes from "./routes/vnpayRoutes";
-
+import productTagRoutes from "./routes/productTagRoutes";
+import wishlistRoutes from "./routes/wishlistRoutes";
+import deliveryRoutes from "./routes/deliveryRoutes";
+import discountRoutes from "./routes/discountRoutes";
 const app = express();
 
 // Enable CORS
 app.use(cors({
-  origin: "http://localhost:3001", // Allow requests from this origin
+  origin: "http://localhost:3000", // Allow requests from this origin
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
 }));
 
 // Connect to MySQL and Sync DB
+
 sequelize
   .authenticate()
   .then(() => {
@@ -61,6 +65,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/product",productRoutes);
+app.use("/api/product-tag",productTagRoutes);
+
 app.use("/api/category", categoryRoutes);  
 app.use("/api/subcategory", subCategoryRoutes); 
 app.use("/api/tag", tagRoutes);
@@ -70,15 +76,17 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/location", locationRoutes); 
 app.use("/api/order", orderRoutes);
 app.use("/api/shopping-cart", shoppingCartRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/inventory-transaction", inventoryTransactionRoutes);
 app.use("/api/product-attributes",productAttributeRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/tag-of-news", tagOfNewsRoutes); 
 app.use("/api/create-payment", vnpayRoutes);
-
+app.use("/api/delivery", deliveryRoutes); // Add this line to include the delivery routes
+app.use("/api/discount", discountRoutes);
 // Define the port
-const PORT = 3000;
+const PORT = 3001;
 
 // Start the server
 app.listen(PORT, () => {

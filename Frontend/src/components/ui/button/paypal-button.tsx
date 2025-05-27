@@ -2,12 +2,16 @@
 
 import React from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-
-const PayPalButton = () => {
+import { useRouter } from "next/navigation"; 
+import { useDictionary } from "@/contexts/dictonary-context";
+import { useCheckout } from "@/contexts/checkout-context";
+const PayPalButton = ({amount}: {amount: number}) => {
+    const {checkoutData} = useCheckout();
+    const {lang} = useDictionary();
     const vndToUsdRate = 0.000042; // Example conversion rate (1 VND = 0.000042 USD)
-    const amountInVND = 2700000; // Amount in VND
+    const amountInVND = amount; // Amount in VND
     const amountInUSD = (amountInVND * vndToUsdRate).toFixed(2); // Convert to USD
-
+    const router = useRouter();
     return (
         <PayPalScriptProvider
             options={{
@@ -37,6 +41,7 @@ const PayPalButton = () => {
                     }
                     return actions.order.capture().then((details) => {
                         console.log("Transaction completed by " + (details.payer?.name?.given_name || "Unknown"));
+                        router.push(`/${lang}/homepage/checkout/paypal-return?orderID=${checkoutData?.orderID}`);
                         alert("Payment Successful!");
                     });
                 }}

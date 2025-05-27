@@ -105,7 +105,7 @@ export const createVNPayPaymentTest = async (req: Request, res: Response) : Prom
     var tmnCode = "7L3UH3E7";
     var secretKey = "8813K697ILHSCL0R3NYAFMDV2MFL7N1H";
     var vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    var returnUrl = "http://localhost:3000/api/create-payment/return";
+    var returnUrl = `http://localhost:3000/${req.body.language}/homepage/checkout/vnpay-return`;
 
     const date = new Date();
     const createDate = moment(date).format("YYYYMMDDHHmmss");

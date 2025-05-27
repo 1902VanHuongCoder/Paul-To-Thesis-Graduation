@@ -12,10 +12,20 @@ Category.init(
       primaryKey: true,
       autoIncrement: true,
     },
+    categoryDescription: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     categoryName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    categorySlug: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    }, 
+    count: {type: DataTypes.INTEGER, allowNull: false },
+
   },
   {
     sequelize,

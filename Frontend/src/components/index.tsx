@@ -12,7 +12,7 @@ export { default as NewsCard } from './ui/card/news-card';
 export { default as ParterCarousel } from './section/carousel/partner-carousel';
 export { default as CategoryFilter } from './ui/category-filter/category-filter';
 export { default as CashFilter } from './ui/cash-filter/cash-filter';
-export { default as PopularProduct } from './ui/popular-product/popular-product';
+export { default as NewestProduct } from './ui/newest-product/newest-product';
 export { default as TagFilter } from './ui/tag-filter/tag-filter';
 export { default as SortDropdown } from './ui/dropdown-menu/sort-dropdown';
 export { default as DisplayModeSwitcher } from './ui/display-mode-switcher/display-mode-switcher';
@@ -30,6 +30,7 @@ export { default as PromoCodeInput } from './ui/input/promo-code-input';
 export { default as LanguageSwitcher } from './ui/language-switcher/language-switcher';
 export { default as ChatBot } from './section/chatbot/chatbot';
 export { default as NewsItem } from './ui/news-item/news-item';
+export { default as TypewriterText } from './ui/typewriter-text/typewriter-text';
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

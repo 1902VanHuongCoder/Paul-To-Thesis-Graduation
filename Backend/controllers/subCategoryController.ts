@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Category, SubCategory } from "../models";
+import generateSlug from "../utils/createSlug";
 
 // GET all subcategories
 export const getAllSubCategories = async (
@@ -7,9 +8,20 @@ export const getAllSubCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const subCategories = await SubCategory.findAll({
+    let subCategories;
+    if(req.query.categoryID){
+      const categoryID = req.query.categoryID as string;
+      subCategories = await SubCategory.findAll({
+        where: {
+          categoryID
+        }, 
+        include: [Category], // Include the associated Category
+      })
+    }else{
+       subCategories = await SubCategory.findAll({
       include: [Category], // Include the associated Category
     });
+    }
     res.status(200).json(subCategories);
   } catch (error) {
     console.error("Error fetching subcategories:", error);
@@ -50,12 +62,14 @@ export const createSubCategory = async (
     req.body;
 
   try {
+    const slug = generateSlug(subcategoryName);
     const newSubCategory = await SubCategory.create({
       subcategoryID,
       createdAt,
       updatedAt,
       subcategoryName,
       categoryID,
+      subcategorySlug: slug,
     });
     res.status(201).json(newSubCategory);
   } catch (error) {
