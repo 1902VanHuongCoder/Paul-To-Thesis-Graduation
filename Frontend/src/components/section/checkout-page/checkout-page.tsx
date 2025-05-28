@@ -30,6 +30,7 @@ export interface DeliveryMethod {
     speed?: string;
     isActive: boolean;
     isDefault: boolean;
+    
 }
 
 
@@ -251,6 +252,8 @@ export default function CheckoutPage() {
             paymentMethod: paymentMethod,
             deliveryID: delivery.selectMethod.deliveryID || 0,
             cartID: cart.cartID,
+            deliveryCost: deliveryCost || 0,
+            status: "pending", // Default status, can be changed based on business logic
         };
         console.log("Order Data to Send:", orderDataSendToServer);
         setCheckoutData(orderDataSendToServer);
@@ -287,7 +290,7 @@ export default function CheckoutPage() {
                     router.push(`/${lang}/homepage/checkout/cash-return`); // Redirect to order success page
 
                 }
-            })
+            }) 
         }
     };
 
@@ -310,8 +313,6 @@ export default function CheckoutPage() {
         }
         fetchDeliveryMethods();
     }, [])
-
-    console.log("Delivery Methods:", delivery.allMethods);  
 
     useEffect(() => {
         const calculateShippingCost = async () => {

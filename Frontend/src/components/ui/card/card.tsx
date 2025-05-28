@@ -3,6 +3,8 @@ import Image from "next/image";
 import formatVND from "@/lib/format-vnd";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
+import { useRouter } from "next/navigation";
+import { useDictionary } from "@/contexts/dictonary-context";
 
 interface CardProps {
     productID: number;
@@ -24,6 +26,8 @@ export default function Card({
 }: CardProps) {
     const { addToCart } = useShoppingCart();
     const { addToWishlist } = useWishlist();
+    const { lang } = useDictionary();
+    const router = useRouter();
     const handleAddToCart = () => { 
         addToCart(productID);
     }
@@ -47,8 +51,9 @@ export default function Card({
 
                 {/* Prices */}
                 <div className="flex items-center gap-x-4 mt-2 font-mono">
-                    <span className="text-primary-hover font-bold text-md">{price ? formatVND(parseInt(price)) + " VND" : "Liên hệ"}</span>
-                    <span className="text-primary/40 line-through text-sm">{discountPrice ? formatVND(parseInt(discountPrice)) + " VND" : ""}</span>
+                    <span className={`${discountPrice ? 'text-primary-hover font-bold text-md' : 'hidden'}`}>{discountPrice && formatVND(parseInt(discountPrice)) + " VND"}</span>
+                    <span className={`${price && !discountPrice ? "text-primary-hover font-bold text-md" : 'text-primary/50 line-through'} ${!price && !discountPrice && 'hidde'}`}>{price ? formatVND(parseInt(price)) + " VND" : "Liên hệ"}</span>
+                    <span className={`${!price && !discountPrice ? "text-primary-hover font-bold text-md" : "hidden"}`}>Liên hệ</span>
                 </div>
                 {/* Rating */}
 
@@ -85,7 +90,7 @@ export default function Card({
                     <button onClick={handleAddToWishList} className="p-2 hover:bg-primary group cursor-pointer transition-all bg-white rounded-full shadow border-primary/30 border-solid border-[1px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide text-primary group-hover:text-white lucide-heart-icon lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
                     </button>
-                    <button className="p-2 hover:bg-primary group cursor-pointer transition-all bg-white rounded-full shadow border-primary/30 border-solid border-[1px]">
+                    <button onClick={ () => router.push(`/${lang}/homepage/product-details/${productID}`)} className="p-2 hover:bg-primary group cursor-pointer transition-all bg-white rounded-full shadow border-primary/30 border-solid border-[1px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide text-primary group-hover:text-white lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" /></svg>          </button>
 
                 </div>

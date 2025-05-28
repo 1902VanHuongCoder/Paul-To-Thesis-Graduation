@@ -7,6 +7,19 @@ import formatVND from "@/lib/format-vnd";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
 
+export interface DeliveryMethod {
+  deliveryID: number;
+  name: string;
+  description?: string;
+  basePrice: number;
+  minOrderAmount?: number;
+  region?: string;
+  speed?: string;
+  isActive: boolean;
+  isDefault: boolean;
+
+}
+
 interface Product {
   productID: number;
   productName: string;
@@ -24,6 +37,9 @@ interface Order {
   phone?: string;
   address?: string;
   products: Product[];
+  deliveryCost?: number;
+  delivery: DeliveryMethod;
+  discount: number;
 }
 
 export default function OrderDetailPage() {
@@ -107,8 +123,11 @@ export default function OrderDetailPage() {
           ))}
         </tbody>
       </table>
-      <div className="text-right font-bold text-lg">
-        {d?.orderDetailTotalPayment || "Tổng thanh toán"}: {formatVND(order.totalPayment)} VND
+      <div className="text-right font-bold text-lg flex flex-col gap-2">
+        <div>{d?.orderDetailDeliveryCost || "Phí vận chuyển"}: {formatVND(order.deliveryCost || 0)} VND</div>
+        <div>{d?.orderDetailDeliveryMethod || "Phương thức vận chuyển"} - {order.delivery.name}: {formatVND(order.delivery.basePrice || 0)} VND</div>
+        <div>{d?.orderDetailDiscount || "Giảm giá"}: {formatVND(order.discount || 0)} VND</div>
+        <div>{d?.orderDetailTotalPayment || "Tổng thanh toán"}: {formatVND(order.totalPayment)} VND</div>
       </div>
     </div>
   );

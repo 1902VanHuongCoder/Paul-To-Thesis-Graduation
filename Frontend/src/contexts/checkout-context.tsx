@@ -14,10 +14,12 @@ interface CheckoutData {
     paymentMethod?: string;
     deliveryID?: number;
     cartID?: number;
+    deliveryCost?: number;
     discount?: {
       discountID: string;
       discountValue: number;
     };
+    status?:string; // e.g., "pending", "completed", "cancelled"
 }
 
 interface CheckoutContextValue {
