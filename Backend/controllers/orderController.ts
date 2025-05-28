@@ -1,5 +1,14 @@
 import { Request, Response } from "express";
-import { Order, User, Product, OrderProduct, ShoppingCart, CartItem, Discount } from "../models";
+import {
+  Order,
+  User,
+  Product,
+  OrderProduct,
+  ShoppingCart,
+  CartItem,
+  Discount,
+  Delivery,
+} from "../models";
 import { Transaction } from "sequelize";
 
 // GET all orders
@@ -16,7 +25,6 @@ export const getAllOrders = async (
           as: "products",
           through: { attributes: ["quantity", "price"] },
         },
-        { model: ShoppingCart, as: "cart" },
       ],
     });
     res.status(200).json(orders);
@@ -37,12 +45,12 @@ export const getOrderById = async (
     const order = await Order.findByPk(id, {
       include: [
         { model: User, as: "user" },
+        { model: Delivery, as: "delivery" },
         {
           model: Product,
           as: "products",
           through: { attributes: ["quantity", "price"] },
         },
-        { model: ShoppingCart, as: "cart" },
       ],
     });
 
@@ -70,8 +78,8 @@ export const createOrder = async (
     phone,
     address,
     paymentMethod,
-    deliveryMethod,
     cartID,
+    deliveryID,
     totalPayment,
     totalQuantity,
     note,
@@ -102,7 +110,7 @@ export const createOrder = async (
           phone,
           address,
           paymentMethod,
-          deliveryMethod,
+          deliveryID,
           totalPayment,
           totalQuantity,
           note,

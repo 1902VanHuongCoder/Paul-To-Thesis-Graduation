@@ -12,7 +12,7 @@ interface CheckoutData {
     phone?: string;
     address?: string;
     paymentMethod?: string;
-    deliveryMethod?: number;
+    deliveryID?: number;
     cartID?: number;
     discount?: {
       discountID: string;

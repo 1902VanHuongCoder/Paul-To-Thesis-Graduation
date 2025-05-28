@@ -23,16 +23,15 @@ export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
 export interface DeliveryMethod {
     deliveryID: number;
     name: string;
-    description?: string | null;
-    base_price: number;
-    min_order_amount?: number | null;
-    region?: RegionType;
-    speed?: SpeedType;
-    is_active: boolean;
-    is_default: boolean;
-    created_at: Date;
-    updated_at: Date;
+    description?: string;
+    basePrice: number;
+    minOrderAmount?: number;
+    region?: string;
+    speed?: string;
+    isActive: boolean;
+    isDefault: boolean;
 }
+
 
 export interface CartItem {
     quantity: number;
@@ -78,7 +77,7 @@ export default function CheckoutPage() {
         code: "",
         discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
     });
-    console.log("Promo Code:", promoCode);
+    
     const [delivery, setDelivery] = useState<{
         allMethods: DeliveryMethod[];
         selectMethod: Partial<DeliveryMethod>;
@@ -86,6 +85,8 @@ export default function CheckoutPage() {
         allMethods: [],
         selectMethod: {}
     });
+
+    console.log("selectedDeliveryMethod:", delivery.selectMethod);
 
     const methods = useForm<CheckoutFormValues>({
         defaultValues: {
@@ -248,9 +249,10 @@ export default function CheckoutPage() {
             phone: data.phone,
             address: `${data.detailAddress}, ${data.ward}, ${data.district}, ${data.province}`,
             paymentMethod: paymentMethod,
-            deliveryMethod: delivery.selectMethod.deliveryID || 0,
+            deliveryID: delivery.selectMethod.deliveryID || 0,
             cartID: cart.cartID,
         };
+        console.log("Order Data to Send:", orderDataSendToServer);
         setCheckoutData(orderDataSendToServer);
         if (paymentMethod === "vn-pay") {
             localStorage.setItem("checkoutData", JSON.stringify(orderDataSendToServer));
@@ -300,7 +302,7 @@ export default function CheckoutPage() {
                 const data = await response.json();
                 setDelivery({
                     allMethods: data,
-                    selectMethod: data.find((method: DeliveryMethod) => method.is_default) || {}
+                    selectMethod: data.find((method: DeliveryMethod) => method.isDefault) || {}
                 });
             } catch (error) {
                 console.error("Error fetching delivery methods:", error);
@@ -308,6 +310,8 @@ export default function CheckoutPage() {
         }
         fetchDeliveryMethods();
     }, [])
+
+    console.log("Delivery Methods:", delivery.allMethods);  
 
     useEffect(() => {
         const calculateShippingCost = async () => {
@@ -362,9 +366,9 @@ export default function CheckoutPage() {
             return total + (product.CartItem.price * product.CartItem.quantity);
         }, 0);
         const discount = checkoutData?.discount?.discountValue || 0;
-        const deliveryMethod = delivery.selectMethod.base_price || 0;
+        const deliveryMethod = delivery.selectMethod.basePrice || 0;
         return totalPrice + (discount + deliveryMethod + deliveryCost);
-    }, [cart.products, delivery.selectMethod.base_price, deliveryCost, checkoutData?.discount?.discountValue]);
+    }, [cart.products, delivery.selectMethod.basePrice, deliveryCost, checkoutData?.discount?.discountValue]);
 
     useEffect(() => {
         // If you want to clear discount on unmount or before navigation,
@@ -592,7 +596,7 @@ export default function CheckoutPage() {
                                         onChange={() => setDelivery(prev => ({ ...prev, selectMethod: method }))}
                                     />
                                     <span>
-                                        {method.name} - {formatVND(method.base_price)} VND
+                                        {method.name} - {formatVND(method.basePrice)} VND
                                     </span>
                                 </label>
                             ))}
