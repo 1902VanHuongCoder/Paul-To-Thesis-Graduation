@@ -23,6 +23,10 @@ import { baseUrl } from "@/lib/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
+import SignUpForm from "@/components/section/signup-page/signup-page";
+import LoginForm from "@/components/section/login-page/login-page";
+import { useUser } from "@/contexts/user-context";
+import Button from "../button/button-brand";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -58,10 +62,13 @@ interface Category {
 }
 
 export default function Navigation() {
+    const { user, logout } = useUser();
     const [categories, setCategories] = useState<Category[]>([]);
     const { lang, dictionary: t } = useDictionary();
-    const { wishlists, removeFromWishlist,setWishlist  } = useWishlist();
+    const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
     const { addToCart, fetchCart } = useShoppingCart();
+    const [openSignUpForm, setOpenSignUpForm] = useState(false);
+    const [openLoginForm, setOpenLoginForm] = useState(false);
 
 
     // Example handlers
@@ -72,7 +79,7 @@ export default function Navigation() {
     };
 
     const handleAddToCart = async (productID: number, customerID: number) => {
-        addToCart(productID); 
+        addToCart(productID);
         fetchCart(customerID);
         removeFromWishlist(customerID, productID);
         const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
@@ -159,6 +166,13 @@ export default function Navigation() {
                             onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
                             clearAll={() => { }}
                         />
+                        {user ? <Button onClick={() => { logout() }} size="sm" variant="primary">Đăng xuất</Button> : (<>
+                            <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
+                            <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
+                        </>
+
+                        )}
+
                     </div>
                     <MobileDrawer />
                     {/* <div className="p-2 rounded-full bg-transparent md:hidden">

@@ -14,6 +14,39 @@ export const getAllCategories = async (req: Request, res: Response): Promise<voi
   }
 };
 
+export const getProductsByCategorySlug = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { slug } = req.params;
+
+  try {
+    const category = await Category.findOne({
+      where: { categorySlug: slug },
+      include: [
+        {
+          model: Product,
+          as: "Products",
+        },
+        {
+          model: SubCategory,
+          as: "SubCategories",
+        },
+      ],
+    });
+
+    if (!category) {
+      res.status(404).json({ message: "Category not found" });
+      return;
+    }
+
+    res.status(200).json(category);
+  } catch (error) {
+    console.error("Error fetching products by category slug:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
 // GET a category by ID
 export const getCategoryById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;

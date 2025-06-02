@@ -20,11 +20,11 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   try {
     const product = await Product.findByPk(id, {
       include: [
-        { model: Category },
-        { model: SubCategory },
+        { model: Category, as: "category" }, // Include associated category
+        { model: SubCategory, as: "subcategory" }, // Include associated subcategory
         { model: Tag }, // Include associated tags
-        { model: Origin },
-        { model: ProductAttribute }, // Include associated attributes
+        { model: Origin, as: "origin" }, // Include associated origin
+        { model: ProductAttribute, as: "productAttributes" }, // Include associated attributes
       ],
     });
 

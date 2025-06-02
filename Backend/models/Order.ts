@@ -16,6 +16,7 @@ class Order extends Model {
   public deliveryID!: number;
   public cartID!: number;
   public discount?: number;
+  public deliveryCost?:number;
 
   // timestamps!
   public readonly createdAt!: Date;
@@ -76,6 +77,15 @@ Order.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    deliveryCost: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    orderStatus: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "pending", // Default status can be 'pending', 'completed', etc.
+    }
   },
   {
     sequelize,

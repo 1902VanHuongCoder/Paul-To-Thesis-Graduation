@@ -1,14 +1,29 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
+import ShoppingCart from "./ShoppingCart";
+import ShippingAddress from "./ShippingAddress";
 
-class User extends Model {}
+class User extends Model {
+  public userID!: string;
+  public username!: string;
+  public email!: string;
+  public avatar!: string | null;
+  public role!: "staff" | "administrator" | "customer";
+  public password!: string | null;
+  public position!: string | null;
+  public department!: string | null;
+  public loyaltyPoints!: number | null;
+  public provider!: string | null; // For OAuth users
+  public providerID!: string | null; // For OAuth users
+  public shippingAddressID!: number | null;
+
+}
 
 User.init(
   {
     userID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       primaryKey: true,
-      autoIncrement: true,
     },
     username: {
       type: DataTypes.STRING,
@@ -18,14 +33,6 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-    },
-    address: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
     avatar: {
       type: DataTypes.STRING,
@@ -40,7 +47,7 @@ User.init(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     // Optional: fields specific to child roles
     position: {
@@ -55,6 +62,22 @@ User.init(
       type: DataTypes.INTEGER, // For customer
       allowNull: true,
     },
+    provider: {
+      type: DataTypes.STRING,
+      allowNull: true, // For OAuth users
+    },
+    providerID: {
+      type: DataTypes.STRING,
+      allowNull: true, // For OAuth users
+    },
+    shippingAddressID: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: ShippingAddress, // Assuming you have a ShippingAddress model
+        key: "shippingAddressID",
+      },
+    }
   },
   {
     sequelize,

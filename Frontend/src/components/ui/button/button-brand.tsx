@@ -73,7 +73,7 @@ export default function Button({
           >
             <path d="m9 18 6-6-6-6" />
           </svg>
-          <span className="absolute top-0 left-0 w-full h-full bg-secondary rounded-full z-1 group-hover:scale-1000 duration-200"></span>
+          <span className="absolute top-0 left-0 w-full h-full bg-secondary rounded-full z-1 group-hover:scale-2000 duration-200"></span>
         </span>
       )}
     </button>

@@ -4,9 +4,7 @@ import { Origin, Product } from "../models";
 // GET all origins
 export const getAllOrigins = async (req: Request, res: Response): Promise<void> => {
   try {
-    const origins = await Origin.findAll({
-      include: [Product], // Include associated products
-    });
+    const origins = await Origin.findAll();
     res.status(200).json(origins);
   } catch (error) {
     console.error("Error fetching origins:", error);
@@ -19,9 +17,7 @@ export const getOriginById = async (req: Request, res: Response): Promise<void> 
   const { id } = req.params;
 
   try {
-    const origin = await Origin.findByPk(id, {
-      include: [Product], // Include associated products
-    });
+    const origin = await Origin.findByPk(id);
 
     if (!origin) {
       res.status(404).json({ message: "Origin not found" });

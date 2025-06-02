@@ -1,0 +1,45 @@
+{
+    "entities": [],
+    "intent": "thong-tin-sau-benh-lua",
+    "response": [
+        {
+            "content": "📌 Giới thiệu về rầy nâu hại lúa",
+            "type": "title"
+        },
+        {
+            "content": "Rầy nâu phát triển mạnh trong điều kiện khí hậu ấm nóng, ẩm độ cao, mưa nắng xen kẽ và khi cấy nhiều giống nhiễm rầy. Rầy gây hại từ giai đoạn mới cấy đến khi lúa chín, đặc biệt vào giai đoạn lúa trỗ xong, ngậm sữa. Ở miền Bắc, rầy nâu gây cháy rầy vào tháng 5 (vụ xuân) và cuối tháng 9 đầu tháng 10 (vụ mùa). Ngoài ra, rầy nâu còn là tác nhân truyền bệnh vàng lùn và lùn xoắn lá.",
+            "type": "text"
+        },
+        {
+            "content": "🔍 Triệu chứng gây hại",
+            "type": "title"
+        },
+        {
+            "content": [
+                "Rầy gây hại từ giai đoạn mới cấy đến khi lúa chín.",
+                "Cao điểm gây hại vào giai đoạn lúa trỗ xong, ngậm sữa.",
+                "Ở miền Bắc, gây cháy rầy vào tháng 5 và cuối tháng 9 đầu tháng 10.",
+                "Là vectơ truyền bệnh vàng lùn, lùn xoắn lá."
+            ],
+            "type": "list"
+        },
+        {
+            "content": "🛡️ Biện pháp phòng trừ",
+            "type": "title"
+        },
+        {
+            "content": [
+                "Sử dụng giống lúa kháng rầy nâu.",
+                "Cấy mật độ vừa phải, bón phân cân đối.",
+                "Thả vịt vào ruộng để diệt rầy.",
+                "Phun thuốc khi mật độ rầy cám đạt 18-27 con/khóm.",
+                "Dùng thuốc như Bassa 50EC, Regent 800WP, Trebon 20ND, Mipcin 20WP, hoặc Actara 25WG (phun tập trung vào gốc lúa)."
+            ],
+            "type": "list"
+        },
+        {
+            "content": "✅ Thực hiện các biện pháp trên sẽ giúp kiểm soát rầy nâu hiệu quả, đảm bảo năng suất mùa vụ.",
+            "type": "conclusion"
+        }
+    ]
+}

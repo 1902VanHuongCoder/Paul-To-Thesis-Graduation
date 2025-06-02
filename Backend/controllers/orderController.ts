@@ -20,6 +20,7 @@ export const getAllOrders = async (
     const orders = await Order.findAll({
       include: [
         { model: User, as: "user" },
+        { model: Delivery, as: "delivery" },
         {
           model: Product,
           as: "products",
@@ -84,6 +85,8 @@ export const createOrder = async (
     totalQuantity,
     note,
     discount, // {discountID, discountValue}
+    deliveryCost,
+    status,
   } = req.body;
 
   const discountValue = req.body.discount?.discountValue || 0;
@@ -115,6 +118,8 @@ export const createOrder = async (
           totalQuantity,
           note,
           discountValue,
+          deliveryCost,
+          status
         },
         { transaction: t }
       );
