@@ -1,7 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import { baseUrl } from "@/lib/base-url";
 import { Input } from "@/components/ui/input/input";
 import Button from "@/components/ui/button/button-brand";
@@ -26,10 +24,9 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import NextImage from 'next/image';
-import { useUser } from "@/contexts/user-context";
+
 export default function AddNewsPage() {
-    const router = useRouter();
-    const {user} = useUser();
+
     const [title, setTitle] = useState("");
     const [subtitle, setSubtitle] = useState("");
     const [slug, setSlug] = useState("");
@@ -138,30 +135,19 @@ export default function AddNewsPage() {
         content = replaceEditorImageUrls(content);
     
         // 3. Use the first uploaded URL as title image if present
-        const titleImageUrl = titleImage ? JSON.stringify([uploadedUrls[0]]) : "";
+        const titleImageUrl = titleImage ? uploadedUrls[0] : "";
         const images = titleImageUrl ? uploadedUrls.slice(2,) : uploadedUrls; // Skip first two if title image is used
-        const userID = user?.userID; 
-        console.log("Content to submit:", {
-            userID,
-            title,
-            titleImageUrl,
-            subtitle,
-            content: JSON.stringify(content),
-            slug,
-            images,
-            tags,
-            isPublished,
-            isDraft: isPublished ? false : true, // Always create as published, draft can be handled later
-        })
-    
+        const userID = 1; 
+
         const res = await fetch(`${baseUrl}/api/news`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userID,
             title,
+            titleImageUrl,
             subtitle,
-            content,
+            content: JSON.stringify(content),
             slug,
             images,
             tags,
@@ -174,7 +160,6 @@ export default function AddNewsPage() {
           setErrorMsg(data.message || data.error || "Tạo bài viết thất bại.");
         } else {
           setSuccessMsg("Tạo bài viết thành công!");
-          setTimeout(() => router.push("/admin/news"), 1200);
         }
       } catch (err) {
         setErrorMsg("Có lỗi xảy ra khi tạo bài viết.");
@@ -205,7 +190,7 @@ export default function AddNewsPage() {
     return (
         <div className="max-w-2xl mx-auto py-8">
             <h1 className="text-2xl font-bold mb-6">Tạo bài viết mới</h1>
-            <form className="space-y-5" onSubmit={handleSubmit}>
+         
                 <div>
                     <label className="font-medium">Tiêu đề *</label>
                     <Input
@@ -368,7 +353,6 @@ export default function AddNewsPage() {
                             <button onClick={() => editor.chain().focus().toggleBlockquote().run()}>Blockquote</button>
                             <button onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</button>
 
-                            <button>
                                 <label>
                                     Image
                                     <input
@@ -386,7 +370,7 @@ export default function AddNewsPage() {
                                         }}
                                     />
                                 </label>
-                            </button>
+                       
                             <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
                                 Set horizontal rule
                             </button>
@@ -444,7 +428,14 @@ export default function AddNewsPage() {
                 <Button type="submit" disabled={loading}>
                     {loading ? "Đang lưu..." : "Tạo bài viết"}
                 </Button>
-            </form>
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="ml-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+                >
+                    Sumit mas ow
+                </button>
+    
         </div>
     );
 }

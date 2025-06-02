@@ -22,6 +22,7 @@ import Wishlist from "./Wislist";
 import Delivery from "./Delivery";
 import Discount from "./Discount";
 import ShippingAddress from "./ShippingAddress";
+import NewsComment from "./NewsComment";
 
 
 SubCategory.hasMany(Product, {
@@ -147,6 +148,9 @@ TagOfNews.belongsToMany(News, {
 Wishlist.belongsTo(User, { foreignKey: "customerID", as: "customer" });
 Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
 
+News.hasMany(NewsComment, {foreignKey: "newsID", as: "comments" });
+User.hasMany(NewsComment, {foreignKey: "userID", as: "user_comments" });
+NewsComment.belongsTo(User,{foreignKey: "userID", as: "user_comments" });
 export {
   User,
   Product,
@@ -171,6 +175,7 @@ export {
   Wishlist,
   Delivery,
   Discount,
-  ShippingAddress
+  ShippingAddress,
+  NewsComment
 };
 

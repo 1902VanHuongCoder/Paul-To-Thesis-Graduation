@@ -5,6 +5,7 @@ import { PlayCircle, Tag, MessageSquare, Eye, Share2, CircleUser } from "lucide-
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 
+
 interface NewsItemProps {
     image: string;
     date: string;
@@ -20,7 +21,7 @@ interface NewsItemProps {
 
 export default function NewsItem({
     image,
-    // date,
+    date,
     author,
     category,
     comments,
@@ -50,8 +51,12 @@ export default function NewsItem({
                 </div>
                 {/* Date Badge */}
                 <div className="absolute top-4 right-4 z-10 bg-yellow-400 text-brown rounded-full w-20 h-20 font-bold flex flex-col items-center justify-center">
-                    <span className="text-xl">08</span>
-                    <span className="text-sm">Jan 2024</span>
+                    <span className="text-xl">
+                        {new Date(date).getDate()}
+                    </span>
+                    <span className="text-sm">
+                        {(new Date(date).getMonth() + 1) + "/" + new Date(date).getFullYear()}
+                    </span>
                 </div>
             </div>
 

@@ -1,21 +1,55 @@
 import { Request, Response } from "express";
 import News from "../models/News";
+import { NewsComment, NewsTagOfNews, TagOfNews, User } from "../models";
 
-// GET all news articles
+// GET all news articles with tags
 export const getAllNews = async (req: Request, res: Response) => {
   try {
-    const news = await News.findAll();
+    const news = await News.findAll({
+      include: [
+        {
+          model: TagOfNews,
+          as: "hastags",
+          through: { attributes: [] }, // Exclude join table fields
+        },
+        {
+          model: User,
+          as: "author",
+          attributes: ["userID", "username", "email"], // Include user details
+        },
+        {
+          model: NewsComment,
+          as: "comments",
+        },
+      ],
+    });
     res.status(200).json(news);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 };
 
-// GET a specific news article by ID
 export const getNewsById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const newsArticle = await News.findByPk(id);
+    const newsArticle = await News.findByPk(id, {
+      include: [
+        {
+          model: TagOfNews,
+          as: "hastags",
+          through: { attributes: [] },
+        },
+        {
+          model: User,
+          as: "author",
+          attributes: ["userID", "username", "email"], // Include user details
+        },
+        {
+          model: NewsComment,
+          as: "comments",
+        },
+      ],
+    });
     if (!newsArticle) {
       res.status(404).json({ message: "News article not found" });
       return;
@@ -36,10 +70,22 @@ export const createNews = async (req: Request, res: Response) => {
     content,
     slug,
     images,
-    tags,
+    tags, // [1,2,3]
     isPublished,
     isDraft,
   } = req.body;
+  console.log({
+    userID,
+    title,
+    titleImageUrl,
+    subtitle,
+    content,
+    slug,
+    images,
+    tags,
+    isPublished,
+    isDraft,
+  });
   try {
     const newNews = await News.create({
       userID,
@@ -54,6 +100,16 @@ export const createNews = async (req: Request, res: Response) => {
       isPublished: isPublished,
       views: 0,
     });
+
+    // 2. Insert records into news_tag_of_news for each tag
+    if (Array.isArray(tags) && tags.length > 0) {
+      const tagRecords = tags.map((newsTagID: number) => ({
+        newsID: newNews.newsID,
+        newsTagID,
+      }));
+      await NewsTagOfNews.bulkCreate(tagRecords);
+    }
+
     res.status(201).json(newNews);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -63,7 +119,8 @@ export const createNews = async (req: Request, res: Response) => {
 // PUT (update) an existing news article by ID
 export const updateNews = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, subtitle, content, slug, images, tags, isPublished } = req.body;
+  const { title, subtitle, content, slug, images, tags, isPublished } =
+    req.body;
   try {
     const newsArticle = await News.findByPk(id);
     if (!newsArticle) {
@@ -79,11 +136,14 @@ export const updateNews = async (req: Request, res: Response) => {
       tags,
       isPublished,
     });
-    res.status(200).json({ message: "News article updated successfully", newsArticle });
+    res
+      .status(200)
+      .json({ message: "News article updated successfully", newsArticle });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
 
 // DELETE a news article by ID
 export const deleteNews = async (req: Request, res: Response) => {

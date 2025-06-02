@@ -7,13 +7,13 @@ class News extends Model {
   public newsID!: number;
   public userID!: number;
   public title!: string;
-  public titleImageUrl!: string;
-  public subtitle?: string;
-  public content?: string; // Optional content field for news details
+  public titleImageUrl!: string | null;
+  public subtitle?: string | null;
+  public content?: string | null; // Optional content field for news details
   public slug?: string; // Optional slug for SEO-friendly URLs
-  public images?: string; // Can store a single image URL or multiple as a JSON string
+  public images?: string[] | null; // Can store a single image URL or multiple as a JSON string
   public views!: number;
-  public tags?: string; // Can store tags as a JSON string or comma-separated values
+  public tags?: number[] | null; // Can store tags as a JSON string or comma-separated values
   public isDraft!: boolean; // Indicates if the news is a draft
   public isPublished!: boolean; // Indicates if the news is published
   public readonly createdAt!: Date;
@@ -40,8 +40,8 @@ News.init(
       allowNull: false,
     },
     titleImageUrl: {
-      type:DataTypes.STRING,
-      allowNull: false, // Title image URL is required
+      type: DataTypes.STRING,
+      allowNull: true, // Title image URL is required
     },
     subtitle: {
       type: DataTypes.STRING,
@@ -57,8 +57,15 @@ News.init(
       unique: true, // Ensure slug uniqueness for SEO
     },
     images: {
-      type: DataTypes.TEXT, // Use TEXT to store large data like JSON or multiple image URLs
-      allowNull: true,
+      type: DataTypes.TEXT, // Use TEXT to store images as a JSON string or comma-separated values
+      allowNull: true, // Images are optional
+      get() {
+        const value = this.getDataValue("images");
+        return value ? JSON.parse(value) : []; // Parse JSON string to array
+      },
+      set(value: string[]) {
+        this.setDataValue("images", JSON.stringify(value)); // Store as JSON string
+      },
     },
     views: {
       type: DataTypes.INTEGER,
@@ -66,14 +73,21 @@ News.init(
       defaultValue: 0, // Default views to 0
     },
     tags: {
-      type: DataTypes.TEXT, // Use TEXT to store tags as a JSON string or comma-separated values
+      type: DataTypes.TEXT,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("tags");
+        return value ? JSON.parse(value) : [];
+      },
+      set(value: number[] | null) {
+        this.setDataValue("tags", value ? JSON.stringify(value) : null);
+      },
     },
     isDraft: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true, // Default to draft status
-    }, 
+    },
     isPublished: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

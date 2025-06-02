@@ -27,6 +27,7 @@ import deliveryRoutes from "./routes/deliveryRoutes";
 import discountRoutes from "./routes/discountRoutes";
 import chatbotRoutes from "./routes/chatbotRoutes";
 import shippingAddressRoutes from "./routes/shippingAddressRoutes";
+import newsCommentRoutes from "./routes/newsCommentRoutes";
 const app = express();
 
 // Enable CORS
@@ -42,7 +43,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("✅ Database connected successfully");
-    return sequelize.sync({ alter: true }); // Sync models with the database
+    // return sequelize.sync({ alter: true }); // Sync models with the database
   })
   .then(() => {
     console.log("✅ Database & tables synced");
@@ -89,6 +90,7 @@ app.use("/api/delivery", deliveryRoutes); // Add this line to include the delive
 app.use("/api/discount", discountRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/shipping-address", shippingAddressRoutes);
+app.use("/api/news-comment", newsCommentRoutes);
 // Define the port
 const PORT = 3001;
 
