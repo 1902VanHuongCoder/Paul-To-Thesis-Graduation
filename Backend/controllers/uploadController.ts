@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-
+import cloudinary from "../configs/cloudinary-connect"; // Adjust the import path as necessary
 export const uploadFile = (req: Request, res: Response): void => {
   try {
     if (!req.file) {
@@ -38,6 +38,28 @@ export const uploadMultiFiles = (req: Request, res: Response): void => {
     });
   } catch (error) {
     console.error("Error uploading files:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+export const uploadBase64File = async (req: Request, res: Response) => {
+  try {
+    const { file } = req.body; // file is a base64 string
+    if (!file) {
+      return res.status(400).json({ message: "No file provided" });
+    }
+
+    // Upload base64 directly to Cloudinary
+    const uploadRes = await cloudinary.uploader.upload(file, {
+      folder: "uploads", // optional: your Cloudinary folder
+    });
+
+    res.status(200).json({
+      message: "File uploaded successfully",
+      url: uploadRes.secure_url,
+    });
+  } catch (error) {
+    console.error("Error uploading base64 file:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

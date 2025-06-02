@@ -3,17 +3,18 @@
 import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
+import { baseUrl } from "@/lib/base-url";
 
 type DeliveryFormValues = {
   name: string;
   description?: string;
-  base_price: number;
-  min_order_amount?: number;
+  basePrice: number;
+  minOrderAmount?: number;
   region?: string;
   speed?: string;
-  is_active: boolean;
-  is_default: boolean;
+  isActive: boolean;
+  isDefault: boolean;
 };
 
 export default function AddDeliveryMethodPage() {
@@ -21,27 +22,27 @@ export default function AddDeliveryMethodPage() {
     defaultValues: {
       name: "",
       description: "",
-      base_price: 0,
-      min_order_amount: undefined,
+      basePrice: 0,
+      minOrderAmount: undefined,
       region: "",
       speed: "",
-      is_active: true,
-      is_default: false,
+      isActive: true,
+      isDefault: false,
     },
   });
 
-  const router = useRouter();
+  // const router = useRouter();
 
   const onSubmit = async (data: DeliveryFormValues) => {
     try {
-      const res = await fetch("/api/delivery", {
+      const res = await fetch(`${baseUrl}/api/delivery`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to add delivery method");
       alert("Delivery method added successfully!");
-      router.push("/admin/delivery-methods");
+      // router.push("/admin/delivery-methods");
     } catch (error) {
       alert("Error: " + (error as Error).message);
     }
@@ -82,7 +83,7 @@ export default function AddDeliveryMethodPage() {
               <input
                 type="number"
                 step="1000"
-                {...methods.register("base_price", { required: "Giá cơ bản là bắt buộc", min: 0 })}
+                {...methods.register("basePrice", { required: "Giá cơ bản là bắt buộc", min: 0 })}
                 className="input input-bordered w-full"
                 placeholder="Giá cơ bản"
               />
@@ -96,7 +97,7 @@ export default function AddDeliveryMethodPage() {
               <input
                 type="number"
                 step="1000"
-                {...methods.register("min_order_amount")}
+                {...methods.register("minOrderAmount")}
                 className="input input-bordered w-full"
                 placeholder="Đơn tối thiểu để miễn phí"
               />
@@ -131,14 +132,14 @@ export default function AddDeliveryMethodPage() {
 
           <FormItem>
             <FormLabel>
-              <input type="checkbox" {...methods.register("is_active")} className="mr-2" />
+              <input type="checkbox" {...methods.register("isActive")} className="mr-2" />
               Kích hoạt
             </FormLabel>
           </FormItem>
 
           <FormItem>
             <FormLabel>
-              <input type="checkbox" {...methods.register("is_default")} className="mr-2" />
+              <input type="checkbox" {...methods.register("isDefault")} className="mr-2" />
               Mặc định
             </FormLabel>
           </FormItem>

@@ -5,6 +5,7 @@ import {
   createNews,
   updateNews,
   deleteNews,
+
 } from "../controllers/newsController";
 
 const router = express.Router();
@@ -23,5 +24,6 @@ router.put("/:id", updateNews);
 
 // DELETE a news article by ID
 router.delete("/:id", deleteNews);
+
 
 export default router;

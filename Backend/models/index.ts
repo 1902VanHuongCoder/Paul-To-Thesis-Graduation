@@ -21,6 +21,8 @@ import NewsTagOfNews from "./NewsTagOfNews";
 import Wishlist from "./Wislist";
 import Delivery from "./Delivery";
 import Discount from "./Discount";
+import ShippingAddress from "./ShippingAddress";
+import NewsComment from "./NewsComment";
 
 
 SubCategory.hasMany(Product, {
@@ -43,6 +45,13 @@ Attribute.belongsToMany(Product, {
   as: "products",
 });
 
+Product.belongsTo(SubCategory, { foreignKey: "subcategoryID", as: "subcategory" }); // Foreign key in the Product model
+
+Product.hasMany(ProductAttribute, { 
+  foreignKey: "productID",
+  as: "productAttributes",
+});
+
 ProductAttribute.belongsTo(Product, { foreignKey: "productID", as: "product" });
 ProductAttribute.belongsTo(Attribute, {
   foreignKey: "attributeID",
@@ -50,7 +59,7 @@ ProductAttribute.belongsTo(Attribute, {
 });
 
 
-Product.belongsTo(Category, { foreignKey: "categoryID" });
+Product.belongsTo(Category, { foreignKey: "categoryID", as: "category" }); // Foreign key in the Product model
 
 Category.hasMany(Product, {
   foreignKey: "categoryID", // Foreign key in the Product model
@@ -64,8 +73,11 @@ Attribute.belongsTo(Category, {
   foreignKey: "categoryID", // Foreign key in the Attribute model
 });
 
+Product.belongsTo(Origin, { foreignKey: "originID", as: "origin" }); // Foreign key in the Product model
+
 Origin.hasMany(Product, {
   foreignKey: "originID", // Foreign key in the Product model
+  as: "origin",
 });
 
 Tag.belongsToMany(Product, { through: ProductTag, foreignKey: "tagID" });
@@ -92,6 +104,7 @@ Product.belongsToMany(Order, {
 });
 
 Order.belongsTo(User, { foreignKey: "userID", as: "user" }); 
+Order.belongsTo(Delivery, { foreignKey: "deliveryID", as: "delivery" });
 
 ShoppingCart.belongsToMany(Product, {
   through: CartItem,
@@ -114,6 +127,11 @@ Product.hasMany(Comment, { foreignKey: "productID", as: "comments" });
 News.belongsTo(User, { foreignKey: "userID", as: "author" });
 User.hasMany(News, { foreignKey: "userID", as: "news" });
 
+User.hasMany(ShippingAddress, {
+  foreignKey: "shippingAddressID", 
+  as: "shippingAddresses"
+});
+
 News.belongsToMany(TagOfNews, {
   through: NewsTagOfNews,
   foreignKey: "newsID",
@@ -130,6 +148,9 @@ TagOfNews.belongsToMany(News, {
 Wishlist.belongsTo(User, { foreignKey: "customerID", as: "customer" });
 Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
 
+News.hasMany(NewsComment, {foreignKey: "newsID", as: "comments" });
+User.hasMany(NewsComment, {foreignKey: "userID", as: "user_comments" });
+NewsComment.belongsTo(User,{foreignKey: "userID", as: "user_comments" });
 export {
   User,
   Product,
@@ -153,6 +174,8 @@ export {
   NewsTagOfNews,
   Wishlist,
   Delivery,
-  Discount
+  Discount,
+  ShippingAddress,
+  NewsComment
 };
 

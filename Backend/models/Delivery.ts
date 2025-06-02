@@ -2,17 +2,17 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 
 class Delivery extends Model {
-  public id!: string;
+  public deliveryID!: number;
   public name!: string;
   public description?: string;
-  public base_price!: number;
-  public min_order_amount?: number;
+  public basePrice!: number;
+  public minOrderAmount?: number;
   public region?: string;
   public speed?: string;
-  public is_active!: boolean;
-  public is_default!: boolean;
-  public readonly created_at!: Date;
-  public readonly updated_at!: Date;
+  public isActive!: boolean;
+  public isDefault!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Delivery.init(
@@ -30,11 +30,11 @@ Delivery.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    base_price: {
+    basePrice: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    min_order_amount: {
+    minOrderAmount: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -46,19 +46,19 @@ Delivery.init(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    is_active: {
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
-    is_default: {
+    isDefault: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    created_at: {
+    createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
-    updated_at: {
+    updatedAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
@@ -67,8 +67,8 @@ Delivery.init(
     sequelize,
     modelName: "Delivery",
     tableName: "delivery_methods",
-    timestamps: false, // since you use custom created_at/updated_at
-    underscored: true,
+    timestamps: true, // use Sequelize's default createdAt/updatedAt
+    underscored: false, // don't use snake_case
   }
 );
 

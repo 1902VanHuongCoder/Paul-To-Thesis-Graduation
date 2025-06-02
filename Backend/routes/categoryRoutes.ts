@@ -5,6 +5,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getProductsByCategorySlug,
 } from "../controllers/categoryController";
 
 const router = express.Router();
@@ -23,5 +24,7 @@ router.put("/:id", updateCategory);
 
 // DELETE a category by ID
 router.delete("/:id", deleteCategory);
+
+router.get("/slug/:slug", getProductsByCategorySlug);
 
 export default router;

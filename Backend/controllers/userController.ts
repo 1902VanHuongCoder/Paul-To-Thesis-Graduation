@@ -1,128 +1,145 @@
 import { Request, Response } from "express";
 import { User } from "../models";
+import ShippingAddress from "../models/ShippingAddress";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// Fetch all users
-export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
-  const { role } = req.body;
+// Helper: Generate JWT token
+const generateToken = (user: any) => {
+  return jwt.sign(
+    {
+      userID: user.userID,
+      email: user.email,
+      role: user.role,
+      provider: user.provider,
+    },
+    process.env.JWT_SECRET || "your_jwt_secret",
+    { expiresIn: "7d" }
+  );
+};
 
+// Local Sign Up
+export const localSignUp = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { userID, username, email, password, role, shippingAddress } = req.body;
   try {
-    if (!role) {
-      res.status(400).json({ message: "Role is required" });
-      return;
-    }
+    // Check if user exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(409).json({ message: "Email already registered" });
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (!["staff", "administrator", "customer"].includes(role)) {
-      res.status(400).json({ message: "Invalid role" });
-      return;
-    }
+      let shippingAddressID = null;
+      if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
+        const newAddress = await ShippingAddress.create({
+          address: shippingAddress.address,
+          phone: shippingAddress.phone,
+          isDefault: shippingAddress.isDefault ?? true,
+        });
+        shippingAddressID = newAddress.get("shippingAddressID");
+      }
+      const user = await User.create({
+        userID,
+        username,
+        email,
+        password: hashedPassword,
+        role,
+        provider: "local",
+        shippingAddressID,
+      });
 
-    const users = await User.findAll({ where: { role } });
-    res.status(200).json(users);
+      const token = generateToken(user);
+      res.status(201).json({ user, token });
+    }
   } catch (error) {
-    console.error("Error fetching users:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
 
-// Create a new user
-export const createUser = async (req: Request, res: Response): Promise<void> => {
-  const { username, email, role, password, address, phone, avatar, position, department, loyaltyPoints } = req.body;
-
+// Local Sign In
+export const localSignIn = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, password } = req.body;
   try {
-    if (!username || !email || !role || !password) {
-      res.status(400).json({ message: "Username, email, role, and password are required" });
-      return;
+    const user = await User.findOne({ where: { email, provider: "local" } });
+    if (!user || !user.password) {
+      res.status(401).json({ message: "Invalid credentials" });
+    } else {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.status(401).json({ message: "Invalid credentials" });
+      }
+      const token = generateToken(user);
+      res.status(200).json({ user, token });
     }
-
-    if (!["staff", "administrator", "customer"].includes(role)) {
-      res.status(400).json({ message: "Invalid role" });
-      return;
-    }
-
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({
-      username,
-      email,
-      role,
-      password: hashedPassword,
-      address,
-      phone,
-      avatar,
-      position,
-      department,
-      loyaltyPoints,
-    });
-    res.status(201).json(newUser);
   } catch (error) {
-    console.error("Error creating user:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
 
-// Fetch a user by ID
-export const getUserById = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-
+// Google Sign Up / Sign In
+export const googleAuth = async (req: Request, res: Response) => {
+  const { email, username, avatar, providerID } = req.body;
   try {
-    const user = await User.findByPk(id);
+    let user = await User.findOne({ where: { email, provider: "google" } });
+    if (!user) {
+      user = await User.create({
+        username,
+        email,
+        avatar,
+        provider: "google",
+        providerID,
+        role: "customer", // or assign based on your logic
+      });
+    }
+    const token = generateToken(user);
+    res.status(200).json({ user, token });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
 
+// Get current user info (protected route)
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  // req.user should be set by auth middleware after verifying JWT
+  const userID = (req as any).user?.userID;
+  try {
+    const user = await User.findByPk(userID, { include: [ShippingAddress] });
     if (!user) {
       res.status(404).json({ message: "User not found" });
-      return;
+    } else {
+      res.status(200).json(user);
     }
-
-    res.status(200).json(user);
   } catch (error) {
-    console.error("Error fetching user by ID:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
 
-// Update a user by ID
-export const updateUser = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const { password, ...updatedData } = req.body;
-
-  try {
-    const user = await User.findByPk(id);
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
+// Example: Middleware to protect routes (add to your middleware folder)
+export const authenticateJWT = (
+  req: Request,
+  res: Response,
+  next: Function
+): void => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ message: "No token provided" });
+  } else {
+    const token = authHeader.split(" ")[1];
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "your_jwt_secret"
+      );
+      (req as any).user = decoded;
+      next();
+    } catch (error) {
+      res.status(401).json({ message: "Invalid token" });
     }
-
-    // Hash the password if it is being updated
-    if (password) {
-      updatedData.password = await bcrypt.hash(password, 10);
-    }
-
-    await user.update(updatedData);
-    res.status(200).json({ message: "User updated successfully", user });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ error: (error as Error).message });
-  }
-};
-
-// Delete a user by ID
-export const deleteUser = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  try {
-    const user = await User.findByPk(id);
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    await user.destroy();
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    res.status(500).json({ error: (error as Error).message });
   }
 };

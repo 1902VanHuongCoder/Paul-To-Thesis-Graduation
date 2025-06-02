@@ -25,6 +25,9 @@ import productTagRoutes from "./routes/productTagRoutes";
 import wishlistRoutes from "./routes/wishlistRoutes";
 import deliveryRoutes from "./routes/deliveryRoutes";
 import discountRoutes from "./routes/discountRoutes";
+import chatbotRoutes from "./routes/chatbotRoutes";
+import shippingAddressRoutes from "./routes/shippingAddressRoutes";
+import newsCommentRoutes from "./routes/newsCommentRoutes";
 const app = express();
 
 // Enable CORS
@@ -40,7 +43,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("✅ Database connected successfully");
-    return sequelize.sync({ alter: true }); // Sync models with the database
+    // return sequelize.sync({ alter: true }); // Sync models with the database
   })
   .then(() => {
     console.log("✅ Database & tables synced");
@@ -53,11 +56,11 @@ sequelize
 app.use(express.json()); // Built-in middleware for JSON parsing
 
 // If using body-parser (optional)
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true, limit: "20mb" }));
+app.use(bodyParser.json({ limit: "20mb" }));
 
 // Middleware to parse raw body (e.g. binary data)
-app.use(bodyParser.raw({ type: "application/octet-stream", limit: "10mb" }));
+app.use(bodyParser.raw({ type: "application/octet-stream", limit: "20mb" }));
 
 
 // Routes
@@ -85,6 +88,9 @@ app.use("/api/tag-of-news", tagOfNewsRoutes);
 app.use("/api/create-payment", vnpayRoutes);
 app.use("/api/delivery", deliveryRoutes); // Add this line to include the delivery routes
 app.use("/api/discount", discountRoutes);
+app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/shipping-address", shippingAddressRoutes);
+app.use("/api/news-comment", newsCommentRoutes);
 // Define the port
 const PORT = 3001;
 
