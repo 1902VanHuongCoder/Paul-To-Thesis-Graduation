@@ -5,7 +5,7 @@ import Product from "./Product";
 
 class Wishlist extends Model {
   public wishlistID!: number;
-  public customerID!: number;
+  public customerID!: string;
   public productID!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -19,7 +19,7 @@ Wishlist.init(
       autoIncrement: true,
     },
     customerID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,

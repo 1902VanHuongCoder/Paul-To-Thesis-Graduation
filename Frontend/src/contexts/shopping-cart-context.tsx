@@ -3,6 +3,7 @@ import { baseUrl } from "@/lib/base-url";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDictionary } from "./dictonary-context";
+import { useUser } from "./user-context";
 
 export interface CartItem {
     quantity: number;
@@ -35,7 +36,7 @@ interface ShoppingCartContextProps {
     removeFromCart: (productID: number, cartID: number) => void;
     clearCart: () => void;
     updateCart: (cartID: number, productID: number, quantity: number) => void;
-    fetchCart: (customerID: number) => void;
+    fetchCart: (customerID: string) => void;
 }
 
 const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(undefined);
@@ -47,14 +48,15 @@ export function useShoppingCart() {
 }
 
 export function ShoppingCartProvider({ children }: { children: React.ReactNode }) {
-    const {dictionary: d} = useDictionary();
+    const { dictionary: d } = useDictionary();
+    const { user } = useUser();
     const [cart, setCart] = useState<Cart>({
         cartID: 0,
         totalQuantity: 0,
         products: [],
     });
 
-    const fetchCart = async (customerID: number) => {
+    const fetchCart = async (customerID: string) => {
         try {
             const res = await fetch(`${baseUrl}/api/shopping-cart/${customerID}`);
             if (!res.ok) throw new Error("Failed to fetch cart");
@@ -71,11 +73,11 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
             const res = await fetch(`${baseUrl}/api/shopping-cart`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productID, customerID: 1, quantity: 1 }),
+                body: JSON.stringify({ productID, customerID: user?.userID, quantity: 1 }),
             });
             if (!res.ok) throw new Error("Failed to add to cart");
             toast.success(d?.toastAddToCartSuccess || "Thêm vào giỏ hàng thành công");
-            fetchCart(1);
+            if (user) { fetchCart(user?.userID); }
             return await res.json();
         } catch (error) {
             console.error("Add to cart error:", error);
@@ -115,9 +117,9 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     };
 
-    const clearCart = async (customerID = 1) => {
+    const clearCart = async () => {
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart/customer/${customerID}`, {
+            const res = await fetch(`${baseUrl}/api/shopping-cart/customer/${user?.userID}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });
@@ -134,12 +136,13 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
     };
 
     useEffect(() => {
-        const customerID = 1; // Replace with actual customer ID
-        fetchCart(customerID).catch((error) => {
-            toast.success(d?.toastFetchCartError || "Tai gio hang thanh cong");
-            console.error("Error fetching cart on mount:", error);
-        });
-    }, []);
+        if (user) {
+            fetchCart(user?.userID).catch((error) => {
+                toast.success(d?.toastFetchCartError || "Tai gio hang thanh cong");
+                console.error("Error fetching cart on mount:", error);
+            });
+        }
+    }, [user]);
 
     return (
         <ShoppingCartContext.Provider

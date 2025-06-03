@@ -5,6 +5,7 @@ import {
   getShippingAddressById,
   updateShippingAddress,
   deleteShippingAddress,
+  getShippingAddressByUserID,
 } from "../controllers/shippingAddressController";
 
 const router = express.Router();
@@ -23,5 +24,7 @@ router.put("/:id", updateShippingAddress);
 
 // Delete a shipping address by ID
 router.delete("/:id", deleteShippingAddress);
+
+router.get("/user/:userID", getShippingAddressByUserID); 
 
 export default router;

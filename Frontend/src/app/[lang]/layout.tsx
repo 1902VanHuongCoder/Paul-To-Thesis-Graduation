@@ -43,16 +43,15 @@ export default function LangLayout({
             <body className={`${nunito.variable} ${itim.variable} antialiased`}>
                 <DictionaryProvider lang={lang}>
                     <LoadingProvider>
-                        <ShoppingCartProvider>
-                            <WishlistProvider>
-                                <CheckoutProvider>
-                                    <UserProvider>
+                        <UserProvider>
+                            <ShoppingCartProvider>
+                                <WishlistProvider>
+                                    <CheckoutProvider>
                                         {children}
-                                    </UserProvider>
-
-                                </CheckoutProvider>
-                            </WishlistProvider>
-                        </ShoppingCartProvider>
+                                    </CheckoutProvider>
+                                </WishlistProvider>
+                            </ShoppingCartProvider>
+                        </UserProvider>
                     </LoadingProvider>
 
                 </DictionaryProvider>

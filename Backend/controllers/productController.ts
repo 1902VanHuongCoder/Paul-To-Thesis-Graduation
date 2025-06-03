@@ -1,11 +1,24 @@
 import { Request, Response } from "express";
-import { Category, Origin, Product, ProductAttribute, ProductTag, SubCategory, Tag } from "../models";
+import {
+  Category,
+  Comment,
+  Origin,
+  Product,
+  ProductAttribute,
+  ProductTag,
+  SubCategory,
+  Tag,
+  User,
+} from "../models";
 
-export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
+export const getAllProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Sort products by createdAt in descending order (latest first)
     const products = await Product.findAll({
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(products);
   } catch (error) {
@@ -14,7 +27,10 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const getProductById = async (req: Request, res: Response): Promise<void> => {
+export const getProductById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -24,7 +40,12 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
         { model: SubCategory, as: "subcategory" }, // Include associated subcategory
         { model: Tag }, // Include associated tags
         { model: Origin, as: "origin" }, // Include associated origin
-        { model: ProductAttribute, as: "productAttributes" }, // Include associated attributes
+        { model: ProductAttribute, as: "productAttributes" }, // Include associated attributes,
+        {
+          model: Comment,
+          as: "comments",
+          include: [{ model: User, as: "user" }],
+        },
       ],
     });
 
@@ -40,7 +61,10 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const createProduct = async (req: Request, res: Response): Promise<void> => {
+export const createProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const {
     productName,
     productPrice,
@@ -51,6 +75,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     originID,
     subcategoryID,
     images,
+    descriptionImages,
+    description,
     attributes, // Additional attributes specific to the category
   } = req.body;
 
@@ -67,6 +93,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       originID,
       subcategoryID,
       images,
+      descriptionImages,
+      description,
       rating: 5,
     });
 
@@ -106,7 +134,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+export const updateProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const {
     productName,
@@ -175,7 +206,10 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+export const deleteProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {

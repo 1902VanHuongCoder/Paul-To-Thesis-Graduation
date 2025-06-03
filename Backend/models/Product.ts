@@ -9,6 +9,16 @@ import ProductTag from "./ProductTag";
 class Product extends Model {
   productID: any;
   productPrice!: number;
+  productPriceSale!: number;
+  productName!: string;
+  quantityAvailable!: number;
+  categoryID!: number;
+  description!: string;
+  originID!: number;
+  subcategoryID!: number;
+  images!: string[];
+  descriptionImages!: string[];
+  rating!: number;
 }
 
 Product.init(
@@ -41,6 +51,14 @@ Product.init(
         model: Category, // Reference the Category model
         key: "categoryID", // Reference the primary key in the Category model
       },
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    descriptionImages: {
+      type: DataTypes.JSON,
+      allowNull: true,
     },
     // tagID: {
     //   type: DataTypes.INTEGER,

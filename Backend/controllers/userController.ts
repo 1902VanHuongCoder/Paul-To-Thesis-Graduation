@@ -4,6 +4,18 @@ import ShippingAddress from "../models/ShippingAddress";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+export const getAllUsers = async ( 
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const users = await User.findAll();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+}
+
 // Helper: Generate JWT token
 const generateToken = (user: any) => {
   return jwt.sign(
@@ -24,6 +36,7 @@ export const localSignUp = async (
   res: Response
 ): Promise<void> => {
   const { userID, username, email, password, role, shippingAddress } = req.body;
+  console.log(req.body);
   try {
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
@@ -35,11 +48,11 @@ export const localSignUp = async (
       let shippingAddressID = null;
       if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
         const newAddress = await ShippingAddress.create({
+          userID,
           address: shippingAddress.address,
           phone: shippingAddress.phone,
           isDefault: shippingAddress.isDefault ?? true,
         });
-        shippingAddressID = newAddress.get("shippingAddressID");
       }
       const user = await User.create({
         userID,
@@ -48,7 +61,7 @@ export const localSignUp = async (
         password: hashedPassword,
         role,
         provider: "local",
-        shippingAddressID,
+      
       });
 
       const token = generateToken(user);
@@ -84,11 +97,13 @@ export const localSignIn = async (
 
 // Google Sign Up / Sign In
 export const googleAuth = async (req: Request, res: Response) => {
-  const { email, username, avatar, providerID } = req.body;
+  const { email, username, avatar, providerID, userID } = req.body;
+  console.log(req.body);
   try {
     let user = await User.findOne({ where: { email, provider: "google" } });
     if (!user) {
       user = await User.create({
+        userID,
         username,
         email,
         avatar,

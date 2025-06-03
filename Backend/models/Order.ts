@@ -5,7 +5,7 @@ import Delivery from "./Delivery";
 
 class Order extends Model {
   public orderID!: string;
-  public userID!: number;
+  public userID!: string;
   public totalPayment!: number;
   public totalQuantity!: number;
   public note?: string;
@@ -30,7 +30,7 @@ Order.init(
       primaryKey: true,
     },
     userID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,

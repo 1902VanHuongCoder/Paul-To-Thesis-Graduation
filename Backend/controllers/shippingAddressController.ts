@@ -3,12 +3,16 @@ import ShippingAddress from "../models/ShippingAddress";
 
 // Create a new shipping address
 export const createShippingAddress = async (req: Request, res: Response) => {
-  const { address, phone, isDefault } = req.body;
+  const {userID, address, phone, isDefault } = req.body;
   try {
+    const existingAddress = await ShippingAddress.findOne({
+      where: { userID, isDefault: true },
+    })
     const newAddress = await ShippingAddress.create({
+      userID,
       address,
       phone,
-      isDefault: isDefault ?? true,
+      isDefault: existingAddress ? false : true, // If there's an existing default address, set this one to false
     });
     res.status(201).json(newAddress);
   } catch (error) {
@@ -82,3 +86,20 @@ export const deleteShippingAddress = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+// Get shipping addresses by user ID 
+export const getShippingAddressByUserID = async (req: Request, res: Response) => {
+  const { userID } = req.params;
+  try {
+    const addresses = await ShippingAddress.findAll({
+      where: { userID },
+    });
+    if (addresses.length === 0) {
+      res.status(404).json({ message: "No shipping addresses found for this user" });
+    } else {
+      res.status(200).json(addresses);
+    }
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+}

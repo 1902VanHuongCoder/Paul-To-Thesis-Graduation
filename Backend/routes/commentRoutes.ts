@@ -5,6 +5,8 @@ import {
   createComment,
   updateComment,
   deleteComment,
+  getCommentsByProductId,
+  updateCommentReaction
 } from "../controllers/commentController";
 
 const router = express.Router();
@@ -23,5 +25,9 @@ router.put("/:id", updateComment);
 
 // DELETE a comment by ID
 router.delete("/:id", deleteComment);
+
+router.get("/product/:productID", getCommentsByProductId); 
+
+router.put("/reaction/:commentID", updateCommentReaction); 
 
 export default router;

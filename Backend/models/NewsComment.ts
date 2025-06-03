@@ -4,7 +4,7 @@ import { User, Product } from "./index";
 
 class NewsComment extends Model {
   public newsCommentID!: number;
-  public userID!: number;
+  public userID!: string;
   public newsID!: number;
   public content!: string;
   public likeCount!: number;
@@ -23,7 +23,7 @@ NewsComment.init(
       autoIncrement: true,
     },
     userID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,

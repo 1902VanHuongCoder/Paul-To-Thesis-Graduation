@@ -26,7 +26,7 @@ import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import SignUpForm from "@/components/section/signup-page/signup-page";
 import LoginForm from "@/components/section/login-page/login-page";
 import { useUser } from "@/contexts/user-context";
-import Button from "../button/button-brand";
+import UserDrawer from "../drawer/user-drawer";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -63,12 +63,14 @@ interface Category {
 
 export default function Navigation() {
     const { user, logout } = useUser();
+    console.log("User:", user);
     const [categories, setCategories] = useState<Category[]>([]);
     const { lang, dictionary: t } = useDictionary();
     const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
     const { addToCart, fetchCart } = useShoppingCart();
     const [openSignUpForm, setOpenSignUpForm] = useState(false);
     const [openLoginForm, setOpenLoginForm] = useState(false);
+    const [openUserDrawer, setOpenUserDrawer] = useState(false);
 
 
     // Example handlers
@@ -166,7 +168,17 @@ export default function Navigation() {
                             onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
                             clearAll={() => { }}
                         />
-                        {user ? <Button onClick={() => { logout() }} size="sm" variant="primary">Đăng xuất</Button> : (<>
+                        {user ? (
+                            <UserDrawer 
+                                user={user}
+                                open={openUserDrawer}
+                                setOpen={() => setOpenUserDrawer(!openUserDrawer)}
+                                logout={() => {
+                                    logout();
+                                    setOpenSignUpForm(false);
+                                    setOpenLoginForm(false);
+                                }} />
+                        ) : (<>
                             <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
                             <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
                         </>

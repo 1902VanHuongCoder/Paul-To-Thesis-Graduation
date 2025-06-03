@@ -5,6 +5,7 @@ import {
   googleAuth,
   getMe,
   authenticateJWT,
+  getAllUsers
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -20,5 +21,8 @@ router.post("/google", googleAuth);
 
 // Get current user info (protected)
 router.get("/me", authenticateJWT, getMe);
+
+// Middleware to protect routes
+router.get("/", getAllUsers); 
 
 export default router;

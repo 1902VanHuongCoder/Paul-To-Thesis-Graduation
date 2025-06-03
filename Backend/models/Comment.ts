@@ -4,11 +4,13 @@ import { User, Product } from "./index";
 
 class Comment extends Model {
   public commentID!: number;
-  public userID!: number;
+  public userID!: string;
   public productID!: number;
   public content!: string;
   public commentAt!: Date;
   public rating!: number;
+  public likeCount!: number;
+  public dislikeCount!: number;
   public status!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -22,7 +24,7 @@ Comment.init(
       autoIncrement: true,
     },
     userID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,
@@ -53,6 +55,16 @@ Comment.init(
         min: 1,
         max: 5,
       },
+    },
+    likeCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0, // Default like count is 0
+    },
+    dislikeCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0, // Default dislike count is 0
     },
     status: {
       type: DataTypes.STRING,

@@ -46,6 +46,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
             } else {
                 // Save user info to context and optionally localStorage
                 const userData = {
+                    userID: data.user.userID,
                     username: data.user.username,
                     email: data.user.email,
                     avatar: data.user.avatar,

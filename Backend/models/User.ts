@@ -13,10 +13,8 @@ class User extends Model {
   public position!: string | null;
   public department!: string | null;
   public loyaltyPoints!: number | null;
-  public provider!: string | null; // For OAuth users
-  public providerID!: string | null; // For OAuth users
-  public shippingAddressID!: number | null;
-
+  public provider!: string | null;
+  public providerID!: string | null; 
 }
 
 User.init(
@@ -69,14 +67,6 @@ User.init(
     providerID: {
       type: DataTypes.STRING,
       allowNull: true, // For OAuth users
-    },
-    shippingAddressID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: ShippingAddress, // Assuming you have a ShippingAddress model
-        key: "shippingAddressID",
-      },
     }
   },
   {
