@@ -74,13 +74,13 @@ export default function Navigation() {
 
 
     // Example handlers
-    const handleRemoveItem = (productID: number, customerID: number) => {
+    const handleRemoveItem = (productID: number, customerID: string) => {
         removeFromWishlist(customerID, productID);
         const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
         setWishlist(wishlistUpdated);
     };
 
-    const handleAddToCart = async (productID: number, customerID: number) => {
+    const handleAddToCart = async (productID: number, customerID: string) => {
         addToCart(productID);
         fetchCart(customerID);
         removeFromWishlist(customerID, productID);

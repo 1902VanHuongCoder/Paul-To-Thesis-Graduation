@@ -67,6 +67,23 @@ export const getOrderById = async (
   }
 };
 
+export const getOrdersByUserID = async (req:Request, res: Response) => {
+    const { userID } = req.params; 
+    try {
+       const orders = await Order.findAll({
+        where: {userID}
+       });
+       if(orders.length > 0){
+        res.status(200).json(orders);
+       }else{
+         res.status(404).json({message: "No orders found for this user."}); 
+       }
+    }catch(error){
+        console.error("Error happens when fetching orders by userID:", error); 
+        res.status(500).json((new Error).message); 
+    }
+}
+
 // POST a new order
 export const createOrder = async (
   req: Request,

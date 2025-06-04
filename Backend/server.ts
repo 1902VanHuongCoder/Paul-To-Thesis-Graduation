@@ -66,11 +66,13 @@ app.use(bodyParser.raw({ type: "application/octet-stream", limit: "20mb" }));
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/shipping-address", shippingAddressRoutes);
+app.use("/api/order", orderRoutes);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/product",productRoutes);
 app.use("/api/product-tag",productTagRoutes);
-
 app.use("/api/category", categoryRoutes);  
 app.use("/api/subcategory", subCategoryRoutes); 
 app.use("/api/tag", tagRoutes);
@@ -78,7 +80,7 @@ app.use("/api/attribute", attributeRoutes);
 app.use("/api/origin", originRoutes); 
 app.use("/api/inventory", inventoryRoutes); 
 app.use("/api/location", locationRoutes); 
-app.use("/api/order", orderRoutes);
+
 app.use("/api/shopping-cart", shoppingCartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/comment", commentRoutes);
@@ -90,7 +92,7 @@ app.use("/api/create-payment", vnpayRoutes);
 app.use("/api/delivery", deliveryRoutes); // Add this line to include the delivery routes
 app.use("/api/discount", discountRoutes);
 app.use("/api/chatbot", chatbotRoutes);
-app.use("/api/shipping-address", shippingAddressRoutes);
+
 app.use("/api/news-comment", newsCommentRoutes);
 app.use("/api/contact",contactRoutes);
 // Define the port

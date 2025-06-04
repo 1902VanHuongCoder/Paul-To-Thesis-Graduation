@@ -1,20 +1,23 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
-import ShoppingCart from "./ShoppingCart";
-import ShippingAddress from "./ShippingAddress";
 
 class User extends Model {
   public userID!: string;
   public username!: string;
   public email!: string;
   public avatar!: string | null;
-  public role!: "staff" | "administrator" | "customer";
+  public role!: "sta" | "adm" | "cus";
   public password!: string | null;
-  public position!: string | null;
-  public department!: string | null;
-  public loyaltyPoints!: number | null;
-  public provider!: string | null;
-  public providerID!: string | null; 
+  public position!: string | null; // for staff users
+  public department!: string | null; // for administrator users
+  public loyaltyPoints!: number | null; // for customer users
+  public provider!: string | null; // for OAuth users 
+  public providerID!: string | null;  // is provided by the OAuth provider
+  public isActive!: boolean;
+  public resetPasswordCode!: string | null; // For password reset functionality
+  public resetPasswordCodeExpiry!: Date | null; // Expiry time for the reset password code
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date; 
 }
 
 User.init(
@@ -30,7 +33,7 @@ User.init(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: true, // Ensure email is unique
     },
     avatar: {
       type: DataTypes.STRING,
@@ -40,7 +43,7 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        isIn: [["staff", "administrator", "customer"]],
+        isIn: [["sta", "adm", "cus"]],
       },
     },
     password: {
@@ -62,12 +65,24 @@ User.init(
     },
     provider: {
       type: DataTypes.STRING,
-      allowNull: true, // For OAuth users
+      allowNull: true,
     },
     providerID: {
       type: DataTypes.STRING,
-      allowNull: true, // For OAuth users
-    }
+      allowNull: true, 
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    resetPasswordCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    resetPasswordCodeExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     sequelize,

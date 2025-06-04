@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import formatVND from "@/lib/format-vnd";
 import Button from "@/components/ui/button/button-brand";
+import { useUser } from "@/contexts/user-context";
 
 interface OrderProduct {
   productID: number;
@@ -23,7 +24,8 @@ interface Order {
 }
 
 const OrderHistory = () => {
-    const { dictionary: d, lang } = useDictionary();
+  const { dictionary: d, lang } = useDictionary();
+  const { user } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -33,8 +35,12 @@ const OrderHistory = () => {
   useEffect(() => {
     // You may want to get userID from auth context or cookie
     const fetchOrders = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       try {
-        const res = await fetch(`${baseUrl}/api/order`);
+        const res = await fetch(`${baseUrl}/api/order/history/${user?.userID}`);
         if (!res.ok) throw new Error("Failed to fetch orders");
         const data = await res.json();
         setOrders(data);
@@ -45,7 +51,7 @@ const OrderHistory = () => {
       }
     };
     fetchOrders();
-  }, []);
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-2 py-8">

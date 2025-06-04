@@ -7,7 +7,7 @@ class ShippingAddress extends Model {
   public userID!: string;
   public phone!: string;
   public address!: string;
-  public isDefault!: boolean; // Default value is false
+  public isDefault!: boolean; 
   public createdAt!: Date;
   public updatedAt!: Date;
 }

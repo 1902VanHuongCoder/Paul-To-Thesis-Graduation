@@ -25,6 +25,18 @@ import ShippingAddress from "./ShippingAddress";
 import NewsComment from "./NewsComment";
 import Contact from "./Contact";
 
+// 1. User - ShippingAddress
+User.hasMany(ShippingAddress, {
+  foreignKey: "userID",
+  as: "shipping-address"
+})
+
+
+
+
+
+
+
 
 SubCategory.hasMany(Product, {
   foreignKey: "subcategoryID", // Foreign key in the Product model

@@ -1,0 +1,4 @@
+1. User operations 
+* Customer 
+    + Create account // Done
+    + Get all accounts 

@@ -2,8 +2,10 @@
 import Link from "next/link";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger } from "./drawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
+import { useDictionary } from "@/contexts/dictonary-context";
 
-export default function UserDrawer({ user, open, setOpen, logout }: { user: { username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
+export default function UserDrawer({ user, open, setOpen, logout }: { user: {userID: string, username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
+    const {lang} = useDictionary();
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
             <DrawerTrigger asChild>
@@ -30,10 +32,10 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: { us
                     </Avatar>
                     <div className="text-lg font-semibold">{user.username}</div>
                     {user.email && <div className="text-gray-500">{user.email}</div>}
-                    <Link href="/profile" className="text-blue-500 hover:underline"> View Profile</Link>
-                    <Link href="/settings" className="text-blue-500 hover:underline">Order history</Link>
-                    <Link href="/settings" className="text-blue-500 hover:underline">Add ship delivery</Link>
-                    <Link href="/settings" className="text-blue-500 hover:underline">Account settings</Link>
+                    <Link href={`/${lang}/homepage/user-profile`} className="text-blue-500 hover:underline"> View Profile</Link>
+                    <Link href={`/${lang}/homepage/order-history`} className="text-blue-500 hover:underline">Order history</Link>
+                    <Link href={`/${lang}/homepage/add-shipping-address`} className="text-blue-500 hover:underline">Add ship delivery</Link>
+                    <Link href={`/${lang}/homepage/update-user-profile?userID=${user.userID}`} className="text-blue-500 hover:underline">Account settings</Link>
                     
                 </div>
                 <div className="p-4">

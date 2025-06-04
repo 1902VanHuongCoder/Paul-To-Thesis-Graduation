@@ -3,8 +3,12 @@ import { User } from "../models";
 import ShippingAddress from "../models/ShippingAddress";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+import crypto from "crypto";
+dotenv.config();
 
-export const getAllUsers = async ( 
+export const getAllUsers = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -14,7 +18,24 @@ export const getAllUsers = async (
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
-}
+};
+
+export const getUserByID = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userID = req.params.userID;
+  try {
+    const user = await User.findByPk(userID);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    } else {
+      res.status(200).json(user);
+    }
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
 
 // Helper: Generate JWT token
 const generateToken = (user: any) => {
@@ -61,7 +82,6 @@ export const localSignUp = async (
         password: hashedPassword,
         role,
         provider: "local",
-      
       });
 
       const token = generateToken(user);
@@ -109,7 +129,7 @@ export const googleAuth = async (req: Request, res: Response) => {
         avatar,
         provider: "google",
         providerID,
-        role: "customer", // or assign based on your logic
+        role: "cus", // or assign based on your logic
       });
     }
     const token = generateToken(user);
@@ -119,42 +139,123 @@ export const googleAuth = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user info (protected route)
-export const getMe = async (req: Request, res: Response): Promise<void> => {
-  // req.user should be set by auth middleware after verifying JWT
-  const userID = (req as any).user?.userID;
+export const updateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userID = req.params.userID;
+  const { username, email, avatar, password } = req.body;
   try {
-    const user = await User.findByPk(userID, { include: [ShippingAddress] });
+    const user = await User.findByPk(userID);
     if (!user) {
       res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    // Update user fields
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (avatar) user.avatar = avatar;
+
+    // Handle password update
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+    res.status(200).json({ message: "User updated successfully", user });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+export const confirmPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { userID, password } = req.body;
+  try {
+    const user = await User.findByPk(userID);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    if (user.providerID) {
+      res.status(200).json({
+        message:
+          "User is authenticated via Google, no password confirmation needed",
+      });
+      return;
+    }
+    const isMatch = await bcrypt.compare(password, user?.password || "");
+    if (isMatch) {
+      res.status(200).json({ message: "Password confirmed" });
     } else {
-      res.status(200).json(user);
+      res.status(401).json({ message: "Incorrect password" });
     }
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 };
 
-// Example: Middleware to protect routes (add to your middleware folder)
-export const authenticateJWT = (
+// Helper to send email (configure with your SMTP)
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // or your SMTP
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+function generateSecure6DigitCode() {
+  // Generates a random integer between 0 and 999999, then pads with zeros
+  const code = crypto.randomInt(0, 1000000).toString().padStart(6, "0");
+  return code;
+}
+
+export const forgotPassword = async (
   req: Request,
-  res: Response,
-  next: Function
-): void => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    res.status(401).json({ message: "No token provided" });
-  } else {
-    const token = authHeader.split(" ")[1];
-    try {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "your_jwt_secret"
-      );
-      (req as any).user = decoded;
-      next();
-    } catch (error) {
-      res.status(401).json({ message: "Invalid token" });
-    }
+  res: Response
+): Promise<void> => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    res.status(404).json({ error: "Email không tồn tại" });
+    return;
+  }
+
+  // Generate code and expiry (e.g. 6 digits, 10 min)
+  const code = generateSecure6DigitCode();
+  const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  // Save code and expiry to user (or a separate table)
+  try {
+    user.resetPasswordCode = code;
+    user.resetPasswordCodeExpiry = codeExpiry;
+    await user.save();
+  } catch (error) {
+    console.error("Error saving reset code:", error);
+    res.status(500).json({ error: (error as Error).message });
+    return;
+  }
+
+  // Send email
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Mã xác nhận đặt lại mật khẩu",
+      text: `Mã xác nhận của bạn là: ${code}. Mã có hiệu lực trong 10 phút.`,
+    });
+    res.json({ message: "Đã gửi mã xác nhận tới email của bạn." });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Không thể gửi email xác nhận" });
+    return;
   }
 };

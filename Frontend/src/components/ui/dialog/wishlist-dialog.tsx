@@ -16,6 +16,7 @@ import formatVND from "@/lib/format-vnd";
 import formatDate from "@/lib/format-date";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/user-context";
 
 export interface Product {
     productID: number;
@@ -32,16 +33,16 @@ export interface Product {
 
 export interface WishlistItem {
     wishlistID: number;
-    customerID: number;
+    customerID: string;
     productID: number;
     product: Product;
 }
 
 interface WishlistDialogProps {
     wishlists: WishlistItem[];
-    onRemoveItemOutWishlist: (productID: number, customerID: number) => void;
-    onAddToCart: (productID: number, customerID: number) => void;
-    clearAll: (customerID: number) => void;
+    onRemoveItemOutWishlist: (productID: number, customerID: string) => void;
+    onAddToCart: (productID: number, customerID: string) => void;
+    clearAll: (customerID: string) => void;
 }
 
 export default function WishlistDialog({
@@ -50,6 +51,7 @@ export default function WishlistDialog({
     onAddToCart,
 }: WishlistDialogProps) {
     const { dictionary:d, lang } = useDictionary();
+    const { user } = useUser();
     const [open, setOpen] = React.useState(false);
     const router = useRouter();
     return (
@@ -85,7 +87,7 @@ export default function WishlistDialog({
                             {/* Product Thumbnail */}
                             <div className="flex items-center gap-4">
                                 <button
-                                    onClick={() => onRemoveItemOutWishlist(item.productID, item.customerID)}
+                                    onClick={() => onRemoveItemOutWishlist(item.productID, user?.userID || '')}
                                     className="text-red-500 hover:text-red-700"
                                     aria-label={`Remove ${item.product.productName} from wishlist`}
                                 >
@@ -112,7 +114,7 @@ export default function WishlistDialog({
                                 <Button
                                     size="sm"
                                     variant="primary"
-                                    onClick={() => onAddToCart(item.product.productID, item.customerID)}
+                                    onClick={() => onAddToCart(item.product.productID, user?.userID || '')}
                                 >
                                     {d?.wishlistDialogAddToCart || "Thêm vào giỏ hàng"}
                                 </Button>

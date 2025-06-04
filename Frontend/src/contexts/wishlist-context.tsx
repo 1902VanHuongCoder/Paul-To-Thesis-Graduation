@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { baseUrl } from "@/lib/base-url";
 import toast from "react-hot-toast";
 import { useDictionary } from "./dictonary-context";
+import { useUser } from "./user-context";
 
 export interface Product {
   productID: number;
@@ -18,7 +19,7 @@ export interface Product {
 
 export interface WishlistItem {
   wishlistID: number;
-  customerID: number;
+  customerID: string;
   productID: number;
   product: Product;
 }
@@ -26,10 +27,10 @@ export interface WishlistItem {
 interface WishlistContextProps {
   wishlists: WishlistItem[];
   setWishlist: React.Dispatch<React.SetStateAction<WishlistItem[]>>;
-  fetchWishlist: (customerID: number) => Promise<void>;
-  addToWishlist: (customerID: number, productID: number) => Promise<void>;
-  removeFromWishlist: (customerID: number, productID: number) => Promise<void>;
-  clearWishlist: (customerID: number) => Promise<void>;
+  fetchWishlist: (customerID: string) => Promise<void>;
+  addToWishlist: (customerID: string, productID: number) => Promise<void>;
+  removeFromWishlist: (customerID: string, productID: number) => Promise<void>;
+  clearWishlist: (customerID: string) => Promise<void>;
 }
 
 const WishlistContext = createContext<WishlistContextProps | undefined>(undefined);
@@ -42,15 +43,16 @@ export function useWishlist() {
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const {dictionary:d} = useDictionary();
+  const {user} = useUser(); 
   const [wishlists, setWishlist] = useState<WishlistItem[]>([]);
 
-  const fetchWishlist = async (customerID: number) => {
+  const fetchWishlist = async (customerID: string) => {
     const res = await fetch(`${baseUrl}/api/wishlist/${customerID}`);
     const data = await res.json();
     setWishlist(data);
   };
 
-  const addToWishlist = async (customerID: number, productID: number) => {
+  const addToWishlist = async (customerID: string, productID: number) => {
     try {
       const res = await fetch(`${baseUrl}/api/wishlist`, {
         method: "POST",
@@ -69,7 +71,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     
   };
 
-  const removeFromWishlist = async (customerID: number, productID: number) => {
+  const removeFromWishlist = async (customerID: string, productID: number) => {
     const res = await fetch(`${baseUrl}/api/wishlist`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -80,7 +82,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const clearWishlist = async (customerID: number) => {
+  const clearWishlist = async (customerID: string) => {
     const res = await fetch(`${baseUrl}/api/wishlist/clear/${customerID}`, {
       method: "DELETE",
     });
@@ -90,10 +92,10 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const customerID = 1; // Replace with actual customer ID
-    fetchWishlist(customerID);
-
-  }, []);
+    if(user?.userID) {
+      fetchWishlist(user?.userID);
+    } 
+  }, [user]);
 
   return (
     <WishlistContext.Provider
