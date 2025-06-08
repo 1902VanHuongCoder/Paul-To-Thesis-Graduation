@@ -30,9 +30,9 @@ export const getAllNews = async (req: Request, res: Response) => {
 };
 
 export const getNewsById = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { newsID } = req.params;
   try {
-    const newsArticle = await News.findByPk(id, {
+    const newsArticle = await News.findByPk(newsID, {
       include: [
         {
           model: TagOfNews,
@@ -118,27 +118,45 @@ export const createNews = async (req: Request, res: Response) => {
 
 // PUT (update) an existing news article by ID
 export const updateNews = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { title, subtitle, content, slug, images, tags, isPublished } =
-    req.body;
+  const { newsID } = req.params;
+  const { title, subtitle, content, slug, images, tags, isPublished, titleImageUrl } = req.body;
   try {
-    const newsArticle = await News.findByPk(id);
+    const newsArticle = await News.findByPk(newsID);
     if (!newsArticle) {
       res.status(404).json({ message: "News article not found" });
       return;
     }
+
+    // Always update tags if provided (not just by length)
+    if (Array.isArray(tags)) {
+      // Remove all old tags
+      await NewsTagOfNews.destroy({
+        where: { newsID: newsArticle.newsID },
+      });
+
+      // Insert new tags
+      if (tags.length > 0) {
+        const tagRecords = tags.map((newsTagID: number) => ({
+          newsID: newsArticle.newsID,
+          newsTagID,
+        }));
+        await NewsTagOfNews.bulkCreate(tagRecords);
+      }
+    }
+
     await newsArticle.update({
       title,
       subtitle,
       content,
       slug,
-      images,
       tags,
+      images,
       isPublished,
+      titleImageUrl,
+      isDraft: isPublished ? false : true, // If published, set isDraft to false
     });
-    res
-      .status(200)
-      .json({ message: "News article updated successfully", newsArticle });
+
+    res.status(200).json({ message: "News article updated successfully", newsArticle });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
@@ -147,13 +165,16 @@ export const updateNews = async (req: Request, res: Response) => {
 
 // DELETE a news article by ID
 export const deleteNews = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { newsID } = req.params;
   try {
-    const newsArticle = await News.findByPk(id);
+    const newsArticle = await News.findByPk(newsID);
     if (!newsArticle) {
       res.status(404).json({ message: "News article not found" });
       return;
     }
+    await NewsTagOfNews.destroy({
+      where: {newsID: newsArticle.newsID } 
+    })
     await newsArticle.destroy();
     res.status(204).send();
   } catch (error) {

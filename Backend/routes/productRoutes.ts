@@ -1,10 +1,10 @@
 import express from "express";
 import {
   getAllProducts,
-  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+ getProductByID,
 } from "../controllers/productController";
 
 const router = express.Router();
@@ -13,15 +13,15 @@ const router = express.Router();
 router.get("/", getAllProducts);
 
 // GET a product by ID
-router.get("/:id", getProductById);
+router.get("/:productID", getProductByID);
 
 // POST a new product
 router.post("/", createProduct);
 
 // PUT (update) a product by ID
-router.put("/:id", updateProduct);
+router.put("/:productID", updateProduct);
 
 // DELETE a product by ID
-router.delete("/:id", deleteProduct);
+router.delete("/:productID", deleteProduct);
 
 export default router;

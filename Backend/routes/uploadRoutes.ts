@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../configs/multer-config";
-import { uploadBase64File, uploadFile, uploadMultiFiles } from "../controllers/uploadController";
+import { uploadBase64File, uploadFile, uploadMultiFiles, deleteSingleImage, deleteMultipleImages } from "../controllers/uploadController";
 
 const router = express.Router();
 
@@ -14,5 +14,12 @@ router.post("/multiple", upload.array("files", 10), uploadMultiFiles); // Allow 
 router.post("/base64", (req, res, next) => {
   uploadBase64File(req, res).catch(next);
 });
+
+// Delete image route
+router.delete("/single-delete", deleteSingleImage);
+
+// Delete multi images route
+router.delete("/multi-delete", deleteMultipleImages);
+
 
 export default router;

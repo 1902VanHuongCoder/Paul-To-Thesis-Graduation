@@ -8,6 +8,7 @@ import {
   getUserByID,
   confirmPassword,
   forgotPassword,
+  checkRecoveryCode
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -37,5 +38,8 @@ router.post("/confirm-password",confirmPassword);
 
 // Handle forgot password
 router.post("/forgot-password", forgotPassword);
+
+// Handle checking password recovery code 
+router.post("/check-recovery-code", checkRecoveryCode);
 
 export default router;

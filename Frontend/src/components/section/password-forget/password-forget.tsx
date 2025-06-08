@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input/input";
 import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 import { baseUrl } from "@/lib/base-url";
+import { useRouter } from "next/navigation";
+import { useDictionary } from "@/contexts/dictonary-context";
 
 export default function PasswordForgetDialog({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
     const [email, setEmail] = useState("");
@@ -22,6 +24,8 @@ export default function PasswordForgetDialog({ open, setOpen }: { open: boolean,
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [codeSent, setCodeSent] = useState(false);
+    const { lang } = useDictionary();
+    const router = useRouter();
 
     const handleSendCode = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -40,6 +44,7 @@ export default function PasswordForgetDialog({ open, setOpen }: { open: boolean,
             } else {
                 setSuccessMsg("Mã xác nhận đã được gửi tới email của bạn!");
                 setCodeSent(true);
+                router.push(`/${lang}/homepage/forgot-password/recovery-password?email=${encodeURIComponent(email)}`); 
             }
         } catch (err) {
             console.error("Error sending code:", err);

@@ -1,10 +1,8 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 import Category from "./Category";
-import Tag from "./Tag";
 import Origin from "./Origin";
 import SubCategory from "./Subcategory";
-import ProductTag from "./ProductTag";
 
 class Product extends Model {
   productID: any;
@@ -33,11 +31,11 @@ Product.init(
       allowNull: false,
     },
     productPrice: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT, 
       allowNull: true,
     },
     productPriceSale: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     quantityAvailable: {
@@ -60,14 +58,6 @@ Product.init(
       type: DataTypes.JSON,
       allowNull: true,
     },
-    // tagID: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: true,
-    //   references: {
-    //     model: Tag, // Reference the Tag model
-    //     key: "tagID",
-    //   },
-    // },
     originID: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -89,8 +79,9 @@ Product.init(
       allowNull: true,
     },
     rating: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 5, // Default rating value
     }
   },
   {

@@ -99,16 +99,17 @@ export const localSignIn = async (
 ): Promise<void> => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ where: { email, provider: "local" } });
+    const user = await User.findOne({ where: { email } });
     if (!user || !user.password) {
       res.status(401).json({ message: "Invalid credentials" });
     } else {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ message: "Password is wrong" });
+      } else {
+        const token = generateToken(user);
+        res.status(200).json({ user, token });
       }
-      const token = generateToken(user);
-      res.status(200).json({ user, token });
     }
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -257,5 +258,38 @@ export const forgotPassword = async (
     console.error("Error sending email:", error);
     res.status(500).json({ error: "Không thể gửi email xác nhận" });
     return;
+  }
+};
+
+export const checkRecoveryCode = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { code, email } = req.body;
+  try {
+    const user = await User.findOne({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      res.status(404).json({ message: "User not found or no reset code" });
+      return;
+    }
+    if (!user.resetPasswordCode || !user.resetPasswordCodeExpiry) {
+      res.status(400).json({ message: "No reset code available" });
+      return;
+    }
+    // Check if code matches and is not expired
+    if (
+      user.resetPasswordCode === code &&
+      user.resetPasswordCodeExpiry > new Date()
+    ) {
+      res.status(200).json(user);
+    } else {
+      res.status(400).json({ message: "Invalid or expired code" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
   }
 };

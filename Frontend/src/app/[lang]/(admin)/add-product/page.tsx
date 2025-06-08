@@ -25,25 +25,34 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
+import NextImage from 'next/image';
+import formatDate from "@/lib/format-date";
+import { useRouter } from "next/navigation";
+import { useDictionary } from "@/contexts/dictonary-context";
+import formatVND from "@/lib/format-vnd";
+
 type ProductFormValues = {
+  productID: number;
   productName: string;
-  productPrice: string;
-  quantityAvailable: string;
-  categoryID: string;
-  originID: string;
-  subcategoryID: string;
-  tagIDs: string[];
+  productPrice?: number;
+  quantityAvailable: number;
+  categoryID: number;
+  originID: number;
+  subcategoryID: number;
   images: FileList;
-  productPriceSale?: string;
-  [key: `attribute_${number}`]: number | string | boolean | Date; // Dynamic attributes
+  productPriceSale?: number;
+  rating: number | null;
+  createdAt: string;
+  tagIDs: number[];
 };
 
 type Category = {
   categoryID: string;
   categoryName: string;
 };
+
 type Subcategory = {
-  subcategoryID: string;
+  subcategoryID: number;
   subcategoryName: string;
 };
 type Origin = {
@@ -56,31 +65,22 @@ type Tag = {
   tagName: string;
 };
 
-type Attribute = {
-  attributeID: number;
-  name: string;
-  label: string;
-  data_type: string;
-  required: boolean;
-  default_value: string | null;
-  placeholder: string | null;
-  unit: string | null;
-  options: string[] | null;
-};
 
 
 export default function AddProductPage() {
   const methods = useForm<ProductFormValues>();
   const { register, handleSubmit, reset, watch, formState: { errors } } = methods;
   const [message, setMessage] = useState("");
+  const { lang } = useDictionary();
+  const router = useRouter();
 
   // State for dropdowns
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [editorImages, setEditorImages] = useState<File[]>([]);
+  const [products, setProducts] = useState<ProductFormValues[]>([]);
 
   // Fetch categories, origins, tags on mount
   useEffect(() => {
@@ -102,98 +102,10 @@ export default function AddProductPage() {
       fetch(`${baseUrl}/api/subcategory?categoryID=${selectedCategoryID}`)
         .then(res => res.json())
         .then(data => setSubcategories(data || []));
-      // Fetch attributes for this category
-      fetch(`${baseUrl}/api/attribute?categoryID=${selectedCategoryID}`)
-        .then(res => res.json())
-        .then(data => setAttributes(data || []));
     } else {
       setSubcategories([]);
-      setAttributes([]);
     }
   }, [selectedCategoryID]);
-
-  // Handle dynamic attribute fields
-  const renderAttributeField = (attr: Attribute) => {
-    const fieldName = `attribute_${attr.attributeID}`;
-    switch (attr.data_type) {
-      case "string":
-        return (
-          <FormItem key={attr.attributeID}>
-            <FormLabel>{attr.label}{attr.unit ? ` (${attr.unit})` : ""}</FormLabel>
-            <FormControl>
-              <Input
-                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
-                placeholder={attr.placeholder || ""}
-                defaultValue={attr.default_value || ""}
-              />
-            </FormControl>
-            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
-          </FormItem>
-        );
-      case "number":
-        return (
-          <FormItem key={attr.attributeID}>
-            <FormLabel>{attr.label}{attr.unit ? ` (${attr.unit})` : ""}</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                {...register(fieldName as keyof ProductFormValues, { required: attr.required, valueAsNumber: true })}
-                placeholder={attr.placeholder || ""}
-                defaultValue={attr.default_value || ""}
-              />
-            </FormControl>
-            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
-          </FormItem>
-        );
-      case "boolean":
-        return (
-          <FormItem key={attr.attributeID}>
-            <FormLabel>{attr.label}</FormLabel>
-            <FormControl>
-              <input
-                type="checkbox"
-                {...register(fieldName as keyof ProductFormValues)}
-                defaultChecked={attr.default_value === "true"}
-              />
-            </FormControl>
-          </FormItem>
-        );
-      case "date":
-        return (
-          <FormItem key={attr.attributeID}>
-            <FormLabel>{attr.label}</FormLabel>
-            <FormControl>
-              <Input
-                type="date"
-                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
-                defaultValue={attr.default_value || ""}
-              />
-            </FormControl>
-            {(errors as Record<string, never>)[fieldName] && <FormMessage>This field is required</FormMessage>}
-          </FormItem>
-        );
-      case "select":
-        return (
-          <FormItem key={attr.attributeID}>
-            <FormLabel>{attr.label}</FormLabel>
-            <FormControl>
-              <select
-                {...register(fieldName as keyof ProductFormValues, { required: attr.required })}
-                defaultValue={attr.default_value || ""}
-              >
-                <option value="" disabled>Select {attr.label}</option>
-                {attr.options?.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </FormControl>
-            {(errors as never)[fieldName] && <FormMessage>This field is required</FormMessage>}
-          </FormItem>
-        );
-      default:
-        return null;
-    }
-  };
 
   const editor = useEditor({
     extensions: [
@@ -229,12 +141,11 @@ export default function AddProductPage() {
   })
 
   const onSubmit = async (data: ProductFormValues) => {
-    setMessage("");
-    const filesToUpload = [...editorImages];
+    const filesToUpload = [...editorImages]; // Start with editor images 
     if (data.images && data.images.length > 0) {
-      Array.from(data.images).forEach(file => filesToUpload.unshift(file));
+      Array.from(data.images).forEach(file => filesToUpload.unshift(file)); // Add product's images to the front of array (images in text editor will be replaced after)
     }
-    let uploadedUrls: string[] = [];
+    let uploadedUrls: string[] = []; // Store uploaded file URLs 
     try {
       if (filesToUpload.length > 0) {
         const formData = new FormData();
@@ -244,14 +155,13 @@ export default function AddProductPage() {
           body: formData,
         })
         const data = await uploadRes.json();
-        uploadedUrls = (data.files as { url: string }[]).map(f => f.url) || [];
+        uploadedUrls = (data.files as { url: string }[]).map(f => f.url) || []; // Extract URLs from response 
       }
     } catch (error) {
       console.error("Error uploading files:", error);
       setMessage("Failed to upload images.");
       return;
     }
-
 
     // replace local URLs in editor content with uploaded URLs
     let content = editor?.getJSON();
@@ -273,81 +183,106 @@ export default function AddProductPage() {
       }
       return node;
     }
-
     try { content = replaceEditorImageUrls(content); } catch (error) { console.error("Error processing editor content:", error); }
 
-
-    // // 1. Upload images
-    // let uploadedImages: string[] = [];
-    // if (data.images && data.images.length > 0) {
-    //   const formData = new FormData();
-    //   Array.from(data.images).forEach((file) => formData.append("files", file));
-    //   const uploadRes = await fetch(`${baseUrl}/api/upload/multiple`, {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-    //   const uploadData = await uploadRes.json();
-    //   uploadedImages = (uploadData.files as { url: string }[])?.map((f) => f.url) || [];
-    // }
-
-    // // 2. Collect dynamic attribute values
-
-    const attributesPayload = attributes.map(attr => (
-      {
-        attributeID: attr.attributeID,
-        value: data["attribute_" + attr.attributeID as keyof ProductFormValues]
-      }));
-
-    console.log({
-      ...data,
-      productPrice: data.productPrice ? parseFloat(data.productPrice) : null,
-      productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale) : null,
-      quantityAvailable: parseInt(data.quantityAvailable, 10),
-      tagIDs: data.tagIDs ? data.tagIDs : [],
-      images: uploadedUrls.slice(0, data.images ? data.images.length : 0),
-      descriptionImages: uploadedUrls.slice(data.images ? data.images.length : 0),
-      content: content,
-      attributes: attributesPayload || [],
-    });
     try {
       //  3. Submit product
-    const res = await fetch(`${baseUrl}/api/product`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      console.log("Submitting product with data:", {
         ...data,
-        productPrice: data.productPrice ? parseFloat(data.productPrice) : null,
-        productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale) : null,
-        quantityAvailable: parseInt(data.quantityAvailable, 10),
+        productPrice: data.productPrice ? parseFloat(data.productPrice.toString()) : 0,
+        productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale.toString()) : 0,
+        quantityAvailable: data.quantityAvailable,
         tagIDs: data.tagIDs,
         images: uploadedUrls.slice(0, data.images ? data.images.length : 0),
         descriptionImages: uploadedUrls.slice(data.images ? data.images.length : 0),
         description: JSON.stringify(content),
-        attributes: attributesPayload,
-      }),
-    });
+      }
+      );
+      const res = await fetch(`${baseUrl}/api/product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          productPrice: data.productPrice ? data.productPrice : 0,
+          productPriceSale: data.productPriceSale ? data.productPriceSale : 0,
+          quantityAvailable: data.quantityAvailable,
+          tagIDs: data.tagIDs,
+          images: uploadedUrls.slice(0, data.images ? data.images.length : 0),
+          descriptionImages: uploadedUrls.slice(data.images ? data.images.length : 0),
+          description: JSON.stringify(content),
+        }),
+      });
 
-    if (res.ok) {
-      setMessage("Product added successfully!");
-      reset();
-    } else {
-      setMessage("Failed to add product.");
-    }
-    }catch(error){
+      if (res.ok) {
+        setMessage("Product added successfully!");
+        reset();
+      } else {
+        setMessage("Failed to add product.");
+      }
+    } catch (error) {
       console.error("Error submitting product:", error);
       setMessage("Failed to add product.");
     }
-   
+
   };
+  
+  // Delete product and all related images
+  const handleDeleteProduct = async (productID: number) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+  
+    // 1. Fetch product detail to get all image URLs
+    const productRes = await fetch(`${baseUrl}/api/product/${productID}`);
+    if (!productRes.ok) {
+      setMessage("Failed to fetch product details.");
+      return;
+    }
+    const product = await productRes.json();
+    const allImageUrls = [
+      ...(product.images || []),
+      ...(product.descriptionImages || [])
+    ].filter(Boolean);
+  
+    // 2. Delete all images from storage
+    if (allImageUrls.length > 0) {
+      await fetch(`${baseUrl}/api/upload/multi-delete`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls: allImageUrls }),
+      });
+    }
+  
+    // 3. Delete product
+    const res = await fetch(`${baseUrl}/api/product/${productID}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      setMessage("Product and images deleted.");
+      fetchProducts();
+    } else {
+      setMessage("Failed to delete product.");
+    }
+  };
+
+  const fetchProducts = async () => {
+    const res = await fetch(`${baseUrl}/api/product`);
+    if (res.ok) {
+      const data = await res.json();
+      setProducts(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+
 
   if (!editor) return null
 
-
   return (
-    <main className="max-w-xl mx-auto p-6">
+    <main className="mx-auto p-10">
       <h1 className="text-2xl font-bold mb-4">Add Product</h1>
       <FormProvider {...methods}>
-
         <FormItem>
           <FormLabel>Product Name</FormLabel>
           <FormControl>
@@ -355,19 +290,65 @@ export default function AddProductPage() {
           </FormControl>
           {errors.productName && <FormMessage>Product name is required</FormMessage>}
         </FormItem>
+
         <FormItem>
           <FormLabel>Price</FormLabel>
           <FormControl>
-            <Input type="number" {...register("productPrice", { required: false })} />
+            <Input type="text"
+              min={0}
+              step={1}
+              {...register("productPrice", {
+               
+                min: { value: 1, message: "Price must be at least 1" },
+                setValueAs: v => {
+                  const num = Number(v);
+                  return num < 1000 ? num * 1000  : num;
+                },
+             
+              })}
+              onBlur={e => {
+                const value = Number(e.target.value);
+                if (value > 0 && value < 1000) {
+                  e.target.value = formatVND(value * 1000);
+                } else if (value > 0 && value >= 1000) {
+                  e.target.value = formatVND(value);
+                } else {
+                  e.target.value = "";
+                }
+              }}
+              placeholder="e.g. 100 (will be 100.000)" />
           </FormControl>
           {errors.productPrice && <FormMessage>Price is required</FormMessage>}
         </FormItem>
+
         <FormItem>
           <FormLabel>Product price sale</FormLabel>
           <FormControl>
-            <Input type="number" {...register("productPriceSale", { required: false })} />
+            <Input 
+              type="text"
+              min={0}
+              step={1}
+              {...register("productPriceSale", {
+                setValueAs: v => {
+                  const num = Number(v);
+                  return num < 1000 ? num * 1000 : num;
+                },
+              })}
+              onBlur={e => {
+                const value = Number(e.target.value);
+                if (value > 0 && value < 1000) {
+                  e.target.value = formatVND(value * 1000);
+                } else if (value > 0 && value >= 1000) {
+                  e.target.value = formatVND(value);
+                } else {
+                  e.target.value = "";
+                }
+              }}
+              placeholder="e.g. 100 (will be 100.000)"
+            />
           </FormControl>
         </FormItem>
+
         <FormItem>
           <FormLabel>Quantity</FormLabel>
           <FormControl>
@@ -375,6 +356,7 @@ export default function AddProductPage() {
           </FormControl>
           {errors.quantityAvailable && <FormMessage>Quantity is required</FormMessage>}
         </FormItem>
+
         <FormItem>
           <FormLabel>Category</FormLabel>
           <FormControl>
@@ -387,6 +369,7 @@ export default function AddProductPage() {
           </FormControl>
           {errors.categoryID && <FormMessage>Category is required</FormMessage>}
         </FormItem>
+
         <FormItem>
           <FormLabel>Subcategory</FormLabel>
           <FormControl>
@@ -398,6 +381,7 @@ export default function AddProductPage() {
             </select>
           </FormControl>
         </FormItem>
+
         <FormItem>
           <FormLabel>Origin</FormLabel>
           <FormControl>
@@ -409,6 +393,7 @@ export default function AddProductPage() {
             </select>
           </FormControl>
         </FormItem>
+
         <FormItem>
           <FormLabel>Tags</FormLabel>
           <FormControl>
@@ -419,6 +404,7 @@ export default function AddProductPage() {
             </select>
           </FormControl>
         </FormItem>
+
         <FormItem>
           <FormLabel>Images</FormLabel>
           <FormControl>
@@ -427,14 +413,6 @@ export default function AddProductPage() {
         </FormItem>
 
         {message && <FormMessage className="mt-2">{message}</FormMessage>}
-        {attributes.length > 0 && (
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-2">Product Specifics</h2>
-            {attributes.map((item) => (
-              renderAttributeField(item)
-            ))}
-          </div>
-        )}
 
         <div>
           <label className="font-medium mb-1 block">Nội dung bài viết *</label>
@@ -574,6 +552,47 @@ export default function AddProductPage() {
         </div>
         <Button variant="default" type="submit" className="mt-4" onClick={handleSubmit(onSubmit)}>Supj mit</Button>
       </FormProvider>
+      <h2 className="text-xl font-semibold mt-10 mb-2">Product List</h2>
+      <div className="space-y-2">
+        {products.map((prod) => (
+          <div key={prod.productID} className="flex items-center gap-2 border-b py-2">
+            <span className="font-medium">
+              {prod.images.length > 0 && typeof prod.images[0] === "string" && (
+                <NextImage
+                  src={prod.images[0]}
+                  alt={prod.productName}
+                  width={50}
+                  height={50}
+                />
+              )}
+            </span>
+            <span className="font-medium">{prod.productName}</span>
+            <span className="text-gray-500 text-sm">{prod.productPrice ? formatVND(prod.productPrice) : 0} VND</span>
+            <span className="text-gray-500 text-sm">Gia giam{prod.productPriceSale ? formatVND(prod.productPriceSale) : 0}₫</span>
+            <span className="text-gray-500 text-sm">SL: {prod.quantityAvailable}</span>
+            <span className="text-gray-500 text-sm">
+              Category:
+              {categories.find(cat => parseInt(cat.categoryID) === prod.categoryID)?.categoryName || "No category"}
+            </span>
+            {/* <span className="text-gray-500 text-sm">
+              SubCategory:
+              {subcategories.find(sub => sub.subcategoryID === prod.subcategoryID)?.subcategoryName || "No subcategory"}
+            </span> */}
+            <span className="text-gray-500 text-sm">
+              Rating:
+              {prod.rating ? prod.rating.toFixed(1) : "No rating"}
+            </span>
+            <span className="text-gray-500 text-sm">SL: {prod.quantityAvailable}</span>
+            <span className="text-gray-500 text-sm">Ngay tao{prod.createdAt ? formatDate(prod.createdAt) : ""}</span>
+
+            <Button size="sm" variant="outline" onClick={() => {
+              router.push(`/${lang}/edit-product/${prod.productID}`);
+            }}>Edit</Button>
+            <Button size="sm" variant="destructive" onClick={() => handleDeleteProduct(prod.productID)}>Delete</Button>
+
+          </div>
+        ))}
+      </div>
     </main>
   );
 }

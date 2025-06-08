@@ -4,8 +4,6 @@ import Category from "./Category";
 import SubCategory from "./Subcategory";
 import Tag from "./Tag";
 import ProductTag from "./ProductTag";
-import ProductAttribute from "./ProductAtribute";
-import Attribute from "./Attribute";
 import Origin from "./Origin";
 import InventoryTransaction from "./InventoryTransaction";
 import Inventory from "./Inventory";
@@ -46,31 +44,7 @@ SubCategory.belongsTo(Category, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model
 });
 
-Product.belongsToMany(Attribute, {
-  through: ProductAttribute,
-  foreignKey: "productID",
-  as: "attributes",
-});
-
-Attribute.belongsToMany(Product, {
-  through: ProductAttribute,
-  foreignKey: "attributeID",
-  as: "products",
-});
-
 Product.belongsTo(SubCategory, { foreignKey: "subcategoryID", as: "subcategory" }); // Foreign key in the Product model
-
-Product.hasMany(ProductAttribute, { 
-  foreignKey: "productID",
-  as: "productAttributes",
-});
-
-ProductAttribute.belongsTo(Product, { foreignKey: "productID", as: "product" });
-ProductAttribute.belongsTo(Attribute, {
-  foreignKey: "attributeID",
-  as: "attribute",
-});
-
 
 Product.belongsTo(Category, { foreignKey: "categoryID", as: "category" }); // Foreign key in the Product model
 
@@ -80,10 +54,6 @@ Category.hasMany(Product, {
 
 Category.hasMany(SubCategory, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model)
-});
-
-Attribute.belongsTo(Category, {
-  foreignKey: "categoryID", // Foreign key in the Attribute model
 });
 
 Product.belongsTo(Origin, { foreignKey: "originID", as: "origin" }); // Foreign key in the Product model
@@ -173,8 +143,6 @@ export {
   SubCategory,
   Tag,
   ProductTag,
-  ProductAttribute,
-  Attribute,
   Origin,
   InventoryTransaction,
   Inventory,

@@ -27,7 +27,7 @@ Discount.init(
       allowNull: false,
     },
     discountPercent: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     expireDate: {
@@ -49,11 +49,11 @@ Discount.init(
       defaultValue: 0,
     },
     minOrderValue: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     maxDiscountAmount: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },
