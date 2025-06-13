@@ -5,7 +5,7 @@ import{ User } from "../models";
 
 class News extends Model {
   public newsID!: number;
-  public userID!: number;
+  public userID!: string;
   public title!: string;
   public titleImageUrl!: string | null;
   public subtitle?: string | null;
@@ -28,7 +28,7 @@ News.init(
       autoIncrement: true,
     },
     userID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,

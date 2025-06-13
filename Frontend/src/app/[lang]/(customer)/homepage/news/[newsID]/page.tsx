@@ -109,7 +109,6 @@ export default function NewsDetailPage() {
     }
     );
 
-
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

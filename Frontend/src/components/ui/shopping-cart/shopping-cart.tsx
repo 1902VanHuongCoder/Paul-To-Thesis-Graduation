@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer/drawer";
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
@@ -89,6 +89,16 @@ export default function ShoppingCart() {
         removeFromCart(productID, cart.cartID);
     }
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+                e.preventDefault();
+                setOpen(prev => !prev);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
 
     return (
         <Drawer direction="right" open={open} onOpenChange={setOpen}>
@@ -106,7 +116,8 @@ export default function ShoppingCart() {
             <DrawerContent className="!w-[100%] bg-white text-black font-sans">
                 {/* Header */}
                 <DrawerHeader className="flex items-center w-full flex-row justify-between border-b pb-4">
-                    <DrawerTitle className="text-lg font-bold">{d?.shoppingCartTitle ? d.shoppingCartTitle : "Giỏ hàng"} ({cart.products?.length ? cart.products?.length : 0})</DrawerTitle>
+                    <DrawerTitle className="text-lg font-bold"><p>{d?.shoppingCartTitle ? d.shoppingCartTitle : "Giỏ hàng"} ({cart.products?.length ? cart.products?.length : 0})</p> <p>Click CTRL + M to open shopping cart</p></DrawerTitle>
+
                     <DrawerClose className="text-gray-500 hover:text-black">
                         <X size={20} />
                     </DrawerClose>

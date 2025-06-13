@@ -4,8 +4,6 @@ import Category from "./Category";
 import SubCategory from "./Subcategory";
 import Tag from "./Tag";
 import ProductTag from "./ProductTag";
-import ProductAttribute from "./ProductAtribute";
-import Attribute from "./Attribute";
 import Origin from "./Origin";
 import InventoryTransaction from "./InventoryTransaction";
 import Inventory from "./Inventory";
@@ -23,6 +21,22 @@ import Delivery from "./Delivery";
 import Discount from "./Discount";
 import ShippingAddress from "./ShippingAddress";
 import NewsComment from "./NewsComment";
+import Contact from "./Contact";
+import Conversation from "./Conversation";
+import ConversationParticipant from "./ConversationParticipant";
+import Message from "./Message";
+
+// 1. User - ShippingAddress
+User.hasMany(ShippingAddress, {
+  foreignKey: "userID",
+  as: "shipping-address"
+})
+
+
+
+
+
+
 
 
 SubCategory.hasMany(Product, {
@@ -33,31 +47,7 @@ SubCategory.belongsTo(Category, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model
 });
 
-Product.belongsToMany(Attribute, {
-  through: ProductAttribute,
-  foreignKey: "productID",
-  as: "attributes",
-});
-
-Attribute.belongsToMany(Product, {
-  through: ProductAttribute,
-  foreignKey: "attributeID",
-  as: "products",
-});
-
 Product.belongsTo(SubCategory, { foreignKey: "subcategoryID", as: "subcategory" }); // Foreign key in the Product model
-
-Product.hasMany(ProductAttribute, { 
-  foreignKey: "productID",
-  as: "productAttributes",
-});
-
-ProductAttribute.belongsTo(Product, { foreignKey: "productID", as: "product" });
-ProductAttribute.belongsTo(Attribute, {
-  foreignKey: "attributeID",
-  as: "attribute",
-});
-
 
 Product.belongsTo(Category, { foreignKey: "categoryID", as: "category" }); // Foreign key in the Product model
 
@@ -67,10 +57,6 @@ Category.hasMany(Product, {
 
 Category.hasMany(SubCategory, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model)
-});
-
-Attribute.belongsTo(Category, {
-  foreignKey: "categoryID", // Foreign key in the Attribute model
 });
 
 Product.belongsTo(Origin, { foreignKey: "originID", as: "origin" }); // Foreign key in the Product model
@@ -151,6 +137,37 @@ Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
 News.hasMany(NewsComment, {foreignKey: "newsID", as: "comments" });
 User.hasMany(NewsComment, {foreignKey: "userID", as: "user_comments" });
 NewsComment.belongsTo(User,{foreignKey: "userID", as: "user_comments" });
+
+Contact.belongsTo(User, { foreignKey: "userID", as: "user" });
+
+
+User.belongsToMany(Conversation, {
+  through: ConversationParticipant,
+  foreignKey: "userID",
+  otherKey: "conversationID",
+  as: "conversations",
+});
+
+Conversation.belongsToMany(User, {
+  through: ConversationParticipant,
+  foreignKey: "conversationID",
+  otherKey: "userID",
+  as: "participants",
+});
+
+ConversationParticipant.belongsTo(User, { foreignKey: "userID", as: "user" });
+ConversationParticipant.belongsTo(Conversation, {
+  foreignKey: "conversationID",
+  as: "conversation",
+});
+
+Conversation.hasMany(Message, { foreignKey: "conversationID", as: "messages" });
+Message.belongsTo(Conversation, {
+  foreignKey: "conversationID",
+  as: "conversation",
+});
+User.hasMany(Message, { foreignKey: "senderID", as: "sentMessages" });
+Message.belongsTo(User, { foreignKey: "senderID", as: "sender" }); 
 export {
   User,
   Product,
@@ -158,8 +175,6 @@ export {
   SubCategory,
   Tag,
   ProductTag,
-  ProductAttribute,
-  Attribute,
   Origin,
   InventoryTransaction,
   Inventory,
@@ -176,6 +191,10 @@ export {
   Delivery,
   Discount,
   ShippingAddress,
-  NewsComment
+  NewsComment,
+  Contact,
+  Conversation,
+  ConversationParticipant,
+  Message
 };
 

@@ -16,6 +16,7 @@ import { provinceCoordinate } from "@/lib/vietnam-province-coordinate";
 import PayPalButton from "@/components/ui/button/paypal-button";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/user-context";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -30,7 +31,7 @@ export interface DeliveryMethod {
     speed?: string;
     isActive: boolean;
     isDefault: boolean;
-    
+
 }
 
 
@@ -69,6 +70,7 @@ type CheckoutFormValues = {
 };
 export default function CheckoutPage() {
     const { cart, setCart } = useShoppingCart();
+    const { user } = useUser();
     const router = useRouter();
     const { dictionary: d, lang } = useDictionary();
     const { checkoutData, setCheckoutData } = useCheckout();
@@ -78,7 +80,7 @@ export default function CheckoutPage() {
         code: "",
         discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
     });
-    
+
     const [delivery, setDelivery] = useState<{
         allMethods: DeliveryMethod[];
         selectMethod: Partial<DeliveryMethod>;
@@ -232,6 +234,10 @@ export default function CheckoutPage() {
     };
 
     const onSubmit = async (data: CheckoutFormValues) => {
+        if (!user) {
+            return;
+        }
+
         const productQuantity = cart.products.reduce((total, product) => {
             return total + product.CartItem.quantity;
         }, 0);
@@ -242,7 +248,7 @@ export default function CheckoutPage() {
         const orderDataSendToServer = {
             ...checkoutData,
             orderID: orderID,
-            userID: 1,
+            userID: user?.userID,
             fullName: data.fullName,
             totalPayment: totalPayment,
             totalQuantity: productQuantity,
@@ -290,7 +296,7 @@ export default function CheckoutPage() {
                     router.push(`/${lang}/homepage/checkout/cash-return`); // Redirect to order success page
 
                 }
-            }) 
+            })
         }
     };
 
@@ -381,8 +387,6 @@ export default function CheckoutPage() {
             }));
         };
     }, [setCheckoutData]);
-
-    console.log("Checkout Data:", checkoutData?.discount);
 
     return (
         <div className="flex flex-col md:flex-row gap-8 bg-white">
@@ -567,8 +571,8 @@ export default function CheckoutPage() {
                         <span>- {promoCode.discount !== 0 ?
                             formatVND(promoCode.discount)
                             : checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0
-                        } 
-                        VND</span>
+                        }
+                            VND</span>
                     </div>
                     <div className=" text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span className="flex flex-col">

@@ -4,7 +4,7 @@ import User from "./User";
 
 class ShoppingCart extends Model {
   public cartID!: number;
-  public customerID!: number;
+  public customerID!: string;
   public totalQuantity!: number;
   public payment!: number;
   public discount!: number;
@@ -21,7 +21,7 @@ ShoppingCart.init(
       allowNull: false,
     },
     customerID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,

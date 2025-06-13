@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Image from "next/image";
 import formatVND from "@/lib/format-vnd";
@@ -5,6 +6,7 @@ import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/contexts/dictonary-context";
+import { useUser } from "@/contexts/user-context";
 
 interface CardProps {
     productID: number;
@@ -27,12 +29,17 @@ export default function Card({
     const { addToCart } = useShoppingCart();
     const { addToWishlist } = useWishlist();
     const { lang } = useDictionary();
+    const { user } = useUser();
     const router = useRouter();
     const handleAddToCart = () => { 
         addToCart(productID);
     }
     const handleAddToWishList = () => {
-        addToWishlist(1, productID);
+        if (!user) {
+            return;
+        }
+         // Check if the product is already in the wishlist
+        addToWishlist(user.userID, productID);
      }
     return (
         <div className="rounded-xl overflow-hidden bg-transparent hover:shadow-2xl/10  min-w-[15rem] w-full border-[.5px] hover:border-none transition-all border-primary/20 border-solid font-sans">

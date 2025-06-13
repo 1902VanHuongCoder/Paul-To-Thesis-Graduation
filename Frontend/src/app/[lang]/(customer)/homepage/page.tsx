@@ -32,6 +32,9 @@ interface Product {
     subcategoryID: number;
     images: string[];
     rating: number;
+    isShow: boolean;
+    expiredAt: Date | null;
+    unit: string;
 }
 
 interface Tag {
@@ -86,6 +89,7 @@ const Homepage = () => {
     };
 
     const paginatedProducts = React.useMemo(() => {
+        if (productsAfterFilter.length === 0) return [];
         const start = (currentPage - 1) * displayModeProps.resultsPerPage;
         return productsAfterFilter.slice(start, start + displayModeProps.resultsPerPage);
     }, [productsAfterFilter, currentPage, displayModeProps.resultsPerPage]);

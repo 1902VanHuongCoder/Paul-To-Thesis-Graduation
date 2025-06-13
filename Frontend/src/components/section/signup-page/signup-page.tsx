@@ -93,10 +93,29 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
         }
         setLoading(true);
         try {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year = String(now.getFullYear());
+            const userID = `USR${day}${month}${year}L`;
+
+            console.log({
+                userID,
+                username,
+                email,
+                password,
+                role: "customer",
+                shippingAddress: {
+                    address: `${detailAddress}, ${ward}, ${district}, ${province}`,
+                    phone,
+                    isDefault: true,
+                },
+            })
             const res = await fetch(`${baseUrl}/api/users/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    userID,
                     username,
                     email,
                     password,
@@ -136,37 +155,50 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-
             // Get user info from Google
             const username = user.displayName || "";
             const email = user.email || "";
             const avatar = user.photoURL || "";
             const providerID = user.uid;
 
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year = String(now.getFullYear());
+            const userID = `USR${day}${month}${year}P`;
+
             // Send info to backend
             const res = await fetch(`${baseUrl}/api/users/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    userID,
                     username,
                     email,
                     avatar,
                     providerID,
                 }),
             });
+
+            
             const data = await res.json();
             if (!res.ok) {
                 setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
             } else {
+                console.log("Google login success:", data);
                 setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
                 setUser({
-                    username: data.username,
-                    email: data.email,
-                    avatar: data.avatar,
+                    userID: data.user.userID,
+                    username: data.user.username,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
                     token: data.token,
                 });
                 localStorage.setItem("user", JSON.stringify({
-                    username: data.username,
+                    userID: data.user.userID,
+                    username: data.user.username,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
                     token: data.token,
                 }));
             }

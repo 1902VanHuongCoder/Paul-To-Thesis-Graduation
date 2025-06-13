@@ -1,7 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
-import Product from "./Product";
-import SubCategory from "./Subcategory";
 
 class Category extends Model {}
 

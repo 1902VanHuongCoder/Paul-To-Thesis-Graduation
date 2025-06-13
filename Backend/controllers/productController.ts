@@ -1,11 +1,23 @@
 import { Request, Response } from "express";
-import { Category, Origin, Product, ProductAttribute, ProductTag, SubCategory, Tag } from "../models";
+import {
+  Category,
+  Comment,
+  Origin,
+  Product,
+  ProductTag,
+  SubCategory,
+  Tag,
+  User,
+} from "../models";
 
-export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
+export const getAllProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Sort products by createdAt in descending order (latest first)
     const products = await Product.findAll({
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(products);
   } catch (error) {
@@ -14,17 +26,24 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const getProductById = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+export const getProductByID = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { productID } = req.params;
 
   try {
-    const product = await Product.findByPk(id, {
+    const product = await Product.findByPk(productID, {
       include: [
         { model: Category, as: "category" }, // Include associated category
         { model: SubCategory, as: "subcategory" }, // Include associated subcategory
         { model: Tag }, // Include associated tags
         { model: Origin, as: "origin" }, // Include associated origin
-        { model: ProductAttribute, as: "productAttributes" }, // Include associated attributes
+        {
+          model: Comment,
+          as: "comments",
+          include: [{ model: User, as: "user" }],
+        },
       ],
     });
 
@@ -40,7 +59,10 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const createProduct = async (req: Request, res: Response): Promise<void> => {
+export const createProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const {
     productName,
     productPrice,
@@ -51,7 +73,11 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     originID,
     subcategoryID,
     images,
-    attributes, // Additional attributes specific to the category
+    descriptionImages,
+    description,
+    unit,
+    isShow,
+    expiredAt,
   } = req.body;
 
   console.log("Request body:", req.body);
@@ -67,7 +93,12 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       originID,
       subcategoryID,
       images,
+      descriptionImages,
+      description,
       rating: 5,
+      unit,
+      isShow,
+      expiredAt,
     });
 
     // Increment the count of the selected category
@@ -88,17 +119,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       await ProductTag.bulkCreate(productTags);
     }
 
-    // Handle additional attributes
-    if (attributes && Array.isArray(attributes)) {
-      const productAttributes = attributes.map((attr: any) => ({
-        productID: newProduct.productID,
-        attributeID: attr.attributeID,
-        value: attr.value,
-      }));
-
-      await ProductAttribute.bulkCreate(productAttributes);
-    }
-
     res.status(201).json(newProduct);
   } catch (error) {
     console.error("Error creating product:", error);
@@ -106,22 +126,30 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+export const updateProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { productID } = req.params;
   const {
     productName,
     productPrice,
+    productPriceSale,
     quantityAvailable,
     categoryID,
-    tagIDs, // Array of tag IDs
+    tagIDs,
     originID,
     subcategoryID,
     images,
-    attributes, // Additional attributes specific to the category
+    descriptionImages,
+    description,
+    unit,
+    isShow,
+    expiredAt,
   } = req.body;
 
   try {
-    const product = await Product.findByPk(id);
+    const product = await Product.findByPk(productID);
 
     if (!product) {
       res.status(404).json({ message: "Product not found" });
@@ -132,40 +160,31 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     await product.update({
       productName,
       productPrice,
+      productPriceSale,
       quantityAvailable,
       categoryID,
       originID,
       subcategoryID,
       images,
+      descriptionImages,
+      description,
+      unit,
+      isShow,
+      expiredAt,
     });
 
     // Handle tags
     if (tagIDs && Array.isArray(tagIDs)) {
       // Delete existing tags for the product
-      await ProductTag.destroy({ where: { productID: id } });
+      await ProductTag.destroy({ where: { productID: productID } });
 
       // Add updated tags
       const productTags = tagIDs.map((tagID: number) => ({
-        productID: id,
+        productID: productID,
         tagID,
       }));
 
       await ProductTag.bulkCreate(productTags);
-    }
-
-    // Handle additional attributes
-    if (attributes && Array.isArray(attributes)) {
-      // Delete existing attributes for the product
-      await ProductAttribute.destroy({ where: { productID: id } });
-
-      // Add updated attributes
-      const productAttributes = attributes.map((attr: any) => ({
-        productID: id,
-        attributeID: attr.attributeID,
-        value: attr.value,
-      }));
-
-      await ProductAttribute.bulkCreate(productAttributes);
     }
 
     res.status(200).json({ message: "Product updated successfully", product });
@@ -175,11 +194,14 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+export const deleteProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { productID } = req.params;
 
   try {
-    const product = await Product.findByPk(id);
+    const product = await Product.findByPk(productID);
 
     if (!product) {
       res.status(404).json({ message: "Product not found" });
@@ -187,8 +209,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     }
 
     // Delete related records in ProductTag and ProductAttribute
-    await ProductTag.destroy({ where: { productID: id } });
-    await ProductAttribute.destroy({ where: { productID: id } });
+    await ProductTag.destroy({ where: { productID: productID } });
 
     // Delete the product
     await product.destroy();

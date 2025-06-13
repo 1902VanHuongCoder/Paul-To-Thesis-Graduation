@@ -14,16 +14,16 @@ const router = express.Router();
 router.get("/", getAllNews);
 
 // GET a specific news article by ID
-router.get("/:id", getNewsById);
+router.get("/:newsID", getNewsById);
 
 // POST a new news article
 router.post("/", createNews);
 
 // PUT (update) an existing news article by ID
-router.put("/:id", updateNews);
+router.put("/:newsID", updateNews);
 
 // DELETE a news article by ID
-router.delete("/:id", deleteNews);
+router.delete("/:newsID", deleteNews);
 
 
 export default router;

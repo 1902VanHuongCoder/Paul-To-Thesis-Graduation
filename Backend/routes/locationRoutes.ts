@@ -13,15 +13,15 @@ const router = express.Router();
 router.get("/", getAllLocations);
 
 // GET a specific location by ID
-router.get("/:id", getLocationById);
+router.get("/:locationID", getLocationById);
 
 // POST a new location
 router.post("/", createLocation);
 
 // PUT (update) an existing location by ID
-router.put("/:id", updateLocation);
+router.put("/:locationID", updateLocation);
 
 // DELETE a location by ID
-router.delete("/:id", deleteLocation);
+router.delete("/:locationID", deleteLocation);
 
 export default router;

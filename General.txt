@@ -1,0 +1,80 @@
+1. User operations 
+* Customer 
+    + Create account // Done
+    + Get all accounts 
+
+
+    type Category = {
+    categoryID: number;
+    categoryName: string;
+    categoryDescription?: string;
+    categorySlug: string;
+    count: number;
+};
+
+type SubCategory = {
+    subcategoryID: string;
+    subcategoryName: string;
+    categoryID: string;
+    category?: Category;
+};
+
+type Tag = {
+    tagID: number;
+    tagName: string;
+    createdAt?: string;
+    updatedAt?: string;
+};
+
+
+type Origin = {
+    originID: number;
+    originName: string;
+    originImage: string;
+};
+
+type ProductAttribute = {
+    productAttributeID: number;
+    productID: number;
+    attributeID: number;    
+    value: string; // Assuming the value is a string, adjust as necessary
+} 
+
+interface ProductComment {
+    commentID: number;
+    userID: number;
+    productID: number;
+    content: string;
+    commentAt: string;
+    rating: number;
+    likeCount: number;
+    dislikeCount: number;
+    status: string;
+    user?: {
+        userID: number;
+        username: string;
+        avatar?: string;
+    };
+  }
+
+
+interface Product {
+    productID: number;
+    category: Category;
+    origin: Origin;
+    subcategory: SubCategory;
+    tag: Tag[];
+    productName: string;
+    productPrice: number;
+    productPriceSale: number;
+    productAttributes: ProductAttribute[]; 
+    quantityAvailable: number;
+    rating: number;
+    createdAt: string;
+    updatedAt: string;
+    description: string; // text editor description
+    descriptionImages: string[]; // text editor images 
+    images: string[]; // product images 
+    productComments: ProductComment[]; // comments on the product
+}
+

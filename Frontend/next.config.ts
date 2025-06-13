@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       "www.congtyhai.com",
       "shadcnblocks.com",
       "res.cloudinary.com",
+      "lh3.googleusercontent.com"
     ],
   },
   // next.config.ts

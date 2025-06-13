@@ -53,7 +53,7 @@ export const createOrigin = async (req: Request, res: Response): Promise<void> =
 // PUT (update) an origin by ID
 export const updateOrigin = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { originName } = req.body;
+  const { originName, originImage } = req.body;
 
   try {
     const origin = await Origin.findByPk(id);
@@ -62,8 +62,7 @@ export const updateOrigin = async (req: Request, res: Response): Promise<void> =
       res.status(404).json({ message: "Origin not found" });
       return;
     }
-
-    await origin.update({ originName });
+    await origin.update({ originName, originImage });
     res.status(200).json({ message: "Origin updated successfully", origin });
   } catch (error) {
     console.error("Error updating origin:", error);
