@@ -17,6 +17,9 @@ class Product extends Model {
   images!: string[];
   descriptionImages!: string[];
   rating!: number;
+  isShow: boolean = true;
+  unit!: string;
+  expiredAt: Date | null = null;
 }
 
 Product.init(
@@ -82,7 +85,20 @@ Product.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 5, // Default rating value
-    }
+    },
+    isShow: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true, // Default value for isShow
+    },
+    expiredAt: {
+      type: DataTypes.DATE,
+      allowNull: true, // Allow null for products that do not expire
+    },
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: true, // Allow null for products that do not have a specific unit
+    },
   },
   {
     sequelize,

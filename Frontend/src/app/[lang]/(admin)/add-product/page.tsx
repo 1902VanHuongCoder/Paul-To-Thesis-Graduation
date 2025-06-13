@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider} from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
@@ -44,6 +44,9 @@ type ProductFormValues = {
   rating: number | null;
   createdAt: string;
   tagIDs: number[];
+  isShow: boolean;
+  expiredAt: Date | null;
+  unit: string;
 };
 
 type Category = {
@@ -210,6 +213,9 @@ export default function AddProductPage() {
           images: uploadedUrls.slice(0, data.images ? data.images.length : 0),
           descriptionImages: uploadedUrls.slice(data.images ? data.images.length : 0),
           description: JSON.stringify(content),
+          isShow: data.isShow || false,
+          expiredAt: data.expiredAt ? new Date(data.expiredAt) : null,
+          unit: data.unit || "",
         }),
       });
 
@@ -406,9 +412,28 @@ export default function AddProductPage() {
         </FormItem>
 
         <FormItem>
+          <FormLabel>Is Show</FormLabel>
+          <FormControl>
+            <Input type="checkbox" {...register("isShow")} />
+          </FormControl>
+        </FormItem>
+        <FormItem>
+          <FormLabel>Expired At</FormLabel>
+          <FormControl>
+            <Input type="date" {...register("expiredAt")} />
+          </FormControl>
+        </FormItem>
+
+        <FormItem>
           <FormLabel>Images</FormLabel>
           <FormControl>
             <Input type="file" multiple {...register("images")} />
+          </FormControl>
+        </FormItem>
+        <FormItem>
+          <FormLabel>Unit</FormLabel>
+          <FormControl>
+            <Input type="text" {...register("unit", { required: true })} placeholder="e.g. kg, pcs, etc." />
           </FormControl>
         </FormItem>
 

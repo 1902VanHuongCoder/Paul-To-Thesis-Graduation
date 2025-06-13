@@ -5,6 +5,7 @@ import {
   createInventory,
   updateInventory,
   deleteInventory,
+  exportInventory,
 } from "../controllers/inventoryController";
 
 const router = express.Router();
@@ -13,15 +14,17 @@ const router = express.Router();
 router.get("/", getAllInventories);
 
 // GET a specific inventory record by ID
-router.get("/:id", getInventoryById);
+router.get("/:inventoryID", getInventoryById);
 
 // POST a new inventory record
 router.post("/", createInventory);
 
 // PUT (update) an existing inventory record by ID
-router.put("/:id", updateInventory);
+router.put("/:inventoryID", updateInventory);
 
 // DELETE an inventory record by ID
-router.delete("/:id", deleteInventory);
+router.delete("/:inventoryID", deleteInventory);
+
+router.post("/export", exportInventory); 
 
 export default router;

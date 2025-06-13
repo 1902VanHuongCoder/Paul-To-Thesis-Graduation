@@ -75,6 +75,9 @@ export const createProduct = async (
     images,
     descriptionImages,
     description,
+    unit,
+    isShow,
+    expiredAt,
   } = req.body;
 
   console.log("Request body:", req.body);
@@ -93,6 +96,9 @@ export const createProduct = async (
       descriptionImages,
       description,
       rating: 5,
+      unit,
+      isShow,
+      expiredAt,
     });
 
     // Increment the count of the selected category
@@ -137,6 +143,9 @@ export const updateProduct = async (
     images,
     descriptionImages,
     description,
+    unit,
+    isShow,
+    expiredAt,
   } = req.body;
 
   try {
@@ -159,6 +168,9 @@ export const updateProduct = async (
       images,
       descriptionImages,
       description,
+      unit,
+      isShow,
+      expiredAt,
     });
 
     // Handle tags

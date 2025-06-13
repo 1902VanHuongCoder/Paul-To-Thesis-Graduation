@@ -14,10 +14,10 @@ export const getAllLocations = async (req: Request, res: Response): Promise<void
 
 // GET a specific location by ID
 export const getLocationById = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { locationID } = req.params;
 
   try {
-    const location = await Location.findByPk(id);
+    const location = await Location.findByPk(locationID);
 
     if (!location) {
       res.status(404).json({ message: "Location not found" });
@@ -51,11 +51,11 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
 
 // PUT (update) an existing location by ID
 export const updateLocation = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { locationID } = req.params;
   const { locationName, address, hotline } = req.body;
 
   try {
-    const location = await Location.findByPk(id);
+    const location = await Location.findByPk(locationID);
 
     if (!location) {
       res.status(404).json({ message: "Location not found" });
@@ -77,10 +77,10 @@ export const updateLocation = async (req: Request, res: Response): Promise<void>
 
 // DELETE a location by ID
 export const deleteLocation = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { locationID } = req.params;
 
   try {
-    const location = await Location.findByPk(id);
+    const location = await Location.findByPk(locationID);
 
     if (!location) {
       res.status(404).json({ message: "Location not found" });

@@ -63,6 +63,9 @@ type Product = {
   description: string;
   descriptionImages: string[];
   images: string[];
+  isShow: boolean;
+  expiredAt: Date | null;
+  unit: string;
 };
 
 type ProductFormValues = {
@@ -75,6 +78,9 @@ type ProductFormValues = {
   originID: string;
   tagIDs: string[];
   images: FileList;
+  isShow: boolean;
+  expiredAt: Date | null;
+  unit: string;
 };
 
 export default function EditProductPage() {
@@ -159,7 +165,7 @@ export default function EditProductPage() {
     fetch(`${baseUrl}/api/product/${productID}`)
       .then(res => res.json())
       .then((prod: Product) => {
-        console.log("Fetched product:", prod);  
+        console.log("Fetched product:", prod);
         // Set form values
         setValue("productName", prod.productName);
         setValue("productPrice", String(prod.productPrice));
@@ -204,7 +210,7 @@ export default function EditProductPage() {
     // Upload new images if any
     let uploadedUrls: string[] = [];
     const filesToUpload: File[] = [];
-    
+
     if (data.images && data.images.length > 0) {
       Array.from(data.images).forEach(file => filesToUpload.push(file));
     }
@@ -305,7 +311,9 @@ export default function EditProductPage() {
           tagIDs: data.tagIDs.map(Number),
           images: newProductImages,
           descriptionImages: newDescImages,
-          description: JSON.stringify(content)
+          description: JSON.stringify(content),
+          isShow: data.isShow,
+          expiredAt: data.expiredAt ? new Date(data.expiredAt) : null,
         }),
       });
       if (res.ok) {
@@ -485,6 +493,25 @@ export default function EditProductPage() {
                 ))}
               </select>
             </FormControl>
+          </FormItem>
+          <FormItem>
+            <FormLabel>Show Product</FormLabel>
+            <FormControl>
+              <Input type="checkbox" {...register("isShow")} />
+            </FormControl>
+          </FormItem>
+          <FormItem>
+            <FormLabel>Expiration Date</FormLabel>
+            <FormControl>
+              <Input type="date" {...register("expiredAt")} />
+            </FormControl>
+          </FormItem>
+          <FormItem>
+            <FormLabel>Unit</FormLabel>
+            <FormControl>
+              <Input type="text" {...register("unit", { required: true })} />
+            </FormControl>
+            {errors.unit && <FormMessage>Unit is required</FormMessage>}
           </FormItem>
           <FormItem>
             <FormLabel>Images</FormLabel>

@@ -27,6 +27,7 @@ import chatbotRoutes from "./routes/chatbotRoutes";
 import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 import newsCommentRoutes from "./routes/newsCommentRoutes";
 import contactRoutes from "./routes/contactRoutes";
+import chatRoutes from "./routes/chatRoutes";
 
 import http from "http";
 import { Server } from "socket.io";
@@ -45,6 +46,8 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("✅ Database connected successfully");
+    // Sync all models with the database
+    // return sequelize.sync({ force: false }); // Set force: true to drop tables on each restart (for development only)
   })
   .then(() => {
     console.log("✅ Database & tables synced");
@@ -84,6 +87,7 @@ app.use("/api/discount", discountRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/news-comment", newsCommentRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/chat", chatRoutes); 
 
 // Create HTTP server and integrate Socket.IO
 const server = http.createServer(app);
@@ -104,7 +108,8 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", (data) => {
     // data: { room, username, message, time }
-    socket.to(data.room).emit("send_message", data);
+    console.log("Message received:", data);
+    socket.to(data.room).emit("send_message", data); // Broadcast message to the room
   });
 
   socket.on("disconnect", () => {

@@ -22,6 +22,9 @@ import Discount from "./Discount";
 import ShippingAddress from "./ShippingAddress";
 import NewsComment from "./NewsComment";
 import Contact from "./Contact";
+import Conversation from "./Conversation";
+import ConversationParticipant from "./ConversationParticipant";
+import Message from "./Message";
 
 // 1. User - ShippingAddress
 User.hasMany(ShippingAddress, {
@@ -136,6 +139,35 @@ User.hasMany(NewsComment, {foreignKey: "userID", as: "user_comments" });
 NewsComment.belongsTo(User,{foreignKey: "userID", as: "user_comments" });
 
 Contact.belongsTo(User, { foreignKey: "userID", as: "user" });
+
+
+User.belongsToMany(Conversation, {
+  through: ConversationParticipant,
+  foreignKey: "userID",
+  otherKey: "conversationID",
+  as: "conversations",
+});
+
+Conversation.belongsToMany(User, {
+  through: ConversationParticipant,
+  foreignKey: "conversationID",
+  otherKey: "userID",
+  as: "participants",
+});
+
+ConversationParticipant.belongsTo(User, { foreignKey: "userID", as: "user" });
+ConversationParticipant.belongsTo(Conversation, {
+  foreignKey: "conversationID",
+  as: "conversation",
+});
+
+Conversation.hasMany(Message, { foreignKey: "conversationID", as: "messages" });
+Message.belongsTo(Conversation, {
+  foreignKey: "conversationID",
+  as: "conversation",
+});
+User.hasMany(Message, { foreignKey: "senderID", as: "sentMessages" });
+Message.belongsTo(User, { foreignKey: "senderID", as: "sender" }); 
 export {
   User,
   Product,
@@ -160,6 +192,9 @@ export {
   Discount,
   ShippingAddress,
   NewsComment,
-  Contact
+  Contact,
+  Conversation,
+  ConversationParticipant,
+  Message
 };
 
