@@ -69,24 +69,24 @@ export default function CommentItem({
                 </div>
                 <div className="flex gap-2">
                     <button
-                        className="flex items-center gap-1 bg-green-500 px-3 py-2 rounded-full text-white text-sm cursor-pointer hover:bg-green-600"
+                        className="flex items-center gap-1  px-3 py-2 rounded-full text-sm cursor-pointer hover:bg-gray-200"
                         onClick={onLike}
                         aria-label="Like"
                     >
                         <ThumbsUp size={18} />
                         <span>Like</span> 
-                        <span className="ml-1 text-xs text-gray-200"> 
+                        <span className="ml-1 text-xs"> 
                             {likeCount}
                         </span>
                     </button>
                     <button
-                        className="flex items-center gap-1 bg-red-500 px-3 py-2 rounded-full text-white text-sm cursor-pointer hover:bg-red-600"
+                        className="flex items-center gap-1  px-3 py-2 rounded-full text-sm cursor-pointer hover:bg-gray-200"
                         onClick={onDislike}
                         aria-label="Dislike"
                     >
                         <ThumbsDown size={18} />
                         <span>Dislike</span>
-                        <span className="ml-1 text-xs text-gray-200">
+                        <span className="ml-1 text-xs">
                             {dislikeCount}
                         </span>
                     </button>

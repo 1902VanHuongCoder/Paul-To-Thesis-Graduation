@@ -17,6 +17,7 @@ import formatDate from "@/lib/format-date";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 export interface Product {
     productID: number;
@@ -50,7 +51,7 @@ export default function WishlistDialog({
     onRemoveItemOutWishlist,
     onAddToCart,
 }: WishlistDialogProps) {
-    const { dictionary:d, lang } = useDictionary();
+    const { dictionary: d, lang } = useDictionary();
     const { user } = useUser();
     const [open, setOpen] = React.useState(false);
     const router = useRouter();
@@ -58,7 +59,7 @@ export default function WishlistDialog({
         <Dialog open={open} onOpenChange={setOpen} modal={true}>
             {/* Trigger Button */}
             <DialogTrigger className="relative flex items-center justify-center rounded-full hover:bg-secondary transition-all duration-200 ease-in-out cursor-pointer">
-                <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20">
+                <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/50">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart-icon lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
                 </span>
                 {wishlists.length > 0 &&
@@ -67,14 +68,16 @@ export default function WishlistDialog({
             </DialogTrigger>
 
             {/* Dialog Content */}
-            <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans">
+            <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans bg-white">
                 {/* Header */}
-                <div className="bg-primary text-white flex justify-between items-center px-6 py-4">
+                <div className="relative bg-primary text-white flex flex-col justify-start items-start px-6 py-4 -translate-y-1">
                     <DialogTitle>{d?.wishlistDialogTitle || "Danh sách yêu thích"} ({wishlists.length})</DialogTitle>
-                    <DialogClose asChild className="text-white hover:text-white">
+                    <DialogDescription className="text-sm text-white hidden">
+                        {d?.wishlistDialogDescription || "Bạn có thể thêm chúng vào giỏ hàng hoặc xóa khỏi danh sách này."}
+                    </DialogDescription>
+                    <DialogClose asChild className="text-white hover:text-white absolute top-4 right-3">
                         <X size={20} />
                     </DialogClose>
-
                 </div>
 
                 {/* Body */}
@@ -98,7 +101,7 @@ export default function WishlistDialog({
                                     alt={item.product.productName}
                                     width={50}
                                     height={50}
-                                    className="rounded-lg"
+                                    className="rounded-lg w-[50px] h-[50px] object-cover"
                                 />
                                 {/* Product Details */}
                                 <div>
@@ -120,12 +123,12 @@ export default function WishlistDialog({
                                 </Button>
                             </div>
                         </div>
-                    )) : <span> {d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích" }</span>}
+                    )) : <span> {d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</span>}
                 </div>
 
                 {/* Footer */}
                 <DialogFooter className="flex !justify-between items-center px-6 py-4 w-full ">
-                    <button   
+                    <button
                         onClick={() => {
                             router.push(`/${lang}/homepage/wishlists`);
                             setOpen(false);

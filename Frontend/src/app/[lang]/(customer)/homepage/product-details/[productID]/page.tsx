@@ -23,7 +23,11 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
-import { CommentItem } from "@/components";
+import { Breadcrumb, Button, CommentItem } from "@/components";
+import { useDictionary } from "@/contexts/dictonary-context";
+import { Star } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useUser } from "@/contexts/user-context";
 
 interface Category {
   categoryID: number;
@@ -92,7 +96,8 @@ export default function ProductDetailsPage() {
   const { productID } = params as { productID: string };
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const { dictionary: d } = useDictionary();
+  const { user } = useUser();
 
   const [comments, setComments] = useState<ProductComment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -135,7 +140,11 @@ export default function ProductDetailsPage() {
     setSubmitting(true);
     try {
       // Replace with actual userID from auth context if available
-      const userID = 4;
+      if (!user) {
+        toast.error("Bạn cần đăng nhập để bình luận.");
+        return;
+      }
+      const userID = user.userID
       await fetch(`${baseUrl}/api/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,22 +173,53 @@ export default function ProductDetailsPage() {
 
   // Like/dislike handlers (optional, implement backend if needed)
   const handleLike = async (commentID: number) => {
-    await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "like" }),
-    });
-    // Optionally refetch comments
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để tương tác với bình luận");
+      return;
+    }
+    try {
+      await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "like" }),
+      });
+    } catch (error) {
+      console.error("Error liking comment:", error);
+      toast.error("Lỗi khi thích bình luận.");
+    }
+    // Refetch comments
+    fetchComments();
   };
   const handleDislike = async (commentID: number) => {
-    await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để tương tác với bình luận");
+      return;
+    }
+    try{
+       await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "dislike" }),
     });
-    // Optionally refetch comments
+    }catch(error){
+      console.error("Error disliking comment:", error);
+      toast.error("Lỗi khi không thích bình luận.");
+    }
+    fetchComments();
   };
 
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
+      if (!res.ok) throw new Error("Failed to fetch comments");
+      const data = await res.json();
+      setComments(data.filter((c: ProductComment) => c.status === "active"));
+      console.log("<----------------->", data);
+    } catch (error) {
+      setComments([]);
+      console.error("Error fetching comments:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -197,18 +237,6 @@ export default function ProductDetailsPage() {
         setLoading(false);
       }
     };
-    const fetchComments = async () => {
-      try {
-        const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
-        if (!res.ok) throw new Error("Failed to fetch comments");
-        const data = await res.json();
-        setComments(data.filter((c: ProductComment) => c.status === "active"));
-        console.log("<----------------->", data);
-      } catch (error) {
-        setComments([]);
-        console.error("Error fetching comments:", error);
-      }
-    };
 
     if (productID) {
       fetchProduct()
@@ -221,81 +249,85 @@ export default function ProductDetailsPage() {
   if (loading) return <div className="p-8">Đang tải thông tin sản phẩm...</div>;
   if (!product) return <div className="p-8 text-red-500">Không tìm thấy sản phẩm.</div>;
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <ProductDetails
-        productName={product.productName}
-        rating={product.rating}
-        productPrice={product.productPrice}
-        productPriceSale={product.productPriceSale}
-        quantityAvailable={product.quantityAvailable}
-        sku={`SP${product.productID}`}
-        category={product.category}
-        subcategory={product.subcategory}
-        origin={product.origin}
-        Tags={product.Tags}
-        productAttributes={product.productAttributes}
-        images={product.images}
-      />
-      {/* Content */}
-      <div className="prose prose-blue max-w-none tiptap-content mb-8">
-        {product?.description && <EditorContent editor={editor} className="tiptap-editor" />}
-      </div>
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">Đánh giá & Bình luận</h2>
-        <form onSubmit={handleCommentSubmit} className="mb-6 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Đánh giá:</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                type="button"
-                key={star}
-                className={star <= newRating ? "text-yellow-400" : "text-gray-300"}
-                onClick={() => setNewRating(star)}
-                aria-label={`Đánh giá ${star} sao`}
-              >
-                ★
-              </button>
-            ))}
-            <span className="ml-2 text-sm text-gray-500">{newRating} sao</span>
-          </div>
-          <div className="flex gap-2">
-            <input
-              ref={commentInputRef}
-              type="text"
-              className="flex-1 border rounded px-3 py-2"
-              placeholder="Viết bình luận về sản phẩm..."
-              value={newComment}
-              onChange={e => setNewComment(e.target.value)}
-              disabled={submitting}
-            />
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-              disabled={submitting || !newComment.trim()}
-            >
-              {submitting ? "Đang gửi..." : "Gửi"}
-            </button>
-          </div>
-        </form>
-        <div className="space-y-6">
-          {comments.length > 0 ? (
-            comments.map((comment) => (
-              <CommentItem
-                key={comment.commentID}
-                avatar={comment.user?.avatar || "https://cdn-icons-png.freepik.com/256/11849/11849331.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid"}
-                name={comment.user?.username || `User ${comment.userID}`}
-                date={new Date(comment.commentAt).toLocaleDateString()}
-                comment={comment.content}
-                likeCount={comment.likeCount}
-                dislikeCount={comment.dislikeCount}
-                onLike={() => handleLike(comment.commentID)}
-                onDislike={() => handleDislike(comment.commentID)}
-                rating={comment.rating}
+    <div className="mx-auto py-8">
+      <div className="pb-6 px-6"><Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: product.productName }]} /></div>
+      <div className="max-w-4xl mx-auto">
+        <ProductDetails
+          productID={Number(productID)}
+          productName={product.productName}
+          rating={product.rating}
+          productPrice={product.productPrice}
+          productPriceSale={product.productPriceSale}
+          quantityAvailable={product.quantityAvailable}
+          sku={`SP${product.productID}`}
+          category={product.category}
+          origin={product.origin}
+          Tags={product.Tags}
+          images={product.images}
+        />
+        {/* Content */}
+        <div className="prose prose-blue max-w-none tiptap-content mb-8">
+          {product?.description && <EditorContent editor={editor} className="tiptap-editor" />}
+        </div>
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold mb-4">Đánh giá & Bình luận</h2>
+          <form onSubmit={handleCommentSubmit} className="mb-6 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Đánh giá:</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  type="button"
+                  key={star}
+                  className={star <= newRating ? "text-yellow-400" : "text-gray-300"}
+                  onClick={() => setNewRating(star)}
+                  aria-label={`Đánh giá ${star} sao`}
+                >
+                  <Star fill={star <= newRating ? "var(--color-yellow-400)" : "var(--color-gray-300)"} />
+                </button>
+              ))}
+              <span className="ml-2 text-sm text-gray-500">{newRating} sao</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                ref={commentInputRef}
+                type="text"
+                className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                placeholder="Viết bình luận về sản phẩm..."
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                disabled={submitting}
               />
-            ))
-          ) : (
-            <div className="text-gray-500">Chưa có bình luận nào.</div>
-          )}
+              <Button
+                type="submit"
+                size="lg"
+                className="pl-8 pr-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="normal"
+                disabled={submitting || !newComment.trim()}
+              >
+                {submitting ? "Đang gửi..." : "Gửi"}
+              </Button>
+            </div>
+          </form>
+          <div className="space-y-6">
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <CommentItem
+                  key={comment.commentID}
+                  avatar={comment.user?.avatar || "https://cdn-icons-png.freepik.com/256/11849/11849331.png?uid=R155655216&ga=GA1.1.90954454.1737472911&semt=ais_hybrid"}
+                  name={comment.user?.username || `User ${comment.userID}`}
+                  date={new Date(comment.commentAt).toLocaleDateString()}
+                  comment={comment.content}
+                  likeCount={comment.likeCount}
+                  dislikeCount={comment.dislikeCount}
+                  onLike={() => handleLike(comment.commentID)}
+                  onDislike={() => handleDislike(comment.commentID)}
+                  rating={comment.rating}
+                />
+              ))
+            ) : (
+              <div className="text-gray-500">Chưa có bình luận nào.</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

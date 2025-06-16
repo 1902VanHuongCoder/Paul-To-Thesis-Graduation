@@ -62,19 +62,9 @@ export const localSignUp = async (
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(409).json({ message: "Email already registered" });
+      res.status(409).json({ message: "Địa chỉ email đã tồn tại rồi" });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      let shippingAddressID = null;
-      if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
-        const newAddress = await ShippingAddress.create({
-          userID,
-          address: shippingAddress.address,
-          phone: shippingAddress.phone,
-          isDefault: shippingAddress.isDefault ?? true,
-        });
-      }
       const user = await User.create({
         userID,
         username,
@@ -83,12 +73,20 @@ export const localSignUp = async (
         role,
         provider: "local",
       });
+      if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
+        const newAddress = await ShippingAddress.create({
+          userID,
+          address: shippingAddress.address,
+          phone: shippingAddress.phone,
+          isDefault: shippingAddress.isDefault ?? true,
+        });
+      }
 
       const token = generateToken(user);
       res.status(201).json({ user, token });
     }
   } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: (error as Error).message + "Lỗi khi đăng ký" });
   }
 };
 
@@ -100,15 +98,21 @@ export const localSignIn = async (
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user || !user.password) {
-      res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      res.status(401).json({ message: "Không có tài khoản với email này." });
     } else {
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        res.status(401).json({ message: "Password is wrong" });
+      if (user && user.password !== null) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          res.status(401).json({ message: "Mật khẩu không đúng. Hãy thử lại!" });
+        } else {
+          const token = generateToken(user);
+          res.status(200).json({ user, token });
+        }
       } else {
-        const token = generateToken(user);
-        res.status(200).json({ user, token });
+        res.status(401).json({
+          message: "Mật khẩu không tồn tại, thiết lập mật khẩu bằng cách ấn Quên mật khẩu",
+        });
       }
     }
   } catch (error) {

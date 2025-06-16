@@ -1,0 +1,57 @@
+<form id="myForm" onsubmit="return validateForm()">
+  <div>
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name">
+    <span id="nameError" style="color:red"></span>
+  </div>
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email">
+    <span id="emailError" style="color:red"></span>
+  </div>
+  <div>
+    <label for="age">Age:</label>
+    <input type="number" id="age" name="age">
+    <span id="ageError" style="color:red"></span>
+  </div>
+  <button type="submit">Submit</button>
+</form>
+<script>
+function validateForm() {
+  let valid = true;
+  // Clear previous errors
+  document.getElementById('nameError').textContent = '';
+  document.getElementById('emailError').textContent = '';
+  document.getElementById('ageError').textContent = '';
+
+  // Name validation
+  const name = document.getElementById('name').value.trim();
+  if (!name) {
+    document.getElementById('nameError').textContent = 'Name is required.';
+    valid = false;
+  }
+
+  // Email validation
+  const email = document.getElementById('email').value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email) {
+    document.getElementById('emailError').textContent = 'Email is required.';
+    valid = false;
+  } else if (!emailPattern.test(email)) {
+    document.getElementById('emailError').textContent = 'Invalid email format.';
+    valid = false;
+  }
+
+  // Age validation
+  const age = document.getElementById('age').value.trim();
+  if (!age) {
+    document.getElementById('ageError').textContent = 'Age is required.';
+    valid = false;
+  } else if (isNaN(age) || age <= 0) {
+    document.getElementById('ageError').textContent = 'Enter a valid age.';
+    valid = false;
+  }
+
+  return valid;
+}
+</script>

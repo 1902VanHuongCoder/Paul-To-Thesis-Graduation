@@ -20,7 +20,6 @@ export default function SocialLogin() {
       <button onClick={handleGoogleLogin} className="w-fit h-fit rounded-full overflow-hidden cursor-pointer">
          <Image src={gglogo} alt="Google Logo" width={50} height={50} />
       </button>
-      <button onClick={() => auth.signOut()}>Logout</button>
     </div>
   );
 }

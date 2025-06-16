@@ -44,7 +44,7 @@ export const getShoppingCartById = async (
     });
 
     if (!cart) {
-      res.status(404).json({ message: "Shopping cart not found" });
+      res.status(200).json({ message: "Người dùng chưa thêm sản phẩm nào vào giỏ hàng" });
       return;
     }
 

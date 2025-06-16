@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger } from "./drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger, DrawerDescription } from "./drawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
 import { useDictionary } from "@/contexts/dictonary-context";
+import { BookUser, HousePlus, LogOut, ReceiptText, Settings, X } from "lucide-react";
 
-export default function UserDrawer({ user, open, setOpen, logout }: { user: {userID: string, username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
-    const {lang} = useDictionary();
+export default function UserDrawer({ user, open, setOpen, logout }: { user: { userID: string, username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
+    const { lang } = useDictionary();
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
             <DrawerTrigger asChild>
-                <button aria-label="Open user drawer">
+                <button className="p-1.5 rounded-full bg-transparent border-[1px] border-solid border-primary/50 cursor-pointer" aria-label="Open user drawer">
                     <Avatar>
                         {user.avatar ? (
                             <AvatarImage src={user.avatar} alt={user.username} />
@@ -21,41 +22,48 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: {use
                     </Avatar>
                 </button>
             </DrawerTrigger>
-            <DrawerContent className="w-full sm:max-w-sm">
-                <DrawerHeader>
-                    <DrawerTitle>User Profile</DrawerTitle>
+            <DrawerContent className="w-full sm:max-w-sm border-none font-sans">
+                <DrawerHeader className="bg-primary w-full">
+                    <DrawerTitle className="text-white ">Hồ sơ của bạn</DrawerTitle>
+                    <DrawerDescription className="text-white text-sm">
+                        Quản lý tài khoản và cài đặt của bạn
+                    </DrawerDescription>
                 </DrawerHeader>
-                <div className="flex flex-col items-center gap-4 p-4">
-                    <Avatar className="size-20">
-                        <AvatarImage src={user.avatar || "/avatar.png"} alt={user.username} />
-                        <AvatarFallback>{user.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-lg font-semibold">{user.username}</div>
-                    {user.email && <div className="text-gray-500">{user.email}</div>}
-                    <Link href={`/${lang}/homepage/user-profile`} className="text-blue-500 hover:underline"> View Profile</Link>
-                    <Link href={`/${lang}/homepage/order-history`} className="text-blue-500 hover:underline">Order history</Link>
-                    <Link href={`/${lang}/homepage/add-shipping-address`} className="text-blue-500 hover:underline">Add ship delivery</Link>
-                    <Link href={`/${lang}/homepage/update-user-profile?userID=${user.userID}`} className="text-blue-500 hover:underline">Account settings</Link>
-                    
+                <div className="flex flex-col gap-4 p-4">
+                    <div className="flex items-center gap-4  border-b pb-4 border-gray-200">
+                        <Avatar className="size-14">
+                            <AvatarImage src={user.avatar || "/avatar.png"} alt={user.username} />
+                            <AvatarFallback className="bg-secondary">{user.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="text-lg font-semibold">{user.username}</div>
+                            {user.email && <div className="text-gray-500">{user.email}</div>}
+                        </div>
+                    </div>
+                    <Link href={`/${lang}/homepage/user-profile`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><BookUser /></span><span>Xem chi tiết</span></Link>
+                    <Link href={`/${lang}/homepage/order-history`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><ReceiptText /></span><span>Lịch sử mua hàng</span></Link>
+                    <Link href={`/${lang}/homepage/add-shipping-address`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><HousePlus /></span><span>Thêm địa chỉ giao hàng</span></Link>
+                    <Link href={`/${lang}/homepage/update-user-profile?userID=${user.userID}`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><Settings /></span><span>Cài đặt tài khoản</span></Link>
                 </div>
-                <div className="p-4">
+                <div className="flex justify-end p-4 border-t border-gray-200">
                     {/* Add more user actions/info here */}
                     <button
-                        className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                        className="flex items-center gap-2 bg-gray-200 px-4 py-2 rounded-md hover:bg-secondary/50 cursor-pointer"
                         onClick={() => {
                             logout();
                             setOpen(false);
                         }}
                     >
-                        Logout
+                        <span><LogOut /></span>
+                        <span>Đăng xuất</span>
                     </button>
                 </div>
                 <DrawerClose asChild>
                     <button
-                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                        className="absolute top-4 right-2 text-gray-400 hover:text-gray-600"
                         aria-label="Close"
                     >
-                        ×
+                        <X />
                     </button>
                 </DrawerClose>
             </DrawerContent>

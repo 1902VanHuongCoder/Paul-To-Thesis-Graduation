@@ -10,7 +10,7 @@ import { useDictionary } from "@/contexts/dictonary-context";
 interface LanguageOption {
   code: string;
   name: string;
-  flag: string; // Path to the flag image
+  flag: string; 
 }
 
 
@@ -52,7 +52,7 @@ export default function LanguageSwitcher() {
 
       {/* Dropdown Container */}
       <div
-        className="relative border border-gray-300 rounded-lg bg-white text-gray-700 cursor-pointer"
+        className="relative border-[1px] border-primary/50 rounded-lg bg-white text-gray-700 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         {/* Selected Language */}
