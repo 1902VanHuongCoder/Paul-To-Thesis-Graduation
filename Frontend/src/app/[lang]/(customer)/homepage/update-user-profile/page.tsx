@@ -197,7 +197,7 @@ export default function UpdateUserProfilePage() {
     return (
         <div className="px-6 py-10">
             <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
-            <h1 className="text-2xl font-bold mb-6 mt-10">Cập nhật hồ sơ người dùng</h1>
+            <h1 className="text-xl font-bold mb-6 mt-6 uppercase">Cập nhật hồ sơ người dùng</h1>
             <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
                     {/* Avatar */}
@@ -211,7 +211,7 @@ export default function UpdateUserProfilePage() {
                         />
                         <div className="flex flex-col gap-y-2">
                             <span className="text-5xl font-semibold text-white drop-shadow-6xl">{user.username}</span>
-                            <p className="text-md text-gray-800 pl-1">{user.email}</p>
+                            <p className="text-md text-white/80 pl-1">{user.email}</p>
                             <div>
                                 <input
                                     type="file"
@@ -234,11 +234,12 @@ export default function UpdateUserProfilePage() {
 
                     </div>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-6 p-6">
+                <form onSubmit={handleSubmit} className="space-y-4 p-6">
                     {/* Username */}
                     <div>
-                        <label className="block font-medium mb-1">Tên người dùng</label>
+                        <label className="block mb-1 text-gray-500 text-sm">Tên người dùng</label>
                         <Input
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                             name="username"
                             value={form.username}
                             onChange={handleChange}
@@ -248,8 +249,9 @@ export default function UpdateUserProfilePage() {
                     {/* Email */}
                     {user && !user.providerID && (
                         <div>
-                            <label className="block font-medium mb-1">Email</label>
+                            <label className="block mb-1 text-gray-500 text-sm">Email</label>
                             <Input
+                                className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                 name="email"
                                 type="email"
                                 value={form.email}
@@ -261,18 +263,18 @@ export default function UpdateUserProfilePage() {
                     <div className="space-y-4">
                         {user.password && (
                             <div>
-                                <label className="block font-medium mb-1">Mật khẩu cũ</label>
+                                <label className="block mb-1 text-gray-500 text-sm">Mật khẩu cũ</label>
                                 <div className="relative">
                                     <Input
                                         name="oldPassword"
                                         type={showOldPassword ? "text" : "password"}
                                         value={form.oldPassword}
                                         onChange={handleChange}
-
+                                        className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                     />
                                     <button
                                         type="button"
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                                         tabIndex={-1}
                                         onClick={() => setShowOldPassword(v => !v)}
                                     >
@@ -292,18 +294,18 @@ export default function UpdateUserProfilePage() {
                         )}
 
                         <div>
-                            <label className="block font-medium mb-1">Mật khẩu mới</label>
+                            <label className="block mb-1 text-gray-500 text-sm">Mật khẩu mới</label>
                             <div className="relative">
                                 <Input
                                     name="newPassword"
                                     type={showNewPassword ? "text" : "password"}
                                     value={form.newPassword}
-                                    onChange={handleChange}
-
+                                    onChange={handleChange} 
+                                    className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                 />
                                 <button
                                     type="button"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                                     tabIndex={-1}
                                     onClick={() => setShowNewPassword(v => !v)}
                                 >
@@ -312,18 +314,18 @@ export default function UpdateUserProfilePage() {
                             </div>
                         </div>
                         <div>
-                            <label className="block font-medium mb-1">Xác nhận mật khẩu mới</label>
+                            <label className="block mb-1 text-gray-500 text-sm">Xác nhận mật khẩu mới</label>
                             <div className="relative">
                                 <Input
                                     name="confirmPassword"
                                     type={showConfirmPassword ? "text" : "password"}
                                     value={form.confirmPassword}
                                     onChange={handleChange}
-
+                                    className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                 />
                                 <button
                                     type="button"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                                     tabIndex={-1}
                                     onClick={() => setShowConfirmPassword(v => !v)}
                                 >
@@ -336,13 +338,13 @@ export default function UpdateUserProfilePage() {
                     {/* Error/Success */}
                     {errorMsg && <div className="text-red-500">{errorMsg}</div>}
                     {/* Submit */}
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-8">
                         <Button
                             type="submit"
                             variant="default"
                             size="sm"
                             disabled={submitting || confirmingPassword}
-                            className=""
+                            className="text-md px-4 py-2 cursor-pointer"
                         >
                             {submitting ? "Đang cập nhật..." : "Cập nhật"}
                         </Button>

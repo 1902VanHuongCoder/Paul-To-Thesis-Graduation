@@ -87,18 +87,18 @@ export default function OrderDetailPage() {
   return (
     <div className="px-6 py-10">
       <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng", href: `/${lang}/homepage/order-history` }, { label: orderID }]} />
-      <h1 className="text-2xl font-bold mb-4 mt-10">{d?.orderDetailTitle || "Chi tiết đơn hàng"}</h1>
+      <h1 className="text-2xl font-bold mb-4 mt-6 uppercase">{d?.orderDetailTitle || "Chi tiết đơn hàng"}</h1>
       <div className="relative max-w-4xl mx-auto bg-white rounded-lg p-6 border border-dashed border-gray-300 overflow-hidden">
         <Image src={darkLogo} alt="Logo" width={100} height={100} className="w-auto h-[50px]" />
         <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] -rotate-45 text-center">NFEAM HOUSE</div>
-        <p className="py-8 text-center text-3xl">THÔNG TIN ĐƠN HÀNG</p>
-        <div className="space-y-4 text-lg">
-          <div><span className="font-semibold">{d?.orderDetailOrderID || "Mã đơn hàng"}:</span> {order.orderID}</div>
-          <div><span className="font-semibold">{d?.orderDetailDate || "Ngày đặt"}:</span> {new Date(order.createdAt).toLocaleString()}</div>
+        <p className="py-8 text-center text-3xl font-bold">THÔNG TIN ĐƠN HÀNG</p>
+        <div className="space-y-4 text-md">
+          <div><span>{d?.orderDetailOrderID || "Mã đơn hàng"}:</span> <span className="font-semibold">{order.orderID}</span> </div>
+          <div><span>{d?.orderDetailDate || "Ngày đặt"}:</span><span className="font-semibold">{new Date(order.createdAt).toLocaleString()}</span > </div>
           <div className="absolute right-5 top-5 flex items-center gap-x-2 "><span className="w-[10px] h-[10px] bg-green-500 rounded-full"></span><span className="font-semibold text-md">{d?.orderDetailStatus || "Trạng thái"}:</span> {order.status || d?.orderHistoryStatusPending || "Đang xử lý"}</div>
-          <div><span className="font-semibold">{d?.orderDetailCustomer || "Khách hàng"}:</span> {order.fullName}</div>
-          <div><span className="font-semibold">{d?.orderDetailPhone || "Số điện thoại"}:</span> {order.phone}</div>
-          <div><span className="font-semibold">{d?.orderDetailAddress || "Địa chỉ"}:</span> {order.address}</div>
+          <div><span>{d?.orderDetailCustomer || "Khách hàng"}:</span><span className="font-semibold">{order.fullName}</span> </div>
+          <div><span>{d?.orderDetailPhone || "Số điện thoại"}:</span><span className="font-semibold">{order.phone}</span> </div>
+          <div><span>{d?.orderDetailAddress || "Địa chỉ"}:</span><span className="font-semibold"> {order.address}</span></div>
         </div>
         <h2 className="text-lg font-semibold mb-2 mt-4">{d?.orderDetailProducts || "Sản phẩm"}</h2>
         <table className="w-full border-collapse mb-4">
@@ -129,7 +129,7 @@ export default function OrderDetailPage() {
             ))}
           </tbody>
         </table>
-        <div className="text-right font-bold text-lg flex flex-col items-start gap-2">
+        <div className="text-right font-bold text-md flex flex-col items-start gap-2">
           <div className="space-x-2"><span className="font-normal">{d?.orderDetailDeliveryCost || "Phí vận chuyển"}:</span><span> {formatVND(order.deliveryCost || 0)} VND</span></div>
           <div className="space-x-2"><span className="font-normal">{d?.orderDetailDeliveryMethod || "Phương thức vận chuyển"} - {order.delivery.name}:</span><span>{formatVND(order.delivery.basePrice || 0)} VND</span> </div>
           <div className="space-x-2"><span className="font-normal">{d?.orderDetailDiscount || "Giảm giá"}:</span><span>{formatVND(order.discount || 0)} VND</span> </div>

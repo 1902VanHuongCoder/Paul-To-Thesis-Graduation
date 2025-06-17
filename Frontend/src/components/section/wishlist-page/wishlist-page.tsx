@@ -24,7 +24,7 @@ export interface Product {
 
 export interface WishlistItem {
   wishlistID: number;
-  customerID: number;
+  customerID: string;
   productID: number;
   product: Product;
 }
@@ -35,13 +35,13 @@ export default function WishlistPage() {
   const {dictionary:d} = useDictionary();
   
   // Example handlers
-  const handleRemoveItem = (productID: number, customerID: number) => {
+  const handleRemoveItem = (productID: number, customerID: string) => {
     removeFromWishlist(customerID, productID);
     const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
     setWishlist(wishlistUpdated);
   };
 
-  const handleAddToCart = async (productID: number, customerID: number) => {
+  const handleAddToCart = async (productID: number, customerID: string) => {
     addToCart(productID);
     fetchCart(customerID);
     removeFromWishlist(customerID, productID);
@@ -50,8 +50,8 @@ export default function WishlistPage() {
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.wishlistPageTitle || "Danh sách yêu thích của bạn"}</h2>
+    <div className="w-full mt-7">
+      <h1 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.wishlistPageTitle || "Danh sách yêu thích của bạn"}</h1>
       <table className="w-full border-collapse">
         <thead className="border-b border-[rgba(0,0,0,.2)]">
           <tr className="text-center text-gray-600">
@@ -119,7 +119,7 @@ export default function WishlistPage() {
               </td>
             </tr>
           )) : <tr className="w-full">
-              <td colSpan={5} className="text-center py-6">{d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</td>
+              <td colSpan={5} className="text-start py-6">{d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</td>
             </tr>}
         </tbody>
       </table>

@@ -49,8 +49,8 @@ export default function CategoryProductListPage() {
   if (!category) return <div className="p-8 text-red-500">Không tìm thấy danh mục.</div>;
 
   return (
-    <div className="px-6 py-10">
-      <h1 className="text-2xl font-bold mb-2">{category.categoryName}</h1>
+    <div className="px-6 pb-10 pt-2">
+      <h1 className="text-xl font-bold mb-2 uppercase">{category.categoryName}</h1>
       {category.categoryDescription && (
         <p className="mb-4 text-gray-600">{category.categoryDescription}</p>
       )}

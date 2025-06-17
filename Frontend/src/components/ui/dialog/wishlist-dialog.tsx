@@ -68,7 +68,7 @@ export default function WishlistDialog({
             </DialogTrigger>
 
             {/* Dialog Content */}
-            <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans bg-white">
+            <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans bg-white min-w-2xl">
                 {/* Header */}
                 <div className="relative bg-primary text-white flex flex-col justify-start items-start px-6 py-4 -translate-y-1">
                     <DialogTitle>{d?.wishlistDialogTitle || "Danh sách yêu thích"} ({wishlists.length})</DialogTitle>

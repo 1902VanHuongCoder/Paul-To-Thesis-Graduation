@@ -13,7 +13,7 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: { us
                 <button className="p-1.5 rounded-full bg-transparent border-[1px] border-solid border-primary/50 cursor-pointer" aria-label="Open user drawer">
                     <Avatar>
                         {user.avatar ? (
-                            <AvatarImage src={user.avatar} alt={user.username} />
+                            <AvatarImage src={user.avatar} alt={user.username} className="object-cover" />
                         ) : (
                             <AvatarFallback>
                                 {user.username?.[0]?.toUpperCase() || "U"}
@@ -32,8 +32,8 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: { us
                 <div className="flex flex-col gap-4 p-4">
                     <div className="flex items-center gap-4  border-b pb-4 border-gray-200">
                         <Avatar className="size-14">
-                            <AvatarImage src={user.avatar || "/avatar.png"} alt={user.username} />
-                            <AvatarFallback className="bg-secondary">{user.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                            <AvatarImage src={user.avatar || "/avatar.png"} alt={user.username} className="object-cover" />
+                            <AvatarFallback className="border-[2px] border-gray-300">{user.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
                         </Avatar>
                         <div>
                             <div className="text-lg font-semibold">{user.username}</div>

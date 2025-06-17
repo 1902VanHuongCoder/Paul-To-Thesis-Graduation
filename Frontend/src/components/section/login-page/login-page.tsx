@@ -221,12 +221,6 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                             setOpen={setOpenForgetPassword}
                             setOpenCreateNewPass={setOpenCreateNewPass}
                         />
-                        {/* <Link
-                            href="/forgot-password"
-                            className="text-sm text-green-700 hover:underline"
-                        >
-                            Quên mật khẩu?
-                        </Link> */}
                     </div>
                     {/* Success Message */}
                     {successMsg && (
@@ -253,9 +247,6 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                         </Button>
                     </div>
-                    <button type="button" onClick={() => setOpenCreateNewPass(true)} className="text-sm text-green-700 hover:underline cursor-pointer w-full text-center">
-                        Mo xac nhan mat khau
-                    </button>
                 </form>
 
                 {/* Registration Prompt */}

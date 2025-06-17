@@ -186,20 +186,22 @@ export default function UserProfilePage() {
         <div className="px-6 py-10">
             <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Tài khoản của bạn" }]} />
             <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center space-y-4">
                     <Avatar className="size-24 border-2 border-primary/30">
                         {user.avatar ? (
-                            <AvatarImage src={user.avatar} alt={user.username} />
+                            <AvatarImage src={user.avatar} alt={user.username} className="object-cover border-[2px] border-primary"/>
                         ) : (
-                            <AvatarFallback>
+                            <AvatarFallback className="border-[1px] border-gray-300 text-3xl">
                                 {user.username?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                         )}
                     </Avatar>
-                    <div className="text-2xl font-bold">{user.username}</div>
-                    <div className="text-gray-500">{user.email}</div>
+                   <div className="text-center">
+                        <div className="text-5xl font-bold">{user.username}</div>
+                        <div className="text-gray-500 text-lg">{user.email}</div>
+                   </div>
                     <button
-                        className="mt-6 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90 transition cursor-pointer"
+                        className="px-6 py-2 bg-primary text-white rounded hover:bg-primary/90 transition cursor-pointer"
                         onClick={logout}
                     >
                         Đăng xuất
@@ -217,7 +219,7 @@ export default function UserProfilePage() {
                         </button>
                     </div>
                     {showAddForm && (
-                        <form onSubmit={handleAddAddress} className="space-y-3 bg-gray-50 p-4 rounded mb-6">
+                        <form onSubmit={handleAddAddress} className="space-y-3 my-7 border-[1px] border-gray-200 p-6 rounded-lg">
                             <div>
                                 <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
                                 <Select
@@ -226,7 +228,7 @@ export default function UserProfilePage() {
                                     required
                                     disabled={provinces.length === 0}
                                 >
-                                    <SelectTrigger className="w-full border rounded px-3 py-2">
+                                    <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white">
                                         <SelectValue placeholder="Chọn tỉnh/thành phố" />
                                     </SelectTrigger>
                                     <SelectContent className="max-h-60">
@@ -247,7 +249,7 @@ export default function UserProfilePage() {
                                     required
                                     disabled={!form.province}
                                 >
-                                    <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.province}>
+                                    <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.province}>
                                         <SelectValue placeholder="Chọn quận/huyện" />
                                     </SelectTrigger>
                                     <SelectContent className="max-h-60">
@@ -268,7 +270,7 @@ export default function UserProfilePage() {
                                     required
                                     disabled={!form.district}
                                 >
-                                    <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.district}>
+                                    <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.district}>
                                         <SelectValue placeholder="Chọn phường/xã" />
                                     </SelectTrigger>
                                     <SelectContent className="max-h-60">
@@ -285,7 +287,7 @@ export default function UserProfilePage() {
                                 <label className="block mb-1 font-normal text-sm text-black/40">Địa chỉ cụ thể</label>
                                 <input
                                     type="text"
-                                    className="w-full border rounded px-3 py-2"
+                                    className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                     value={form.detailAddress}
                                     onChange={e => setForm(f => ({ ...f, detailAddress: e.target.value }))}
                                     required
@@ -296,7 +298,7 @@ export default function UserProfilePage() {
                                 <label className="block mb-1 font-normal text-sm text-black/40">Số điện thoại</label>
                                 <input
                                     type="text"
-                                    className="w-full border rounded px-3 py-2"
+                                    className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                     value={form.phone}
                                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                                     required
@@ -313,15 +315,17 @@ export default function UserProfilePage() {
                                 />
                                 <label htmlFor="isDefault">Đặt làm địa chỉ mặc định</label>
                             </div>
-                            <Button
-                                variant="default"
-                                size={"lg"}
-                                type="submit"
-                                className="w-full bg-primary text-white py-2 rounded font-semibold hover:bg-green-700 transition cursor-pointer"
-                                disabled={loadingForm}
-                            >
-                                {loadingForm ? "Đang lưu..." : "Thêm địa chỉ"}
-                            </Button>
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="default"
+                                    size={"lg"}
+                                    type="submit"
+                                    className="bg-primary text-white py-2 rounded font-semibold hover:bg-green-700 transition cursor-pointer"
+                                    disabled={loadingForm}
+                                >
+                                    {loadingForm ? "Đang lưu..." : "Thêm địa chỉ"}
+                                </Button>
+                            </div>
                             {formMsg && <div className="text-center text-sm mt-2">{formMsg}</div>}
                         </form>
                     )}

@@ -137,7 +137,7 @@ export default function Navigation() {
 
                         {/* News */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
+                            <Link href={`/${lang}/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
                                 {t?.navNews ? t.navNews : "Tin tức"}
                             </Link>
                         </NavigationMenuItem>

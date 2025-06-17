@@ -1,6 +1,6 @@
 "use client";
 
-import { Breadcrumb, CommentItem } from "@/components";
+import { Breadcrumb, CommentItem, ToTopButton } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -26,6 +26,9 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import { baseUrl } from "@/lib/base-url";
+import { Tag } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea/textarea";
+import { Button } from "@/components/ui/button/button";
 
 interface Author {
     username: string;
@@ -45,7 +48,7 @@ interface Comment {
     content: string;
     commentAt: string;
     likeCount: number;
-    dislikeCount:number;
+    dislikeCount: number;
     status: "active" | "deleted";
     user_comments?: Author; // Optional, if you want to include user details
 }
@@ -78,7 +81,7 @@ export default function NewsDetailPage() {
     const router = useRouter();
     const [newComment, setNewComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const commentInputRef = useRef<HTMLInputElement>(null);
+    const commentInputRef = useRef<HTMLTextAreaElement>(null);
     // Only create the editor when news?.content is available
     const editor = useEditor({
         extensions: [
@@ -140,30 +143,30 @@ export default function NewsDetailPage() {
         }
     };
 
-    const handleLikeComment = async (commentID: number) => { 
-        try{
+    const handleLikeComment = async (commentID: number) => {
+        try {
             await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-                method:"PUT",
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ action: "like" }),
             })
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
     }
 
-    const handleDislikeComment = async (commentID: number) => { 
-        try{
+    const handleDislikeComment = async (commentID: number) => {
+        try {
             await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-                method:"PUT",
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ action: "dislike" }),
             })
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
     }
@@ -189,73 +192,106 @@ export default function NewsDetailPage() {
         if (newsID) fetchNewsDetail();
     }, [newsID, editor]);
 
-    if (loading) return <div>Loading...</div>;
-    if (!news) return <div>News not found.</div>;
+    if (loading) return <div>Đang tải...</div>;
+    if (!news) return <div>Bài đăng không tồn tại.</div>;
 
     return (
-        <div className="max-w-3xl mx-auto py-8">
+        <div className="py-10 px-6">
             <Breadcrumb
                 items={[
-                    { label: "Homepage", href: "/" },
-                    { label: "News", href: `/${lang}/homepage/news` },
+                    { label: "Trang chủ", href: "/" },
+                    { label: "Tin tức", href: `/${lang}/homepage/news` },
                     { label: news.title }
                 ]}
             />
 
-            {/* Title and Title Image */}
-            <h1 className="text-3xl font-bold mb-2">{news.title}</h1>
-            {news.titleImageUrl && (
-                <NextImage
-                    width={800}
-                    height={400}
-                    src={news.titleImageUrl}
-                    alt={news.title}
-                    className="w-full max-h-96 object-cover rounded mb-4"
-                />
-            )}
+            <div className="relative grid grid-cols-[1fr_400px] gap-6">
+                <div className="flex-1 overflow-y-auto h-screen pr-6">
+                    {/* Title and Title Image */}
+                    <h1 className="text-3xl font-bold mt-6 mb-2">{news.title}</h1>
+                    {/* Tags */}
+                    {news.hastags && news.hastags.length > 0 && (
+                        <div className="mb-4 flex flex-wrap gap-2 ">
+                            {news.hastags.map((tag, idx) => (
+                                <span
+                                    key={idx}
+                                    className="bg-blue-100 text-blue-700 p-2 rounded text-sm flex items-center gap-x-1"
+                                >
+                                    <span><Tag height={18} /></span><span>{tag.tagName}</span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    {news.titleImageUrl && (
+                        <NextImage
+                            width={800}
+                            height={400}
+                            src={news.titleImageUrl}
+                            alt={news.title}
+                            className="w-full max-h-96 object-cover rounded mb-4"
+                        />
+                    )}
 
-            {/* Subtitle */}
-            {news.subtitle && <div className="text-lg text-gray-600 mb-2">{news.subtitle}</div>}
-
-            {/* Tags */}
-            {news.hastags && news.hastags.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2">
-                    {news.hastags.map((tag, idx) => (
-                        <span
-                            key={idx}
-                            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
-                        >
-                            {tag.tagName}
-                        </span>
-                    ))}
+                    {/* Subtitle */}
+                    {news.subtitle && <div className="text-lg text-gray-600 mb-6">{news.subtitle}</div>}
+                    {/* Content */}
+                    <div className="prose prose-blue max-w-4xl mx-auto tiptap-content mb-8 ">
+                        {news?.content && <EditorContent editor={editor} className="tiptap-editor" />}
+                    </div>
                 </div>
-            )}
-
-            {/* Content */}
-            <div className="prose prose-blue max-w-none tiptap-content mb-8">
-                {news?.content && <EditorContent editor={editor} className="tiptap-editor" />}
+                {/* Other News */}
+                <div className="shrink-0 sticky top-0 h-fit">
+                    <h2 className="text-xl font-semibold mb-4">Những bài viết khác</h2>
+                    <div className="grid gap-4">
+                        {otherNews.slice(0, 4).map((item) => (
+                            <div
+                                key={item.newsID}
+                                className="p-4 border rounded hover:bg-gray-50 cursor-pointer flex gap-4"
+                            >
+                                <NextImage
+                                    width={80}
+                                    height={80}
+                                    src={item.titleImageUrl || "/placeholder.jpg"}
+                                    alt={item.title}
+                                    className="w-20 h-20 object-cover rounded"
+                                />
+                                <div className="">
+                                    <div className="font-bold w-[280px] truncate">{item.title}</div>
+                                    <div className="text-sm w-[280px] truncate text-gray-500">{item.subtitle}</div>
+                                    <div className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleDateString()}</div>
+                                    <Button
+                                        variant={"link"}
+                                        className="cursor-pointer px-0"
+                                        onClick={() => router.push(`/${lang}/homepage/news/${item.newsID}`)}
+                                    >
+                                        Xem chi tiết
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-
+            <hr />
             {/* Comment Section */}
-            <div className="mt-12">
-                <h2 className="text-xl font-semibold mb-4">Comments</h2>
-                <form onSubmit={handleCommentSubmit} className="mb-6 flex gap-2">
-                    <input
+            <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Bình luận về bài viết</h2>
+                <form onSubmit={handleCommentSubmit} className="mb-6 flex flex-col gap-2 items-end">
+                    <Textarea
                         ref={commentInputRef}
-                        type="text"
-                        className="flex-1 border rounded px-3 py-2"
-                        placeholder="Write a comment..."
+                        className=""
+                        placeholder="Nhập bình luận của bạn..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
                         disabled={submitting}
                     />
-                    <button
+                    <Button
                         type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
+                        className="bg-blue-600 text-white px-4 py-2 rounded w-fit cursor-pointer "
                         disabled={submitting || !newComment.trim()}
                     >
-                        {submitting ? "Posting..." : "Post"}
-                    </button>
+                        {submitting ? "Đang gửi bình luận..." : "Gửi bình luận"}
+                    </Button>
                 </form>
                 <div className="space-y-6">
                     {news?.comments && news.comments.length > 0 ? (
@@ -280,32 +316,7 @@ export default function NewsDetailPage() {
                 </div>
             </div>
 
-            {/* Other News */}
-            <div>
-                <h2 className="text-xl font-semibold mb-4">Other News</h2>
-                <div className="grid gap-4">
-                    {otherNews.slice(0, 4).map((item) => (
-                        <div
-                            key={item.newsID}
-                            className="p-4 border rounded hover:bg-gray-50 cursor-pointer flex gap-4"
-                            onClick={() => router.push(`/${lang}/homepage/news/${item.newsID}`)}
-                        >
-                            <NextImage
-                                width={96}
-                                height={96}
-                                src={item.titleImageUrl || "/placeholder.jpg"}
-                                alt={item.title}
-                                className="w-24 h-24 object-cover rounded"
-                            />
-                            <div>
-                                <div className="font-bold">{item.title}</div>
-                                <div className="text-sm text-gray-500">{item.subtitle}</div>
-                                <div className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            <ToTopButton />
         </div>
     );
 }

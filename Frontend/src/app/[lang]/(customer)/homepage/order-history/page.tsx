@@ -58,14 +58,14 @@ const OrderHistory = () => {
     <div className="min-h-[60vh] px-6 py-10">
       <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng" }]}/>
       
-      <h1 className="text-2xl font-bold mb-6 mt-10">{d?.orderHistoryTitle || "Lịch sử đơn hàng"}</h1>
+      <h1 className="text-2xl font-bold mb-6 mt-6 uppercase">{d?.orderHistoryTitle || "Lịch sử đơn hàng"}</h1>
       {loading ? (
         <div>{d?.orderHistoryLoading || "Đang tải..."}</div>
       ) : orders.length === 0 ? (
         <div className="text-gray-500">{d?.orderHistoryEmpty || "Bạn chưa có đơn hàng nào."}</div>
       ) : (
-        <div className="w-full px-10">
-          <table className="w-full border-collapse bg-white rounded shadow">
+        <div className="w-full">
+          <table className="w-full border-collapse bg-white rounded border-[1px] border-gray-200">
             <thead>
               <tr className="bg-gray-100 text-gray-700">
                 <th className="p-3 text-left">{d?.orderHistoryOrderID || "Mã đơn"}</th>

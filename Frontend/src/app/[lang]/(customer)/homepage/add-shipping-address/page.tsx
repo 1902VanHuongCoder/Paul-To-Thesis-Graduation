@@ -113,9 +113,9 @@ export default function AddShippingAddressPage() {
                 { label: "Trang chủ", href: "/" },
                 { label: "Thêm địa chỉ giao hàng" }
             ]} />
-            <h1 className="text-2xl font-bold mb-6 mt-10">Thêm địa chỉ giao hàng mới</h1>
+            <h1 className="text-xl font-bold mb-6 mt-6 uppercase">Thêm địa chỉ giao hàng mới</h1>
             <div className="max-w-2xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded">
+                <form onSubmit={handleSubmit} className="space-y-3 my-7 border-[2px] border-gray-200 p-6 rounded-lg">
                     <div>
                         <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
                         <Select
@@ -124,7 +124,7 @@ export default function AddShippingAddressPage() {
                             required
                             disabled={provinces.length === 0}
                         >
-                            <SelectTrigger className="w-full border rounded px-3 py-2">
+                            <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white">
                                 <SelectValue placeholder="Chọn tỉnh/thành phố" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -145,7 +145,7 @@ export default function AddShippingAddressPage() {
                             required
                             disabled={!form.province}
                         >
-                            <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.province}>
+                            <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.province}>
                                 <SelectValue placeholder="Chọn quận/huyện" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -166,7 +166,7 @@ export default function AddShippingAddressPage() {
                             required
                             disabled={!form.district}
                         >
-                            <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.district}>
+                            <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.district}>
                                 <SelectValue placeholder="Chọn phường/xã" />
                             </SelectTrigger>
                             <SelectContent className="max-h-60">
@@ -184,7 +184,7 @@ export default function AddShippingAddressPage() {
                         <input
                             type="text"
                             name="detailAddress"
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                             value={form.detailAddress}
                             onChange={handleChange}
                             required
@@ -196,7 +196,7 @@ export default function AddShippingAddressPage() {
                         <input
                             type="text"
                             name="phone"
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                             value={form.phone}
                             onChange={handleChange}
                             required

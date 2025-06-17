@@ -45,8 +45,6 @@ export default function NewsListPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { lang } = useDictionary();
-
-    console.log("Current language:", newsList);
     useEffect(() => {
         const fetchNews = async () => {
             try {
@@ -64,24 +62,22 @@ export default function NewsListPage() {
         fetchNews();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
-
-    console.log("Fetched news:", newsList);
+    if (loading) return <div>Đang tải tin tức...</div>;
 
     return (
-        <div className="max-w-4xl mx-auto py-8 space-y-8">
+        <div className="py-10 px-6 space-y-8">
             <Breadcrumb items={[
-                { label: "Homepage", href: "/" },
-                { label: "News" }
+                { label: "Trang chủ", href: "/" },
+                { label: "Tin tức" }
             ]} />
-            <h1 className="text-2xl font-bold mb-6">All News</h1>
-            {newsList.length === 0 && <div>No news found.</div>}
+            <h1 className="text-4xl font-bold mb-6 uppercase mt-6 text-center">Tin tức</h1>
+            {newsList.length === 0 && <div>Hiện tại chưa có bài đăng nào.</div>}
             {newsList.map((news) => (
                 <NewsItem
                     key={news.newsID}
                     image={news.titleImageUrl || "/placeholder.jpg"}
                     date={news.createdAt ? new Date(news.createdAt).toLocaleDateString() : ""}
-                    author={`User ${news.author.username}`}
+                    author={news.author.username}
                     category={news.hastags?.map(t => t.tagName).join(", ") || "Uncategorized"}
                     comments={news.comments?.length || 0}
                     views={news.views}
