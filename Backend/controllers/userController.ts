@@ -86,7 +86,9 @@ export const localSignUp = async (
       res.status(201).json({ user, token });
     }
   } catch (error) {
-    res.status(500).json({ message: (error as Error).message + "Lỗi khi đăng ký" });
+    res
+      .status(500)
+      .json({ message: (error as Error).message + "Lỗi khi đăng ký" });
   }
 };
 
@@ -104,14 +106,17 @@ export const localSignIn = async (
       if (user && user.password !== null) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          res.status(401).json({ message: "Mật khẩu không đúng. Hãy thử lại!" });
+          res
+            .status(401)
+            .json({ message: "Mật khẩu không đúng. Hãy thử lại!" });
         } else {
           const token = generateToken(user);
           res.status(200).json({ user, token });
         }
       } else {
         res.status(401).json({
-          message: "Mật khẩu không tồn tại, thiết lập mật khẩu bằng cách ấn Quên mật khẩu",
+          message:
+            "Mật khẩu không tồn tại, thiết lập mật khẩu bằng cách ấn Quên mật khẩu",
         });
       }
     }
@@ -149,7 +154,9 @@ export const updateUser = async (
   res: Response
 ): Promise<void> => {
   const userID = req.params.userID;
+  console.log("Updating user with ID:", userID);
   const { username, email, avatar, password } = req.body;
+  console.log(req.body);
   try {
     const user = await User.findByPk(userID);
     if (!user) {
@@ -159,7 +166,15 @@ export const updateUser = async (
 
     // Update user fields
     if (username) user.username = username;
-    if (email) user.email = email;
+    if (email) {
+      // Check if email already exists
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser && existingUser.userID !== userID) {
+        res.status(409).json({ message: "Email already exists" });
+        return;
+      }
+      user.email = email;
+    }
     if (avatar) user.avatar = avatar;
 
     // Handle password update
@@ -168,8 +183,9 @@ export const updateUser = async (
     }
 
     await user.save();
-    res.status(200).json({ message: "User updated successfully", user });
+    res.status(200).json({ message: "Địa chỉ email đã tồn tại rồi.", user });
   } catch (error) {
+    console.error("Error updating user:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

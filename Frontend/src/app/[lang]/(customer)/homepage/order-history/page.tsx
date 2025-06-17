@@ -7,6 +7,7 @@ import { baseUrl } from "@/lib/base-url";
 import formatVND from "@/lib/format-vnd";
 import Button from "@/components/ui/button/button-brand";
 import { useUser } from "@/contexts/user-context";
+import { Breadcrumb } from "@/components";
 
 interface OrderProduct {
   productID: number;
@@ -54,8 +55,10 @@ const OrderHistory = () => {
   }, [user]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-2 py-8">
-      <h1 className="text-2xl font-bold mb-6">{d?.orderHistoryTitle || "Lịch sử đơn hàng"}</h1>
+    <div className="min-h-[60vh] px-6 py-10">
+      <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng" }]}/>
+      
+      <h1 className="text-2xl font-bold mb-6 mt-10">{d?.orderHistoryTitle || "Lịch sử đơn hàng"}</h1>
       {loading ? (
         <div>{d?.orderHistoryLoading || "Đang tải..."}</div>
       ) : orders.length === 0 ? (
@@ -83,7 +86,7 @@ const OrderHistory = () => {
                     <Button
                       variant="normal"
                       size="sm"
-                      onClick={() => router.push(`/${lang}/homepage/${order.orderID}`)}
+                      onClick={() => router.push(`/${lang}/homepage/order-history/${order.orderID}`)}
                     >
                       {d?.orderHistoryDetailButton || "Xem"}
                     </Button>

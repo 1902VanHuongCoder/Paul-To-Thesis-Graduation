@@ -390,7 +390,7 @@ export default function CheckoutPage() {
     }, [setCheckoutData]);
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 bg-white">
+        <div className="flex flex-col md:flex-row gap-8 bg-white mt-10">
             {/* Left Column – Billing Details Form */}
             <div className="flex-1">
 

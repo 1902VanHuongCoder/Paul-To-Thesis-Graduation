@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/dialog/dialog";
 import { Input } from "@/components/ui/input/input";
 import Button from "../../ui/button/button-brand";
-import { X } from "lucide-react";
-import Link from "next/link";
+import { Eye, EyeOff, X } from "lucide-react";
 import { baseUrl } from "@/lib/base-url";
 import { useUser } from "@/contexts/user-context";
 import { useLoading } from "@/contexts/loading-context";
@@ -23,6 +22,8 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase-config";
 import gglogo from "@public/images/gg+logo.png";
 import Image from "next/image";
+import PasswordForgetDialog from "../password-forget/password-forget";
+import CreateNewPassword from "../password-forget/create-newpass";
 
 export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     open: boolean;
@@ -37,6 +38,9 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     const [rememberMe, setRememberMe] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [openForgetPassword, setOpenForgetPassword] = React.useState(false);
+    const [openCreateNewPass, setOpenCreateNewPass] = React.useState(false);
+    const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState("");
 
     const handleLogin = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -81,62 +85,62 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
         }
     };
 
-       const handleGoogleLogin = async () => {
-            try {
-                const provider = new GoogleAuthProvider();
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                // Get user info from Google
-                const username = user.displayName || "";
-                const email = user.email || "";
-                const avatar = user.photoURL || "";
-                const providerID = user.uid;
-    
-                const now = new Date();
-                const day = String(now.getDate()).padStart(2, "0");
-                const month = String(now.getMonth() + 1).padStart(2, "0");
-                const year = String(now.getFullYear());
-                const userID = `USR${day}${month}${year}P`;
-    
-                // Send info to backend
-                const res = await fetch(`${baseUrl}/api/users/google`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        userID,
-                        username,
-                        email,
-                        avatar,
-                        providerID,
-                    }),
+    const handleGoogleLogin = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            // Get user info from Google
+            const username = user.displayName || "";
+            const email = user.email || "";
+            const avatar = user.photoURL || "";
+            const providerID = user.uid;
+
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year = String(now.getFullYear());
+            const userID = `USR${day}${month}${year}P`;
+
+            // Send info to backend
+            const res = await fetch(`${baseUrl}/api/users/google`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userID,
+                    username,
+                    email,
+                    avatar,
+                    providerID,
+                }),
+            });
+
+
+            const data = await res.json();
+            if (!res.ok) {
+                setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
+            } else {
+                setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
+                setUser({
+                    userID: data.user.userID,
+                    username: data.user.username,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
+                    token: data.token,
                 });
-    
-    
-                const data = await res.json();
-                if (!res.ok) {
-                    setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
-                } else {
-                    setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
-                    setUser({
-                        userID: data.user.userID,
-                        username: data.user.username,
-                        email: data.user.email,
-                        avatar: data.user.avatar,
-                        token: data.token,
-                    });
-                    localStorage.setItem("user", JSON.stringify({
-                        userID: data.user.userID,
-                        username: data.user.username,
-                        email: data.user.email,
-                        avatar: data.user.avatar,
-                        token: data.token,
-                    }));
-                }
-            } catch (error) {
-                console.error("Google login error:", error);
-                setErrorMsg("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+                localStorage.setItem("user", JSON.stringify({
+                    userID: data.user.userID,
+                    username: data.user.username,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
+                    token: data.token,
+                }));
             }
-        };
+        } catch (error) {
+            console.error("Google login error:", error);
+            setErrorMsg("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+        }
+    };
 
 
     return (
@@ -191,10 +195,11 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                         />
                         <button
                             type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-black bg-[rgba(0,0,0,.1)] hover:text-gray-700 px-3 rounded-xl py-1"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                            tabIndex={-1}
+                            onClick={() => setShowPassword(v => !v)}
                         >
-                            {showPassword ? "Ẩn" : "Hiện"}
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
 
@@ -209,12 +214,19 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                             />
                             Ghi nhớ tôi
                         </label>
-                        <Link
+                        <PasswordForgetDialog
+                            email={emailToGetConfirmCode}
+                            setEmail={setEmailToGetConfirmCode}
+                            open={openForgetPassword}
+                            setOpen={setOpenForgetPassword}
+                            setOpenCreateNewPass={setOpenCreateNewPass}
+                        />
+                        {/* <Link
                             href="/forgot-password"
                             className="text-sm text-green-700 hover:underline"
                         >
                             Quên mật khẩu?
-                        </Link>
+                        </Link> */}
                     </div>
                     {/* Success Message */}
                     {successMsg && (
@@ -228,7 +240,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                             {errorMsg}
                         </p>
                     )}
-                    
+
                     {/* Login Button */}
                     <div className="flex justify-center mt-4">
                         <Button
@@ -241,13 +253,16 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                         </Button>
                     </div>
+                    <button type="button" onClick={() => setOpenCreateNewPass(true)} className="text-sm text-green-700 hover:underline cursor-pointer w-full text-center">
+                        Mo xac nhan mat khau
+                    </button>
                 </form>
 
                 {/* Registration Prompt */}
                 <DialogFooter>
                     <p className="text-gray-600 text-center">
                         Bạn chưa có tài khoản?{" "}
-                        <button 
+                        <button
                             onClick={() => {
                                 setOpen(false);
                                 setOpenSignUpForm(true);
@@ -269,6 +284,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                     </button>
                 </DialogClose>
             </DialogContent>
+            <CreateNewPassword email={emailToGetConfirmCode} open={openCreateNewPass} setOpen={setOpenCreateNewPass} />
         </Dialog>
     );
 }

@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import { Input } from "@/components/ui/input/input";
-import Button from "@/components/ui/button/button-brand";
+import { Button } from "@/components/ui/button/button";
 import { Breadcrumb } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
-import { uploadAvatar } from "@/lib/upload-images";
+import { deleteOneImage, uploadAvatar } from "@/lib/upload-images";
 import { Eye, EyeOff } from "lucide-react";
+import PasswordForgetDialog from "@/components/section/password-forget/password-forget";
+import CreateNewPassword from "@/components/section/password-forget/create-newpass";
+import toast from "react-hot-toast";
 
 interface UserProfile {
     userID: string;
@@ -37,14 +40,17 @@ export default function UpdateUserProfilePage() {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string>("");
     const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [showPasswordFields, setShowPasswordFields] = useState(false);
+    // const [showPasswordFields, setShowPasswordFields] = useState(false);
     const [confirmingPassword, setConfirmingPassword] = useState(false);
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState("");
+    const [openForgetPassword, setOpenForgetPassword] = useState(false);
+    const [openCreateNewPass, setOpenCreateNewPass] = useState(false);
 
     // Fetch user info
     useEffect(() => {
@@ -95,15 +101,14 @@ export default function UpdateUserProfilePage() {
             });
             const data = await res.json();
             if (!res.ok) {
-                setErrorMsg(data.message || "Xác nhận mật khẩu cũ thất bại");
+                setErrorMsg("Mật khẩu cũ không chính xác, vui lòng thử lại.");
                 return false;
             } else {
                 console.log("Success message", data.message);
             }
-            alert("Mật khẩu cũ xác nhận thành công!");
             return true;
         } catch {
-            setErrorMsg("Lỗi xác nhận mật khẩu cũ");
+            setErrorMsg("Đã xảy ra lỗi khi xác nhận mật khẩu cũ, vui lòng thử lại.");
             return false;
         } finally {
             setConfirmingPassword(false);
@@ -114,9 +119,9 @@ export default function UpdateUserProfilePage() {
     const validate = () => {
         if (!form.username.trim()) return "Tên người dùng không được để trống";
         if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) return "Email không hợp lệ";
-        if (showPasswordFields) {
-            if (user?.password && !form.oldPassword) return "Vui lòng nhập mật khẩu cũ";
-            if (!form.newPassword || form.newPassword.length < 6) return "Mật khẩu mới phải từ 6 ký tự";
+        if (form.oldPassword !== "" || form.newPassword !== "" || form.confirmPassword !== "") {
+            if (form.oldPassword.length < 8) return "Mật khẩu cũ phải từ 8 ký tự";
+            if (!form.newPassword || form.newPassword.length < 8) return "Mật khẩu mới phải từ 8 ký tự";
             if (form.newPassword !== form.confirmPassword) return "Xác nhận mật khẩu mới không khớp";
         }
         return "";
@@ -126,26 +131,34 @@ export default function UpdateUserProfilePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg("");
-        setSuccessMsg("");
         const err = validate();
         if (err) {
             setErrorMsg(err);
             return;
         }
         setSubmitting(true);
+        let avatarUrl = form.avatar;
         try {
-            let avatarUrl = form.avatar;
             if (avatarFile) {
                 avatarUrl = await uploadAvatar(avatarFile);
+                deleteOneImage(form.avatar); // Delete old avatar if exists
             }
-            // If changing password, confirm old password first
-            if (showPasswordFields) {
-                const ok = await confirmOldPassword();
-                if (!ok) {
-                    setSubmitting(false);
-                    return;
-                }
+        } catch (error) {
+            console.error("Error uploading avatar:", error);
+            setErrorMsg("Lỗi tải ảnh đại diện");
+            setSubmitting(false);
+            return;
+        }
+        // If changing password, confirm old password first
+        if (form.oldPassword && form.newPassword && form.confirmPassword) {
+            const ok = await confirmOldPassword();
+            if (!ok) {
+                setSubmitting(false);
+                return;
             }
+        }
+
+        try {
             // Update user info
             const res = await fetch(`${baseUrl}/api/users/${userID}`, {
                 method: "PUT",
@@ -154,12 +167,15 @@ export default function UpdateUserProfilePage() {
                     username: form.username,
                     email: form.email,
                     avatar: avatarUrl,
-                    password: showPasswordFields ? form.newPassword : null,
+                    password: form.newPassword || null,
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || data.error || "Cập nhật thất bại");
-            setSuccessMsg("Cập nhật thông tin thành công!");
+            if (!res.ok) {
+                setErrorMsg(data.message || "Cập nhật thông tin người dùng thất bại, hãy thử lại!");
+                throw new Error(data.message || data.error || "Cập nhật thất bại"); 
+            }
+            toast.success("Cập nhật thông tin thành công!");
             setUser(data.user);
             setForm(f => ({
                 ...f,
@@ -167,11 +183,9 @@ export default function UpdateUserProfilePage() {
                 newPassword: "",
                 confirmPassword: "",
             }));
-            setShowPasswordFields(false);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            console.error("Update user error:", err);
-            setErrorMsg(err.message || "Có lỗi xảy ra");
+        } catch (error) {
+            console.error("Error updating user profile:", error);
+            // setErrorMsg("Có lỗi xảy ra khi cập nhật thông tin người dùng, hãy thử lại!");
         } finally {
             setSubmitting(false);
         }
@@ -181,74 +195,69 @@ export default function UpdateUserProfilePage() {
     if (!user) return <div className="p-8 text-center text-red-500">Không tìm thấy người dùng</div>;
 
     return (
-        <div className="max-w-xl mx-auto py-10">
+        <div className="px-6 py-10">
             <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
-
-            <h1 className="text-2xl font-bold mb-6 mt-6">Cập nhật hồ sơ người dùng</h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Avatar */}
-                <div className="flex items-center gap-4">
-                    <Image
-                        width={80}
-                        height={80}
-                        src={avatarPreview || "/avatar.png"}
-                        alt="avatar"
-                        className="w-20 h-20 rounded-full object-cover border"
-                    />
-                    <div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={handleAvatarChange}
+            <h1 className="text-2xl font-bold mb-6 mt-10">Cập nhật hồ sơ người dùng</h1>
+            <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
+                <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
+                    {/* Avatar */}
+                    <div className="flex items-center gap-x-4">
+                        <Image
+                            width={80}
+                            height={80}
+                            src={avatarPreview || "/avatar.png"}
+                            alt="avatar"
+                            className="w-25 h-25 rounded-full object-cover border bg-white"
                         />
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            Đổi ảnh đại diện
-                        </Button>
+                        <div className="flex flex-col gap-y-2">
+                            <span className="text-5xl font-semibold text-white drop-shadow-6xl">{user.username}</span>
+                            <p className="text-md text-gray-800 pl-1">{user.email}</p>
+                            <div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={handleAvatarChange}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="cursor-pointer bg-white hover:opacity-80 hover:bg-white"
+                                >
+                                    Đổi ảnh đại diện
+                                </Button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-                {/* Username */}
-                <div>
-                    <label className="block font-medium mb-1">Tên người dùng</label>
-                    <Input
-                        name="username"
-                        value={form.username}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                {/* Email */}
-                {user && !user.providerID && (
+                <form onSubmit={handleSubmit} className="space-y-6 p-6">
+                    {/* Username */}
                     <div>
-                        <label className="block font-medium mb-1">Email</label>
+                        <label className="block font-medium mb-1">Tên người dùng</label>
                         <Input
-                            name="email"
-                            type="email"
-                            value={form.email}
+                            name="username"
+                            value={form.username}
                             onChange={handleChange}
                             required
                         />
                     </div>
-                )}
-
-                {/* Change Password */}
-                <div>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowPasswordFields(v => !v)}
-                    >
-                        {showPasswordFields ? "Huỷ đổi mật khẩu" : "Đổi mật khẩu"}
-                    </Button>
-                </div>
-                {showPasswordFields && (
+                    {/* Email */}
+                    {user && !user.providerID && (
+                        <div>
+                            <label className="block font-medium mb-1">Email</label>
+                            <Input
+                                name="email"
+                                type="email"
+                                value={form.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    )}
                     <div className="space-y-4">
                         {user.password && (
                             <div>
@@ -259,7 +268,7 @@ export default function UpdateUserProfilePage() {
                                         type={showOldPassword ? "text" : "password"}
                                         value={form.oldPassword}
                                         onChange={handleChange}
-                                        required
+
                                     />
                                     <button
                                         type="button"
@@ -269,6 +278,15 @@ export default function UpdateUserProfilePage() {
                                     >
                                         {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
+                                </div>
+                                <div className="flex justify-end mt-4">
+                                    <PasswordForgetDialog
+                                        email={emailToGetConfirmCode}
+                                        setEmail={setEmailToGetConfirmCode}
+                                        open={openForgetPassword}
+                                        setOpen={setOpenForgetPassword}
+                                        setOpenCreateNewPass={setOpenCreateNewPass}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -281,7 +299,7 @@ export default function UpdateUserProfilePage() {
                                     type={showNewPassword ? "text" : "password"}
                                     value={form.newPassword}
                                     onChange={handleChange}
-                                    required
+
                                 />
                                 <button
                                     type="button"
@@ -301,7 +319,7 @@ export default function UpdateUserProfilePage() {
                                     type={showConfirmPassword ? "text" : "password"}
                                     value={form.confirmPassword}
                                     onChange={handleChange}
-                                    required
+
                                 />
                                 <button
                                     type="button"
@@ -314,21 +332,24 @@ export default function UpdateUserProfilePage() {
                             </div>
                         </div>
                     </div>
-                )}
-                {/* Error/Success */}
-                {errorMsg && <div className="text-red-500">{errorMsg}</div>}
-                {successMsg && <div className="text-green-600">{successMsg}</div>}
-                {/* Submit */}
-                <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    disabled={submitting || confirmingPassword}
-                    className="w-full"
-                >
-                    {submitting ? "Đang cập nhật..." : "Cập nhật"}
-                </Button>
-            </form>
+                    {/* )} */}
+                    {/* Error/Success */}
+                    {errorMsg && <div className="text-red-500">{errorMsg}</div>}
+                    {/* Submit */}
+                    <div className="flex justify-end">
+                        <Button
+                            type="submit"
+                            variant="default"
+                            size="sm"
+                            disabled={submitting || confirmingPassword}
+                            className=""
+                        >
+                            {submitting ? "Đang cập nhật..." : "Cập nhật"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+            <CreateNewPassword email={emailToGetConfirmCode} open={openCreateNewPass} setOpen={setOpenCreateNewPass} />
         </div>
     );
 }

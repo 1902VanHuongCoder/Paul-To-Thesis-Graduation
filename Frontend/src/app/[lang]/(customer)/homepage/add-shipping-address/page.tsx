@@ -5,6 +5,8 @@ import { useUser } from "@/contexts/user-context";
 import { baseUrl } from "@/lib/base-url";
 import { Breadcrumb } from "@/components";
 import Button from "@/components/ui/button/button-brand";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
+import toast from "react-hot-toast";
 
 export default function AddShippingAddressPage() {
     const { user } = useUser();
@@ -23,7 +25,6 @@ export default function AddShippingAddressPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [msg, setMsg] = useState("");
 
     // Fetch provinces
     useEffect(() => {
@@ -73,7 +74,6 @@ export default function AddShippingAddressPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMsg("");
         setLoading(true);
         try {
             const address = `${form.detailAddress}, ${form.ward}, ${form.district}, ${form.province}`;
@@ -91,7 +91,7 @@ export default function AddShippingAddressPage() {
                 const data = await res.json();
                 throw new Error(data.error || "Thêm địa chỉ thất bại");
             }
-            setMsg("Thêm địa chỉ thành công!");
+            toast.success("Thêm địa chỉ giao hàng thành công!");
             setForm({
                 province: "",
                 district: "",
@@ -108,104 +108,124 @@ export default function AddShippingAddressPage() {
     };
 
     return (
-        <div className="max-w-xl mx-auto py-10">
+        <div className="px-6 py-10">
             <Breadcrumb items={[
                 { label: "Trang chủ", href: "/" },
                 { label: "Thêm địa chỉ giao hàng" }
             ]} />
-            <h1 className="text-2xl font-bold mb-6 mt-6">Thêm địa chỉ giao hàng mới</h1>
-            <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded">
-                <div>
-                    <label className="block mb-1 font-medium">Tỉnh/Thành phố</label>
-                    <select
-                        name="province"
-                        value={form.province}
-                        onChange={handleChange}
-                        required
-                        className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="">Chọn tỉnh/thành phố</option>
-                        {provinces.map(p => (
-                            <option key={p.code} value={p.name}>{p.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block mb-1 font-medium">Quận/Huyện</label>
-                    <select
-                        name="district"
-                        value={form.district}
-                        onChange={handleChange}
-                        required
-                        className="w-full border rounded px-3 py-2"
-                        disabled={!form.province}
-                    >
-                        <option value="">Chọn quận/huyện</option>
-                        {districts.map(d => (
-                            <option key={d.code} value={d.name}>{d.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block mb-1 font-medium">Phường/Xã</label>
-                    <select
-                        name="ward"
-                        value={form.ward}
-                        onChange={handleChange}
-                        required
-                        className="w-full border rounded px-3 py-2"
-                        disabled={!form.district}
-                    >
-                        <option value="">Chọn phường/xã</option>
-                        {wards.map(w => (
-                            <option key={w.code} value={w.name}>{w.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block mb-1 font-medium">Địa chỉ cụ thể</label>
-                    <input
-                        type="text"
-                        name="detailAddress"
-                        className="w-full border rounded px-3 py-2"
-                        value={form.detailAddress}
-                        onChange={handleChange}
-                        required
-                        placeholder="Nhập số nhà, tên đường..."
-                    />
-                </div>
-                <div>
-                    <label className="block mb-1 font-medium">Số điện thoại</label>
-                    <input
-                        type="text"
-                        name="phone"
-                        className="w-full border rounded px-3 py-2"
-                        value={form.phone}
-                        onChange={handleChange}
-                        required
-                        placeholder="Nhập số điện thoại"
-                    />
-                </div>
-                <div className="flex items-center">
-                    <input
-                        type="checkbox"
-                        name="isDefault"
-                        id="isDefault"
-                        checked={form.isDefault}
-                        onChange={handleChange}
-                        className="mr-2"
-                    />
-                    <label htmlFor="isDefault">Đặt làm địa chỉ mặc định</label>
-                </div>
-                <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={loading}
-                >
-                    {loading ? "Đang lưu..." : "Thêm địa chỉ"}
-                </Button>
-                {msg && <div className="text-center text-sm mt-2">{msg}</div>}
-            </form>
+            <h1 className="text-2xl font-bold mb-6 mt-10">Thêm địa chỉ giao hàng mới</h1>
+            <div className="max-w-2xl mx-auto">
+                <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded">
+                    <div>
+                        <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
+                        <Select
+                            value={form.province}
+                            onValueChange={val => setForm(f => ({ ...f, province: val, district: "", ward: "" }))}
+                            required
+                            disabled={provinces.length === 0}
+                        >
+                            <SelectTrigger className="w-full border rounded px-3 py-2">
+                                <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                                <SelectGroup>
+                                    <SelectLabel>Tỉnh/Thành phố</SelectLabel>
+                                    {provinces.map(p => (
+                                        <SelectItem key={p.code} value={p.name}>{p.name}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <label className="block mb-1 font-normal text-sm text-black/40">Quận/Huyện</label>
+                        <Select
+                            value={form.district}
+                            onValueChange={val => setForm(f => ({ ...f, district: val, ward: "" }))}
+                            required
+                            disabled={!form.province}
+                        >
+                            <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.province}>
+                                <SelectValue placeholder="Chọn quận/huyện" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                                <SelectGroup>
+                                    <SelectLabel>Quận/Huyện</SelectLabel>
+                                    {districts.map(d => (
+                                        <SelectItem key={d.code} value={d.name}>{d.name}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <label className="block mb-1 font-normal text-sm text-black/40">Phường/Xã</label>
+                        <Select
+                            value={form.ward}
+                            onValueChange={val => setForm(f => ({ ...f, ward: val }))}
+                            required
+                            disabled={!form.district}
+                        >
+                            <SelectTrigger className="w-full border rounded px-3 py-2" disabled={!form.district}>
+                                <SelectValue placeholder="Chọn phường/xã" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                                <SelectGroup>
+                                    <SelectLabel>Phường/Xã</SelectLabel>
+                                    {wards.map(w => (
+                                        <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <label className="block mb-1 font-normal text-sm text-black/40">Địa chỉ cụ thể</label>
+                        <input
+                            type="text"
+                            name="detailAddress"
+                            className="w-full border rounded px-3 py-2"
+                            value={form.detailAddress}
+                            onChange={handleChange}
+                            required
+                            placeholder="Nhập số nhà, tên đường..."
+                        />
+                    </div>
+                    <div>
+                        <label className="block mb-1 font-normal text-sm text-black/40">Số điện thoại</label>
+                        <input
+                            type="text"
+                            name="phone"
+                            className="w-full border rounded px-3 py-2"
+                            value={form.phone}
+                            onChange={handleChange}
+                            required
+                            placeholder="Nhập số điện thoại"
+                        />
+                    </div>
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="isDefault"
+                            id="isDefault"
+                            checked={form.isDefault}
+                            onChange={handleChange}
+                            className="mr-2"
+                        />
+                        <label htmlFor="isDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>  
+                    <div className="flex justify-center mt-4">
+                        <Button
+                            type="submit"
+                            className=""
+                            disabled={loading}
+                        >
+                            {loading ? "Đang lưu..." : "Thêm địa chỉ"}
+                        </Button>
+                    </div>
+                  
+                </form>
+            </div>
         </div>
     );
 }
