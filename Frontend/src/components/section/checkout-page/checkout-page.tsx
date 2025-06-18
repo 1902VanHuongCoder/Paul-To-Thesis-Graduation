@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
+import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -77,6 +78,8 @@ export default function CheckoutPage() {
     const { checkoutData, setCheckoutData } = useCheckout();
     const [showPaypal, setShowPaypal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState("");
+    const [ openTermsAndPolicy, setOpenTermsAndPolicy ] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [promoCode, setPromoCode] = useState({
         code: "",
         discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
@@ -236,6 +239,11 @@ export default function CheckoutPage() {
 
     const onSubmit = async (data: CheckoutFormValues) => {
         if (!user) {
+            toast.error( "Bạn cần đăng nhập để đặt hàng.");
+            return;
+        }
+        if (!termsAccepted) {
+            toast.error("Bạn cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật để tiếp tục.");
             return;
         }
 
@@ -669,9 +677,17 @@ export default function CheckoutPage() {
                         </span>
                         <span>{formatVND(totalPayment)} VND</span>
                     </div>
-
-
-
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-600">
+                            <span>Đồng ý với </span><button className="font-semibold hover:underline cursor-pointer" onClick={() => setOpenTermsAndPolicy(true)}>Điều khoản và quy định</button>
+                        </span>
+                    </div>
                     {/* Place Order Button */}
                     <div className="flex justify-center">
                         {paymentMethod === "paypal" ? (
@@ -702,6 +718,7 @@ export default function CheckoutPage() {
                     </div>
                 </div>
             </div>
+            <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
         </div>
     );
 }

@@ -13,11 +13,13 @@ import { useRouter } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import toast from "react-hot-toast";
 import { useCheckout } from "@/contexts/checkout-context";
+import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";
 
 export default function CartPage() {
     const { cart, setCart, removeFromCart, updateCart } = useShoppingCart();
     const { checkoutData, setCheckoutData } = useCheckout();
     const { dictionary: d, lang } = useDictionary();
+    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false);
     // const { setCheckoutData} = useCheckout(); 
     const [promoCode, setPromoCode] = useState({
         code: "",
@@ -293,8 +295,7 @@ export default function CartPage() {
                             className="w-4 h-4"
                         />
                         <span className="text-sm text-gray-600">
-                            {
-                                d?.shoppingCartPageSumOrderTerms || "Tôi đồng ý với các điều khoản và điều kiện"}
+                            <span>Đồng ý với </span><button className="font-semibold hover:underline cursor-pointer" onClick={() => setOpenTermsAndPolicy(true)}>Điều khoản và quy định</button>
                         </span>
                     </div>
                     <div className="flex items-center gap-2 mt-4 flex-col">
@@ -309,15 +310,16 @@ export default function CartPage() {
                                 d?.shoppingCartPageSumOrderCheckout || "Thanh toán"
                             }
                         </Button>
-                        <a
-                            href="/shop"
+                        <button
+                            // href="/shop"
                             className="text-sm text-green-700 underline hover:text-green-800 block text-center mt-2"
                         >
                             {
                                 d?.shoppingCartPageSumOrderContinueShopping || "Tiếp tục mua sắm"
                             }
-                        </a>
+                        </button>
                     </div>
+                    <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
                 </div>
             </div>
         </div>

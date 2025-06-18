@@ -144,7 +144,7 @@ export default function Navigation() {
 
                         {/* Contact */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
+                            <Link href={`/${lang}/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
                                 {t?.navContact ? t.navContact : "Liên hệ"}
                             </Link>
                         </NavigationMenuItem>

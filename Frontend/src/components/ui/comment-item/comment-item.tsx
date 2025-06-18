@@ -41,7 +41,7 @@ export default function CommentItem({
                     <div>
                         <p className="font-bold text-gray-800">{name}</p>
                         <p className="text-sm text-gray-500">{date}</p>
-                        <div className="flex items-center mt-2">
+                        <div className={`flex items-center mt-2 ${rating === 0 ? 'hidden' : ''}`}>
                             {Array.from({ length: 5 }, (_, index) => {
                                 if (index < Math.floor(rating)) {
                                     // Full star

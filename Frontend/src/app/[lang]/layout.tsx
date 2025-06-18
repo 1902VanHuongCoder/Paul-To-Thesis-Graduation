@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import { Itim } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
+
 import { use } from "react";
 import { DictionaryProvider } from "@/contexts/dictonary-context";
 import { LoadingProvider } from "@/contexts/loading-context";

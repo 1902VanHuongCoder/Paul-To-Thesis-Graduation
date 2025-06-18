@@ -29,6 +29,7 @@ import { baseUrl } from "@/lib/base-url";
 import { Tag } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea/textarea";
 import { Button } from "@/components/ui/button/button";
+import { useUser } from "@/contexts/user-context";
 
 interface Author {
     username: string;
@@ -75,6 +76,7 @@ interface NewsDetail {
 export default function NewsDetailPage() {
     const { newsID } = useParams();
     const { lang } = useDictionary();
+    const { user } = useUser();
     const [news, setNews] = useState<NewsDetail | null>(null);
     const [otherNews, setOtherNews] = useState<NewsDetail[]>([]);
     const [loading, setLoading] = useState(true);
@@ -115,16 +117,17 @@ export default function NewsDetailPage() {
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newComment.trim() || !news) return;
+        if (!newComment.trim() || !news || !user) return;
+
         setSubmitting(true);
         try {
             // Replace with actual userID (e.g., from auth context)
-            const userID = 1;
+
             await fetch(`${baseUrl}/api/news-comment`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userID,
+                    userID: user.userID, // Assuming you have user context
                     newsID: news.newsID,
                     content: newComment,
                 }),
@@ -152,6 +155,11 @@ export default function NewsDetailPage() {
                 },
                 body: JSON.stringify({ action: "like" }),
             })
+            // Refetch comments (or optimistically update)
+            const res = await fetch(`${baseUrl}/api/news-comment/news/${news?.newsID}`);
+            const comments = await res.json();
+            setNews((prev) => prev ? { ...prev, comments } : prev);
+
         } catch (error) {
             console.log(error);
         }
@@ -165,7 +173,11 @@ export default function NewsDetailPage() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ action: "dislike" }),
-            })
+            });
+            // Refetch comments (or optimistically update)
+            const res = await fetch(`${baseUrl}/api/news-comment/news/${news?.newsID}`);
+            const comments = await res.json();
+            setNews((prev) => prev ? { ...prev, comments } : prev);
         } catch (error) {
             console.log(error);
         }
@@ -198,6 +210,7 @@ export default function NewsDetailPage() {
     return (
         <div className="py-10 px-6">
             <Breadcrumb
+                
                 items={[
                     { label: "Trang chủ", href: "/" },
                     { label: "Tin tức", href: `/${lang}/homepage/news` },
@@ -206,7 +219,7 @@ export default function NewsDetailPage() {
             />
 
             <div className="relative grid grid-cols-[1fr_400px] gap-6">
-                <div className="flex-1 overflow-y-auto h-screen pr-6">
+                <div className="flex-1 overflow-y-auto h-screen">
                     {/* Title and Title Image */}
                     <h1 className="text-3xl font-bold mt-6 mb-2">{news.title}</h1>
                     {/* Tags */}
@@ -243,10 +256,10 @@ export default function NewsDetailPage() {
                 <div className="shrink-0 sticky top-0 h-fit">
                     <h2 className="text-xl font-semibold mb-4">Những bài viết khác</h2>
                     <div className="grid gap-4">
-                        {otherNews.slice(0, 4).map((item) => (
+                        {otherNews.slice(0, 5).map((item) => (
                             <div
                                 key={item.newsID}
-                                className="p-4 border rounded hover:bg-gray-50 cursor-pointer flex gap-4"
+                                className="p-4 border rounded hover:bg-gray-100 cursor-pointer flex gap-4"
                             >
                                 <NextImage
                                     width={80}
@@ -272,7 +285,7 @@ export default function NewsDetailPage() {
                     </div>
                 </div>
             </div>
-            <hr />
+            <hr className="my-8"/>
             {/* Comment Section */}
             <div className="mt-8">
                 <h2 className="text-xl font-semibold mb-4">Bình luận về bài viết</h2>
@@ -311,7 +324,7 @@ export default function NewsDetailPage() {
                                 />
                             ))
                     ) : (
-                        <div className="text-gray-500">No comments yet.</div>
+                        <div className="text-gray-500">Chưa có bình luận nào cho bài đăng này.</div>
                     )}
                 </div>
             </div>

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import cornimage from '@public/images/Corn+Image.png';
 import { baseUrl } from "@/lib/base-url";
 import { useUser } from "@/contexts/user-context";
+import TermsAndPrivacyDialog from "@/components/section/terms-and-privacy-policy/terms-and-privacy-policy";
 
 interface ContactFormValues {
     name: string;
@@ -27,6 +28,7 @@ export default function ContactForm() {
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
+    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false);
 
     const onSubmit = async (data: ContactFormValues) => {
         setSuccessMsg("");
@@ -45,7 +47,7 @@ export default function ContactForm() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userID: user?.userID || "guest",
+                    userID: user?.userID,
                     subject,
                     message,
                 }),
@@ -68,7 +70,7 @@ export default function ContactForm() {
     };
 
     return (
-        <div className="w-[500px] bg-primary text-white p-8 rounded-lg relative font-sans">
+        <div className="min-w-[500px] bg-primary text-white p-8 rounded-lg relative font-sans">
             {/* Header Section */}
             <div className="mb-8 space-y-4">
                 <p className="text-yellow-400 text-lg font-mono">Trao niềm tin - nhận niềm vui</p>
@@ -91,7 +93,7 @@ export default function ContactForm() {
                             <FormControl>
                                 <Input
                                     type="text"
-                                    {...form.register("name", { required: "Name is required" })}
+                                    {...form.register("name", { required: "Tên không được để trống." })}
                                     className="w-full bg-white/10 rounded-full outline-none border-none h-11 focus:bg-white focus:text-black"
                                 />
                             </FormControl>
@@ -104,7 +106,7 @@ export default function ContactForm() {
                             <FormControl>
                                 <Input
                                     type="email"
-                                    {...form.register("email", { required: "Email is required" })}
+                                    {...form.register("email", { required: "Địa chỉ email không được để trống." })}
                                     className="w-full bg-white/10 rounded-full outline-none border-none h-11 focus:bg-white focus:text-black"
                                 />
                             </FormControl>
@@ -118,7 +120,7 @@ export default function ContactForm() {
                             <FormControl>
                                 <Input
                                     type="tel"
-                                    {...form.register("phone", { required: "Phone number is required" })}
+                                    {...form.register("phone", { required: "Số điện thoại không được để trống." })}
                                     className="w-full bg-white/10 rounded-full outline-none border-none h-11 focus:bg-white focus:text-black"
                                 />
                             </FormControl>
@@ -172,7 +174,7 @@ export default function ContactForm() {
                                     className="w-4 h-4 rounded-md bg-secondary/10 text-yellow-400"
                                 />
                                 <span className="text-sm">
-                                    Đồng ý với <a href="#" className="text-yellow-400 underline">điều khoản sử dụng</a>
+                                    <span>Đồng ý với </span><button onClick={() => setOpenTermsAndPolicy(true)} type="button" className="text-secondary hover:underline font-semibold cursor-pointer">Điều khoản và quy định</button>
                                 </span>
                             </label>
                         </FormControl>
@@ -190,7 +192,7 @@ export default function ContactForm() {
             </Form>
 
             {/* Illustration */}
-            <div className="absolute top-10 right-10 animate-bounce animate-infinite animate-duration-[2000ms] animate-ease-linear">
+            <div className="absolute top-10 right-10 animate-bounce animate-infinite duration-[9000ms] animate-ease-linear">
                 <Image
                     src={cornimage}
                     alt="Corn Illustration"
@@ -198,6 +200,7 @@ export default function ContactForm() {
                     height={140}
                 />
             </div>
+            <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
         </div>
     );
 }

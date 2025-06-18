@@ -4,13 +4,17 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
- getProductByID,
+  getProductByID,
+  getProductByName,
 } from "../controllers/productController";
 
 const router = express.Router();
 
 // GET all products
 router.get("/", getAllProducts);
+
+// GET products by product name
+router.get("/name", getProductByName);
 
 // GET a product by ID
 router.get("/:productID", getProductByID);
