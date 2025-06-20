@@ -14,16 +14,16 @@ const router = express.Router();
 router.get("/", getAllOrders);
 
 // GET a specific order by ID
-router.get("/:id", getOrderById);
+router.get("/:orderID", getOrderById);
 
 // POST a new order
 router.post("/", createOrder);
 
 // PUT (update) an existing order by ID
-router.put("/:id", updateOrder);
+router.put("/:orderID", updateOrder);
 
 // DELETE an order by ID
-router.delete("/:id", deleteOrder);
+router.delete("/:orderID", deleteOrder);
 
 // Get orders by user ID
 router.get("/history/:userID", getOrdersByUserID); 

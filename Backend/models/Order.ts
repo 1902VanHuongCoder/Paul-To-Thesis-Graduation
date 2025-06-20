@@ -17,6 +17,7 @@ class Order extends Model {
   public cartID!: number;
   public discount?: number;
   public deliveryCost?:number;
+  public orderStatus!: string;
 
   // timestamps!
   public readonly createdAt!: Date;

@@ -1,6 +1,28 @@
 import { Request, Response } from "express";
 import NewsComment from "../models/NewsComment";
 import User from "../models/User";
+// Get all comments for all news articles
+export const getAllNewsComment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const comments = await NewsComment.findAll({
+      include: [
+        {
+          model: User,
+          as: "user_comments",
+          attributes: ["userID", "username", "avatar"], // adjust as needed
+        },
+      ],
+      order: [["commentAt", "DESC"]],
+    });
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
 
 // Get all comments for a news article
 export const getCommentsByNewsID = async (req: Request, res: Response) => {

@@ -28,6 +28,7 @@ import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 import newsCommentRoutes from "./routes/newsCommentRoutes";
 import contactRoutes from "./routes/contactRoutes";
 import chatRoutes from "./routes/chatRoutes";
+import aboutRoutes from "./routes/aboutRoutes"; 
 
 import http from "http";
 import { Server } from "socket.io";
@@ -88,6 +89,7 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/news-comment", newsCommentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/chat", chatRoutes); 
+app.use("/api/about", aboutRoutes); 
 
 // Create HTTP server and integrate Socket.IO
 const server = http.createServer(app);

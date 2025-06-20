@@ -37,19 +37,15 @@ export default function ContactForm() {
         try {
             // Compose subject from dropdown and name/phone
             const subject = data.subject;
-            const message = `
-                Name: ${data.name}
-                Email: ${data.email}
-                Phone: ${data.phone}
-                Message: ${data.message}
-            `;
+
+
             const res = await fetch(`${baseUrl}/api/contact`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     userID: user?.userID,
                     subject,
-                    message,
+                    message: data.message,
                 }),
             });
             if (!res.ok) {
