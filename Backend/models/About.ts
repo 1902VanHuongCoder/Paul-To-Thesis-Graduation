@@ -14,6 +14,8 @@ class About extends Model {
   public companyFacebook!: string;
   public companyWorkingTime!: string;
   public companyImage!: string;
+  public termsAndPolicy!: string;
+  public isActive!: boolean;
 }
 
 About.init(
@@ -63,6 +65,16 @@ About.init(
         type: DataTypes.STRING,
         allowNull: true,
         },
+        termsAndPolicy: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        },
+        isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+        }
+        
     },
     {
         sequelize,
