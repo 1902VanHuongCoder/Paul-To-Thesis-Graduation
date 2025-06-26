@@ -9,6 +9,7 @@ import {
   Tag,
   User,
 } from "../models";
+import { Op } from "sequelize";
 
 export const getAllProducts = async (
   req: Request,
@@ -220,3 +221,38 @@ export const deleteProduct = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+
+// Get products by product name which is a query parameter
+export const getProductByName = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { name } = req.query;
+
+  if (!name || typeof name !== "string") {
+    res.status(400).json({ message: "Product name is required" });
+    return;
+  }
+
+  try {
+    const products = await Product.findAll({
+      where: {
+        productName: {
+          [Op.like]: `%${name}%`, // Use LIKE for partial matching
+        },
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (products.length === 0) {
+      res.status(404).json({ message: "No products found" });
+      return;
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products by name:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+}

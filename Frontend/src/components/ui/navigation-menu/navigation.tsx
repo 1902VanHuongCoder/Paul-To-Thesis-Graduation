@@ -63,7 +63,6 @@ interface Category {
 
 export default function Navigation() {
     const { user, logout } = useUser();
-    console.log("User:", user);
     const [categories, setCategories] = useState<Category[]>([]);
     const { lang, dictionary: t } = useDictionary();
     const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
@@ -94,7 +93,6 @@ export default function Navigation() {
             .then((res) => res.json())
             .then((data) => {
                 setCategories(data);
-                console.log("Categories:", data);
             }
             )
     }, []);
@@ -110,14 +108,14 @@ export default function Navigation() {
                     <NavigationMenuList>
                         {/* Home */}
                         <NavigationMenuItem>
-                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
                                 {t?.navHomepage ? t.navHomepage : "Trang chủ"}
                             </Link>
                         </NavigationMenuItem>
 
                         {/* Categories Dropdown */}
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="text-lg font-semibold">{t?.navCategory ? t.navCategory : "Danh mục"}</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="text-md font-semibold">{t?.navCategory ? t.navCategory : "Danh mục"}</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                                     {categories.map((category) => (
@@ -139,37 +137,39 @@ export default function Navigation() {
 
                         {/* News */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/news`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                            <Link href={`/${lang}/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
                                 {t?.navNews ? t.navNews : "Tin tức"}
                             </Link>
                         </NavigationMenuItem>
 
                         {/* Contact */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/contact`} className={cn(navigationMenuTriggerStyle(), "text-lg font-semibold")}>
+                            <Link href={`/${lang}/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
                                 {t?.navContact ? t.navContact : "Liên hệ"}
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>
                 <div className="items-center flex gap-x-4 w-full justify-center md:justify-end">
-                    {/* <div className="hidden md:block"><Button size="sm">Tìm hiểu ngay!</Button></div> */}
                     <LanguageSwitcher />
                     <div className="flex items-center gap-x-2">
-                        {/* <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M8.195 0c4.527 0 8.196 3.62 8.196 8.084a7.989 7.989 0 0 1-1.977 5.267l5.388 5.473a.686.686 0 0 1-.015.98a.71.71 0 0 1-.993-.014l-5.383-5.47a8.23 8.23 0 0 1-5.216 1.849C3.67 16.169 0 12.549 0 8.084C0 3.62 3.67 0 8.195 0Zm0 1.386c-3.75 0-6.79 2.999-6.79 6.698c0 3.7 3.04 6.699 6.79 6.699s6.791-3 6.791-6.699c0-3.7-3.04-6.698-6.79-6.698Z" /></svg>
-                        </span> */}
                         <SearchForm />
-                        {/* <span className="p-3 rounded-full bg-transparent border-[1px] border-solid border-primary/20"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8.5 19a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 8.5 19ZM19 16H7a1 1 0 0 1 0-2h8.491a3.013 3.013 0 0 0 2.885-2.176l1.585-5.55A1 1 0 0 0 19 5H6.74a3.007 3.007 0 0 0-2.82-2H3a1 1 0 0 0 0 2h.921a1.005 1.005 0 0 1 .962.725l.155.545v.005l1.641 5.742A3 3 0 0 0 7 18h12a1 1 0 0 0 0-2Zm-1.326-9l-1.22 4.274a1.005 1.005 0 0 1-.963.726H8.754l-.255-.892L7.326 7ZM16.5 19a1.5 1.5 0 1 0 1.5 1.5a1.5 1.5 0 0 0-1.5-1.5Z" /></svg></span> */}
-                        <ShoppingCart />
-                        <WishlistDialog
-                            wishlists={wishlists}
-                            onRemoveItemOutWishlist={(productID, customerID) => handleRemoveItem(productID, customerID)}
-                            onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
-                            clearAll={() => { }}
-                        />
+                        {
+                            user && (
+                                <>
+                                    <ShoppingCart />
+                                    <WishlistDialog
+                                        wishlists={wishlists}
+                                        onRemoveItemOutWishlist={(productID, customerID) => handleRemoveItem(productID, customerID)}
+                                        onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
+                                        clearAll={() => { }}
+                                    />
+                                </>
+                            )
+                        }
+
                         {user ? (
-                            <UserDrawer 
+                            <UserDrawer
                                 user={user}
                                 open={openUserDrawer}
                                 setOpen={() => setOpenUserDrawer(!openUserDrawer)}
@@ -179,16 +179,13 @@ export default function Navigation() {
                                     setOpenLoginForm(false);
                                 }} />
                         ) : (<>
-                            <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
                             <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
+                            <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
                         </>
 
                         )}
-
                     </div>
                     <MobileDrawer />
-                    {/* <div className="p-2 rounded-full bg-transparent md:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 1024 1024"><path fill="currentColor" d="M27 193.6c-8.2-8.2-12.2-18.6-12.2-31.2s4-23 12.2-31.2S45.6 119 58.2 119h912.4c12.6 0 23 4 31.2 12.2s12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2zm974.8 285.2c8.2 8.2 12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2S14.8 522.6 14.8 510s4-23 12.2-31.2s18.6-12.2 31.2-12.2h912.4c12.6 0 23 4 31.2 12.2zm0 347.4c8.2 8.2 12.2 18.6 12.2 31.2s-4 23-12.2 31.2s-18.6 12.2-31.2 12.2H58.2c-12.6 0-23-4-31.2-12.2S14.8 870 14.8 857.4s4-23 12.2-31.2S45.6 814 58.2 814h912.4c12.6 0 23 4.2 31.2 12.2z" /></svg>                </div> */}
                 </div>
             </div>
         </div>

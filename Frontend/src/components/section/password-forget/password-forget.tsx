@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
     Dialog,
     DialogTrigger,
@@ -12,62 +12,59 @@ import {
     DialogClose,
 } from "@/components/ui/dialog/dialog";
 import { Input } from "@/components/ui/input/input";
-import Button from "@/components/ui/button/button-brand";
+import { Button } from "@/components/ui/button/button";
 import { X } from "lucide-react";
 import { baseUrl } from "@/lib/base-url";
-import { useRouter } from "next/navigation";
-import { useDictionary } from "@/contexts/dictonary-context";
+import toast from "react-hot-toast";
 
-export default function PasswordForgetDialog({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
-    const [email, setEmail] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
-    const [codeSent, setCodeSent] = useState(false);
-    const { lang } = useDictionary();
-    const router = useRouter();
+export default function PasswordForgetDialog({ open, setOpen, email, setEmail, setOpenCreateNewPass }: { open: boolean, setOpen: (open: boolean) => void, email: string, setEmail: (email: string) => void, setOpenCreateNewPass: (open: boolean) => void }) {
 
     const handleSendCode = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        setErrorMsg("");
-        setSuccessMsg("");
-        setLoading(true);
-        try {
-            const res = await fetch(`${baseUrl}/api/users/forgot-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || data.error || "Không thể gửi mã xác nhận.");
-            } else {
-                setSuccessMsg("Mã xác nhận đã được gửi tới email của bạn!");
-                setCodeSent(true);
-                router.push(`/${lang}/homepage/forgot-password/recovery-password?email=${encodeURIComponent(email)}`); 
+        toast.promise(
+            new Promise(async (resolve, reject) => {
+                try {
+                    const res = await fetch(`${baseUrl}/api/users/forgot-password`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data.message || data.error || "Gửi mã xác nhận thất bại.");
+                    } else {
+                        resolve("Mã xác nhận đã được gửi đến email của bạn.");
+                        setOpenCreateNewPass(true); // Open checking confirm code and creating new password dialog
+                        setOpen(false); // Close the forget password dialog
+                    }
+                } catch (error) {
+                    reject(error);
+                }
+            }),
+            {
+                loading: "Đang gửi mã xác nhận đến email của bạn ...",
+                success: "Mã xác nhận đã được gửi thành công!",
+                error: "Gửi mã xác nhận thất bại. Vui lòng thử lại sau.",
             }
-        } catch (err) {
-            console.error("Error sending code:", err);
-        } finally {
-            setLoading(false);
-        }
+        )
+
     };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <button className="text-sm text-green-700 hover:underline cursor-pointer">
                     Quên mật khẩu?
-                </Button>
+                </button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="min-w-xl">
                 <DialogHeader>
                     <DialogTitle>Quên mật khẩu</DialogTitle>
                     <DialogDescription>
                         Nhập email của bạn để nhận mã xác nhận đặt lại mật khẩu.
                     </DialogDescription>
                 </DialogHeader>
-                <form className="space-y-4" onSubmit={handleSendCode}>
+                <form className="space-y-4">
                     <div>
                         <Input
                             type="email"
@@ -75,19 +72,19 @@ export default function PasswordForgetDialog({ open, setOpen }: { open: boolean,
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             required
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                         />
                     </div>
-                    {errorMsg && <div className="text-red-600 text-center">{errorMsg}</div>}
-                    {successMsg && <div className="text-green-600 text-center">{successMsg}</div>}
                     <DialogFooter>
                         <Button
-                            variant="primary"
-                            size="md"
-                            type="submit"
-                            className="w-full"
-                            disabled={loading || codeSent}
+                            onClick={handleSendCode}
+                            variant="default"
+                            size="default"
+                            type="button"
+                            className="w-full cursor-pointer"
+                            disabled={!email.trim()}
                         >
-                            {loading ? "Đang gửi..." : "Gửi mã xác nhận"}
+                            Gửi mã xác nhận đến email
                         </Button>
                     </DialogFooter>
                 </form>

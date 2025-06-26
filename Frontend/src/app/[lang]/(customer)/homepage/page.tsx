@@ -204,16 +204,16 @@ const Homepage = () => {
         fetchAll();
     }, []);
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                await fetch(`${baseUrl}/api/shopping-cart?customerID=1`).then((res) => res.json()).then((data) => console.log(data));
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-            }
-        }
-        fetchCategories();
-    }, []);
+    // useEffect(() => {
+    //     const fetchCategories = async () => {
+    //         try {
+    //             await fetch(`${baseUrl}/api/shopping-cart?customerID=1`).then((res) => res.json()).then((data) => console.log(data));
+    //         } catch (error) {
+    //             console.error("Error fetching categories:", error);
+    //         }
+    //     }
+    //     fetchCategories();
+    // }, []);
 
     // setLoading(true);
     return (
@@ -234,11 +234,11 @@ const Homepage = () => {
                 <div className="absolute -bottom-5 md:-bottom-7 left-0 w-full h-auto z-1">
                     <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" />
                 </div>
-                <button onClick={handleStopHeroAnimation} className="z-20 bg-white absolute right-10 bottom-16 flex items-center gap-x-2 py-2 px-4 rounded-md cursor-pointer group hover:bg-primary hover:shadow-lg hover:drop-shadow-amber-50 transition-all"><Hand className="group-hover:text-white" /> <span className="font-bold group-hover:text-white">{heroAnimation ? dictionary?.stopHeroAnimationButton || "Dừng hiệu ứng" : dictionary?.startHeroAnimationButton || "Chạy hiệu ứng"}</span></button>
+                <button onClick={handleStopHeroAnimation} className="z-20 bg-white absolute right-3 bottom-10 flex items-center gap-x-2 py-2 px-4 rounded-md cursor-pointer group hover:bg-primary hover:shadow-lg hover:drop-shadow-amber-50 transition-all"><Hand className="group-hover:text-white" /> <span className="font-bold group-hover:text-white">{heroAnimation ? dictionary?.stopHeroAnimationButton || "Dừng hiệu ứng" : dictionary?.startHeroAnimationButton || "Chạy hiệu ứng"}</span></button>
             </div>
 
             {/* Main content */}
-            <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:py-10 transition-all">
+            <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:pb-10 pt-5 transition-all">
                 {/* Filter kits group */}
                 <div className={`col-start-1 col-end-2 w-full max-w-full flex flex-col gap-y-6 md:max-h-fit  filter-kit-transition  ${showFilterKit ? "max-h-[1600px]" : "max-h-0"} ${showFilterKit ? "h-fit" : ""} origin-top overflow-hidden transition-all duration-300 px-1`}>
                     <CategoryFilter categories={categories} onCategorySelect={(categoryID) => handleCategoryFilter(categoryID)} />

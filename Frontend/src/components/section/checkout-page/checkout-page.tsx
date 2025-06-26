@@ -17,6 +17,8 @@ import PayPalButton from "@/components/ui/button/paypal-button";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
+import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -76,6 +78,8 @@ export default function CheckoutPage() {
     const { checkoutData, setCheckoutData } = useCheckout();
     const [showPaypal, setShowPaypal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState("");
+    const [ openTermsAndPolicy, setOpenTermsAndPolicy ] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [promoCode, setPromoCode] = useState({
         code: "",
         discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
@@ -235,6 +239,11 @@ export default function CheckoutPage() {
 
     const onSubmit = async (data: CheckoutFormValues) => {
         if (!user) {
+            toast.error( "Bạn cần đăng nhập để đặt hàng.");
+            return;
+        }
+        if (!termsAccepted) {
+            toast.error("Bạn cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật để tiếp tục.");
             return;
         }
 
@@ -389,7 +398,7 @@ export default function CheckoutPage() {
     }, [setCheckoutData]);
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 bg-white">
+        <div className="flex flex-col md:flex-row gap-8 bg-white mt-10">
             {/* Left Column – Billing Details Form */}
             <div className="flex-1">
 
@@ -445,25 +454,29 @@ export default function CheckoutPage() {
                                 {d?.checkoutPageProvince || "Tỉnh/Thành phố"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                                <select
-                                    {...methods.register("province", { required: d?.checkoutPageProvinceRequired || "Vui lòng chọn tỉnh/thành phố" })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    onChange={e => {
-                                        methods.setValue("province", e.target.value);
-                                        setSelectedProvince({ selectedProvince: e.target.value, code: provinces.find(p => p.name === e.target.value)?.code || "" });
+                                <Select
+                                    value={methods.watch("province")}
+                                    onValueChange={val => {
+                                        methods.setValue("province", val);
+                                        setSelectedProvince({ selectedProvince: val, code: provinces.find(p => p.name === val)?.code || "" });
                                         setSelectedDistrict("");
                                         methods.setValue("district", "");
                                         methods.setValue("ward", "");
                                     }}
-                                    value={methods.watch("province")}
+                                    disabled={provinces.length === 0}
                                 >
-                                    <option value="">{
-                                        d?.checkoutPageSelectProvince || "Chọn tỉnh/thành phố"
-                                    }</option>
-                                    {provinces.map(province => (
-                                        <option key={province.code} value={province.name}>{province.name}</option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <SelectValue placeholder={d?.checkoutPageSelectProvince || "Chọn tỉnh/thành phố"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-60">
+                                        <SelectGroup>
+                                            <SelectLabel>{d?.checkoutPageProvince || "Tỉnh/Thành phố"}</SelectLabel>
+                                            {provinces.map(province => (
+                                                <SelectItem key={province.code} value={province.name}>{province.name}</SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -472,22 +485,27 @@ export default function CheckoutPage() {
                                 {d?.checkoutPageDistrict || "Quận/Huyện"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                                <select
-                                    {...methods.register("district", { required: d?.checkoutPageDistrictRequired || "Vui lòng chọn quận/huyện" })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    onChange={e => {
-                                        methods.setValue("district", e.target.value);
-                                        setSelectedDistrict(e.target.value);
+                                <Select
+                                    value={methods.watch("district")}
+                                    onValueChange={val => {
+                                        methods.setValue("district", val);
+                                        setSelectedDistrict(val);
                                         methods.setValue("ward", "");
                                     }}
-                                    value={methods.watch("district")}
                                     disabled={!selectedProvince.selectedProvince}
                                 >
-                                    <option value="">{d?.checkoutPageSelectDistrict || "Vui lòng chọn quận/huyện"}</option>
-                                    {districts.map(district => (
-                                        <option key={district.code} value={district.name}>{district.name}</option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled={!selectedProvince.selectedProvince}>
+                                        <SelectValue placeholder={d?.checkoutPageSelectDistrict || "Vui lòng chọn quận/huyện"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-60">
+                                        <SelectGroup>
+                                            <SelectLabel>{d?.checkoutPageDistrict || "Quận/Huyện"}</SelectLabel>
+                                            {districts.map(district => (
+                                                <SelectItem key={district.code} value={district.name}>{district.name}</SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -496,18 +514,23 @@ export default function CheckoutPage() {
                                 {d?.checkoutPageWard || "Phường/Xã"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                                <select
-                                    {...methods.register("ward", { required: d?.checkoutPageWardRequired || "Vui lòng chọn phường/xã" })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    disabled={!selectedDistrict}
+                                <Select
                                     value={methods.watch("ward")}
-                                    onChange={e => methods.setValue("ward", e.target.value)}
+                                    onValueChange={val => methods.setValue("ward", val)}
+                                    disabled={!selectedDistrict}
                                 >
-                                    <option value="">{d?.checkoutPageSelectWard || "Chọn phường/xã"}</option>
-                                    {wards.map(ward => (
-                                        <option key={ward.code} value={ward.name}>{ward.name}</option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled={!selectedDistrict}>
+                                        <SelectValue placeholder={d?.checkoutPageSelectWard || "Chọn phường/xã"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-60">
+                                        <SelectGroup>
+                                            <SelectLabel>{d?.checkoutPageWard || "Phường/Xã"}</SelectLabel>
+                                            {wards.map(ward => (
+                                                <SelectItem key={ward.code} value={ward.name}>{ward.name}</SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -654,9 +677,17 @@ export default function CheckoutPage() {
                         </span>
                         <span>{formatVND(totalPayment)} VND</span>
                     </div>
-
-
-
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-600">
+                            <span>Đồng ý với </span><button className="font-semibold hover:underline cursor-pointer" onClick={() => setOpenTermsAndPolicy(true)}>Điều khoản và quy định</button>
+                        </span>
+                    </div>
                     {/* Place Order Button */}
                     <div className="flex justify-center">
                         {paymentMethod === "paypal" ? (
@@ -687,6 +718,7 @@ export default function CheckoutPage() {
                     </div>
                 </div>
             </div>
+            <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
         </div>
     );
 }

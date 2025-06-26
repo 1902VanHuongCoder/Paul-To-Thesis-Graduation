@@ -40,10 +40,10 @@ export const getOrderById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { id } = req.params;
+  const { orderID } = req.params;
 
   try {
-    const order = await Order.findByPk(id, {
+    const order = await Order.findByPk(orderID, {
       include: [
         { model: User, as: "user" },
         { model: Delivery, as: "delivery" },
@@ -188,7 +188,7 @@ export const updateOrder = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { id } = req.params;
+  const { orderID } = req.params;
   const {
     userID,
     fullName,
@@ -202,12 +202,13 @@ export const updateOrder = async (
     note,
     discount,
     products,
+    orderStatus,
   } = req.body;
 
   const t = await Order.sequelize?.transaction();
 
   try {
-    const order = await Order.findByPk(id);
+    const order = await Order.findByPk(orderID);
 
     if (!order) {
       res.status(404).json({ message: "Order not found" });
@@ -228,27 +229,29 @@ export const updateOrder = async (
         totalQuantity,
         note,
         discount,
+        // ...order,
+        orderStatus,
       },
       { transaction: t }
     );
 
-    // Handle products associated with the order
-    if (products && Array.isArray(products)) {
-      // Delete existing product associations
-      await OrderProduct.destroy({ where: { orderID: id }, transaction: t });
+    // // Handle products associated with the order
+    // if (products && Array.isArray(products)) {
+    //   // Delete existing product associations
+    //   await OrderProduct.destroy({ where: { orderID: id }, transaction: t });
 
-      // Add updated product associations
-      const orderProducts = products.map(
-        (product: { productID: number; quantity: number; price: number }) => ({
-          orderID: id,
-          productID: product.productID,
-          quantity: product.quantity,
-          price: product.price,
-        })
-      );
+    //   // Add updated product associations
+    //   const orderProducts = products.map(
+    //     (product: { productID: number; quantity: number; price: number }) => ({
+    //       orderID: id,
+    //       productID: product.productID,
+    //       quantity: product.quantity,
+    //       price: product.price,
+    //     })
+    //   );
 
-      await OrderProduct.bulkCreate(orderProducts, { transaction: t });
-    }
+    //   await OrderProduct.bulkCreate(orderProducts, { transaction: t });
+    // }
 
     await t?.commit();
     res.status(200).json({ message: "Order updated successfully", order });
@@ -264,12 +267,12 @@ export const deleteOrder = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { id } = req.params;
+  const { orderID } = req.params;
 
   const t = await Order.sequelize?.transaction();
 
   try {
-    const order = await Order.findByPk(id);
+    const order = await Order.findByPk(orderID);
 
     if (!order) {
       res.status(404).json({ message: "Order not found" });
@@ -277,7 +280,7 @@ export const deleteOrder = async (
     }
 
     // Delete associated products
-    await OrderProduct.destroy({ where: { orderID: id }, transaction: t });
+    await OrderProduct.destroy({ where: { orderID: orderID }, transaction: t });
 
     // Delete the order
     await order.destroy({ transaction: t });

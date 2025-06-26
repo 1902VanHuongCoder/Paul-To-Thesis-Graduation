@@ -42,7 +42,6 @@ const PayPalButton = ({amount}: {amount: number}) => {
                     return actions.order.capture().then((details) => {
                         console.log("Transaction completed by " + (details.payer?.name?.given_name || "Unknown"));
                         router.push(`/${lang}/homepage/checkout/paypal-return?orderID=${checkoutData?.orderID}`);
-                        alert("Payment Successful!");
                     });
                 }}
                 onError={(err) => {

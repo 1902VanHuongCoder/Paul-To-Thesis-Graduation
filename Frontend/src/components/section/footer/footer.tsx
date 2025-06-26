@@ -5,22 +5,49 @@ import lightlogo from "@public/images/light+logo.png";
 import grazzvector from "@public/vectors/Grazz+vector.png";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Link from "next/link";
-// interface NewsProps {
-//     newsID: number,
-//     newsTitle: string,
-//     newsImage: string,
-//     createdAt: string,
-// }
+import formatDate from "@/lib/format-date";
+import { baseUrl } from "@/lib/base-url";
+
+type News = {
+    newsID: number;
+    title: string;
+    subtitle?: string | null;
+    titleImageUrl?: string | null;
+    slug?: string;
+    isPublished: boolean;
+    isDraft: boolean;
+    views: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
 function Footerdemo({ }) {
     const { dictionary, lang } = useDictionary();
+    const [news, setNews] = React.useState<News[]>([]);
+
+    React.useEffect(() => {
+        // Fetch news data from the API
+        const fetchNews = async () => {
+            try {
+                const response = await fetch(`${baseUrl}/api/news`);
+                const data = await response.json();
+                setNews(data);
+            } catch (error) {
+                console.error("Error fetching news:", error);
+            }
+        };
+
+        fetchNews();
+    }, [lang]);
+
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans">
-            <div className="absolute -top-1 md:-top-3 overflow-hidden w-full">
-                <Image src={grazzvector} alt="Grazz Vector" className="w-full h-full object-contain" />
+            <div className="absolute -top-1 md:-top-3 overflow-hidden w-full h-fit">
+                <Image src={grazzvector} width={800} height={1000} alt="Grazz Vector" className="w-full h-full object-cover" />
             </div>
-            <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
+            <div className="container px-4 py-12 w-full mx-auto">
                 <div className="flex flex-col gap-y-4 md:flex-row items-start md:items-center justify-between border-b-[1px] border-dashed border-white/40 pb-8">
-                    <Image src={lightlogo} width={200} alt="logo" />
+                    <Image src={lightlogo} width={200} height={200} alt="logo" />
                     <p className="text-white text-xl font-mono uppercase">{dictionary?.footerMoto || "TRAO NIỀM TIN NHẬN TÀI LỘC"}</p>
                     <div className="flex items-center gap-4 justify-center rounded-full">
                         <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white text-brown p-2 bg-secondary rounded-full">
@@ -66,27 +93,25 @@ function Footerdemo({ }) {
                     <div>
                         <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerNewestProductTitle || "Bài đăng mới"}</h3>
                         <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-[70px] h-[50px] bg-white rounded-md"></div>
-                                <div className="text-sm">
-                                    <p className="hover:text-white/60 cursor-pointer max-w-fit">5 Phương Pháp Giúp Cây Lúa Phát Triển Tốt Không Sợ Sâu Bệnh</p>
-                                    <p className="text-secondary">30/04/2025</p>
+                            {news.slice(0, 3).map((item) => (
+                                <div key={item.newsID} className="flex items-center gap-2 mb-4">
+                                    <div className="min-w-[50px] h-[50px] bg-white rounded-md">
+                                        {item.titleImageUrl && (
+                                            <Image
+                                                src={item.titleImageUrl}
+                                                alt={item.title}
+                                                width={50}
+                                                height={50}
+                                                className="w-full h-full object-cover rounded-md"
+                                            />
+                                        )}
+                                    </div>
+                                    <div className="text-sm">
+                                        <p className="hover:text-white/60 cursor-pointer uppercase text-[12px]">{item.title}</p>
+                                        <p className="text-secondary">{formatDate(item.createdAt)}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-[70px] h-[50px] bg-white rounded-md"></div>
-                                <div className="text-sm">
-                                    <p className="hover:text-white/60 cursor-pointer max-w-fit">5 Phương Pháp Giúp Cây Lúa Phát Triển Tốt Không Sợ Sâu Bệnh</p>
-                                    <p className="text-secondary">30/04/2025</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-[70px] h-[50px] bg-white rounded-md"></div>
-                                <div className="text-sm">
-                                    <p className="hover:text-white/60 cursor-pointer max-w-fit">5 Phương Pháp Giúp Cây Lúa Phát Triển Tốt Không Sợ Sâu Bệnh</p>
-                                    <p className="text-secondary">30/04/2025</p>
-                                </div>
-                            </div>
+                            ))}                    
                         </div>
                     </div>
                     <div className="relative">
@@ -102,17 +127,6 @@ function Footerdemo({ }) {
                     <p className="text-sm text-muted-foreground">
                         © 2024 NFeamHouse. All rights reserved.
                     </p>
-                    {/* <nav className="flex gap-4 text-sm">
-                        <a href="#" className="transition-colors hover:text-primary">
-                            Privacy Policy
-                        </a>
-                        <a href="#" className="transition-colors hover:text-primary">
-                            Terms of Service
-                        </a>
-                        <a href="#" className="transition-colors hover:text-primary">
-                            Cookie Settings
-                        </a>
-                    </nav> */}
                 </div>
             </div>
         </footer>

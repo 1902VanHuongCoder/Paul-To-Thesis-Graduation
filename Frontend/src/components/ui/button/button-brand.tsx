@@ -15,7 +15,7 @@ export default function Button({
 }: ButtonProps) {
   // Base styles
   const baseStyles =
-    "group rounded-full flex items-center gap-x-4 font-bold font-sans focus:outline-none transition overflow-hidden cursor-pointer duration-200";
+    "group rounded-full flex items-center gap-x-2 font-bold font-sans focus:outline-none transition overflow-hidden cursor-pointer duration-200";
 
   // Variant styles
   const variantStyles = {
@@ -54,7 +54,7 @@ export default function Button({
       )}
       {...props}
     >
-      <span className="relative z-2 group-hover:text-primary transition-all duration-500 pl-3 capitalize">
+      <span className="relative z-2 group-hover:text-primary transition-all duration-500 pl-2 capitalize">
         {children}
       </span>
       {variant !== "normal" && (

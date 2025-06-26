@@ -18,12 +18,12 @@ import { baseUrl } from "@/lib/base-url";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase-config";
 import { useUser } from "@/contexts/user-context";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
+import { Label } from "@radix-ui/react-label";
+import toast from "react-hot-toast";
 
-// Google OAuth (you may use next-auth or your own logic)
-// const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || "#";
-
-export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boolean, setOpen: (open: boolean) => void, setOpenLoginForm: (open: boolean) => void}) {
-    const {setUser } = useUser(); 
+export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: boolean, setOpen: (open: boolean) => void, setOpenLoginForm: (open: boolean) => void }) {
+    const { setUser } = useUser();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -33,15 +33,18 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
     const [district, setDistrict] = useState("");
     const [ward, setWard] = useState("");
     const [detailAddress, setDetailAddress] = useState("");
+
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [provinces, setProvinces] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [districts, setDistricts] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
+
+
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
 
     // Fetch provinces
     useEffect(() => {
@@ -82,13 +85,12 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
     const handleRegister = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         setErrorMsg("");
-        setSuccessMsg("");
-        if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim() || !phone.trim() || !province || !district || !ward || !detailAddress.trim()) {
-            setErrorMsg("Vui lòng nhập đầy đủ thông tin.");
+        if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim() || !phone.trim() || !province || !district || !ward) {
+            setErrorMsg("Vui lòng nhập đầy đủ thông tin");
             return;
         }
         if (password !== confirmPassword) {
-            setErrorMsg("Mật khẩu không khớp.");
+            setErrorMsg("Mật khẩu không khớp");
             return;
         }
         setLoading(true);
@@ -97,20 +99,9 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
             const day = String(now.getDate()).padStart(2, "0");
             const month = String(now.getMonth() + 1).padStart(2, "0");
             const year = String(now.getFullYear());
-            const userID = `USR${day}${month}${year}L`;
-
-            console.log({
-                userID,
-                username,
-                email,
-                password,
-                role: "customer",
-                shippingAddress: {
-                    address: `${detailAddress}, ${ward}, ${district}, ${province}`,
-                    phone,
-                    isDefault: true,
-                },
-            })
+            // generate 4 random number
+            const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+            const userID = `USR${day}${month}${year}${randomNumber}L`;
             const res = await fetch(`${baseUrl}/api/users/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -119,7 +110,7 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
                     username,
                     email,
                     password,
-                    role: "customer",
+                    role: "cus",
                     shippingAddress: {
                         address: `${detailAddress}, ${ward}, ${district}, ${province}`,
                         phone,
@@ -129,9 +120,9 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
             });
             const data = await res.json();
             if (!res.ok) {
-                setErrorMsg(data.message || data.error || "Đăng ký thất bại.");
+                setErrorMsg(data.message || "Đăng ký thất bại");
             } else {
-                setSuccessMsg("Đăng ký thành công! Vui lòng đăng nhập.");
+                toast.success("Đăng ký thành công! Vui lòng đăng nhập");
                 setUsername("");
                 setEmail("");
                 setPassword("");
@@ -144,7 +135,7 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
             }
         } catch (err) {
             console.error("Error during registration:", err);
-            setErrorMsg("Có lỗi xảy ra. Vui lòng thử lại.");
+            setErrorMsg("Có lỗi xảy ra. Vui lòng thử lại");
         } finally {
             setLoading(false);
         }
@@ -180,13 +171,12 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
                 }),
             });
 
-            
+
             const data = await res.json();
             if (!res.ok) {
                 setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
             } else {
                 console.log("Google login success:", data);
-                setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
                 setUser({
                     userID: data.user.userID,
                     username: data.user.username,
@@ -206,160 +196,245 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
             console.error("Google login error:", error);
             setErrorMsg("Google login failed. Please try again.");
         }
-      };
+    };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen} >
             <DialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button variant="primary" size="sm">
-                    Open Sign Up
+                <Button variant="normal" size="sm" className="py-3">
+                    Đăng ký
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-screen sm:max-w-6xl">
                 <DialogHeader>
-                    <DialogTitle>Register</DialogTitle>
+                    <DialogTitle className="text-2xl">Đăng ký</DialogTitle>
                     <DialogDescription>
-                        Register for a farm account to enjoy exclusive privileges!
+                        Vui lòng điền thông tin để tạo tài khoản mới.
                     </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4" onSubmit={handleRegister}>
+                    <div className="flex flex-row gap-x-4">
+                        {/* Username */}
+                        <div className="w-full">
+                            <Label htmlFor="username" className="block mb-1 font-normal text-sm pl-1 pb-1">Tên người dùng <span className="text-red-500">*</span></Label>
+                            <Input
+                                autoComplete="username"
+                                id="username"
+                                type="text"
+                                placeholder="Tên người dùng"
+                                value={username}
+                                className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                            {username && username.length < 3 && (
+                                <span className="text-red-500 text-sm pl-1">Tên người dùng phải có ít nhất 3 ký tự.</span>
+                            )}
+                        </div>
+                        {/* Email */}
+                        <div className="w-full">
+                            <Label htmlFor="email" className="block mb-1 font-normal text-sm pl-1 pb-1">Email <span className="text-red-500">*</span></Label>
+                            <Input
+                                autoComplete="email"
+                                id="email"
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                            />
+                            {email && !/^\S+@\S+\.\S+$/.test(email) && (
+                                <span className="text-red-500 text-sm pl-1">Email không hợp lệ.</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-row gap-x-4">
+                        {/* Password */}
+                        <div className="w-full">
+                            <Label htmlFor="password" className="block mb-1 font-normal text-sm pl-1 pb-1">Mật khẩu <span className="text-red-500">*</span></Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                autoComplete="password"
+                                placeholder="Mật khẩu"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                            />
+                            {password && password.length < 6 && (
+                                <span className="text-red-500 text-sm pl-1">Mật khẩu phải có ít nhất 6 ký tự.</span>
+                            )}
+                        </div>
+                        {/* Confirm Password */}
+                        <div className="w-full">
+                            <Label htmlFor="confirmPassword" className="block mb-1 font-normal text-sm pl-1 pb-1">Xác nhận mật khẩu <span className="text-red-500">*</span></Label>
+                            <Input
+                                id="confirmPassword"
+                                autoComplete="confirm-password"
+                                type="password"
+                                placeholder="Xác nhận mật khẩu"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                            />
+                            {confirmPassword && confirmPassword !== password && (
+                                <span className="text-red-500 text-sm pl-1">Mật khẩu xác nhận không khớp.</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-row gap-x-4">
+                        {/* Phone */}
+                        <div className="w-full">
+                            <Label htmlFor="phone" className="block mb-1 font-normal text-sm pl-1 pb-1">Số điện thoại <span className="text-red-500">*</span></Label>
+                            <Input
+                                autoComplete="tel"
+                                id="phone"
+                                type="text"
+                                placeholder="Số điện thoại"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                required
+                                className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                            />
+                            {phone && !/^0\d{9,10}$/.test(phone) && (
+                                <span className="text-red-500 text-sm pl-1">Số điện thoại không hợp lệ.</span>
+                            )}
+                        </div>
+                        {/* Province */}
+                        <div className="w-full">
+                            <Label htmlFor="province" className="block mb-1 font-normal text-sm pl-1 pb-1">Tỉnh/Thành phố <span className="text-red-500">*</span></Label>
+                            <Select
+                                value={province}
+                                onValueChange={val => {
+                                    setProvince(val);
+                                    setDistrict("");
+                                    setWard("");
+                                }}
+                            >
+                                <SelectTrigger id="province" className="w-full pl-4 pr-3 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white">
+                                    <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-60">
+                                    <SelectGroup>
+                                        <SelectLabel>Tỉnh/Thành phố</SelectLabel>
+                                        {provinces.map(p => (
+                                            <SelectItem key={p.code} value={p.name}>
+                                                {p.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {!province && <span className="text-red-500 text-sm pl-1">Vui lòng chọn tỉnh/thành phố</span>}
+                        </div>
+                        <div className="w-full">
+                            <Label htmlFor="district" className="block mb-1 font-normal text-sm pl-1 pb-1">Quận/Huyện <span className="text-red-500">*</span></Label>
+                            <Select
+                                value={district}
+                                onValueChange={val => {
+                                    setDistrict(val);
+                                    setWard("");
+                                }}
+                                disabled={!province}
+                            >
+                                <SelectTrigger id="district" className="w-full pl-4 pr-3 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!province}>
+                                    <SelectValue placeholder="Chọn quận/huyện" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-60">
+                                    <SelectGroup>
+                                        <SelectLabel>Quận/Huyện</SelectLabel>
+                                        {districts.map(d => (
+                                            <SelectItem key={d.code} value={d.name}>
+                                                {d.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {province && !district && <span className="text-red-500 text-sm pl-1">Vui lòng chọn quận/huyện</span>}
+                        </div>
+                        {/* Ward */}
+                        <div className="w-full">
+                            <Label htmlFor="ward" className="block mb-1 font-normal text-sm pl-1 pb-1">Phường/Xã <span className="text-red-500">*</span></Label>
+                            <Select
+                                value={ward}
+                                onValueChange={val => setWard(val)}
+                                disabled={!district}
+                            >
+                                <SelectTrigger id="ward" className="w-full pl-4 pr-3 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!district}>
+                                    <SelectValue placeholder="Chọn phường/xã" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-60">
+                                    <SelectGroup>
+                                        <SelectLabel>Phường/Xã</SelectLabel>
+                                        {wards.map(w => (
+                                            <SelectItem key={w.code} value={w.name}>
+                                                {w.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {district && !ward && <span className="text-red-500 text-sm pl-1">Vui lòng chọn phường/xã</span>}
+                        </div>
+                    </div>
+                    {/* Detail Address */}
                     <div>
+                        <Label htmlFor="detailAddress" className="block mb-1 font-normal text-sm pl-1 pb-1">Địa chỉ cụ thể <span className="text-red-500">*</span></Label>
                         <Input
+                            id="detailAddress"
                             type="text"
-                            placeholder="Username *"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Input
-                            type="email"
-                            placeholder="Email *"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Input
-                            type="password"
-                            placeholder="Password *"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Input
-                            type="password"
-                            placeholder="Confirm Password *"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <Input
-                            type="text"
-                            placeholder="Phone *"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            required
-                        />
-                    </div>
-                    {/* Address selection */}
-                    <div>
-                        <select
-                            value={province}
-                            onChange={e => {
-                                setProvince(e.target.value);
-                                setDistrict("");
-                                setWard("");
-                            }}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        >
-                            <option value="">Chọn tỉnh/thành phố *</option>
-                            {provinces.map(p => (
-                                <option key={p.code} value={p.name}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <select
-                            value={district}
-                            onChange={e => {
-                                setDistrict(e.target.value);
-                                setWard("");
-                            }}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                            disabled={!province}
-                        >
-                            <option value="">Chọn quận/huyện *</option>
-                            {districts.map(d => (
-                                <option key={d.code} value={d.name}>{d.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <select
-                            value={ward}
-                            onChange={e => setWard(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                            disabled={!district}
-                        >
-                            <option value="">Chọn phường/xã *</option>
-                            {wards.map(w => (
-                                <option key={w.code} value={w.name}>{w.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <Input
-                            type="text"
-                            placeholder="Địa chỉ cụ thể (số nhà, tên đường...) *"
+                            placeholder="Địa chỉ cụ thể (số nhà, tên đường...)"
                             value={detailAddress}
                             onChange={(e) => setDetailAddress(e.target.value)}
                             required
+                            className="w-full px-4 py-5 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
                         />
+                        {detailAddress && detailAddress.length < 5 && (
+                            <span className="text-red-500 text-sm pl-1">Địa chỉ phải có ít nhất 5 ký tự.</span>
+                        )}
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <Button
-                            variant="normal"
-                            size="md"
-                            className="flex justify-center px-6 items-center bg-primary text-white hover:bg-secondary hover:border-secondary"
-                            type="submit"
-                            disabled={loading}
-                        >
-                            {loading ? "Đang đăng ký..." : "Đăng ký"}
-                        </Button>
+                    {errorMsg && <div className="text-red-600">{errorMsg}</div>}
+                    <div className="flex flex-row gap-2 justify-center">
                         <Button
                             variant="outline"
                             size="md"
-                            className="flex justify-center px-6 items-center border border-gray-300"
+                            className="flex justify-center items-center bg-white text-gray-800 hover:bg-gray-100 hover:border-gray-300"
                             type="button"
                             onClick={handleGoogleLogin}
                         >
                             Đăng ký với Google
                         </Button>
-                        {errorMsg && <div className="text-red-600 text-center">{errorMsg}</div>}
-                        {successMsg && <div className="text-green-600 text-center">{successMsg}</div>}
+                        <Button
+                            variant="normal"
+                            size="md"
+                            className="flex justify-center pr-4 items-center bg-primary text-white hover:bg-secondary hover:border-secondary"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? "Đang đăng ký..." : "Đăng ký"}
+                        </Button>
                     </div>
+
                 </form>
+
+
                 <DialogFooter>
                     <p className="text-gray-600 text-center">
-                        Do you already have an account?{" "}
+                        Bạn đã có tài khoản?{" "}
                         <button
                             onClick={() => {
                                 setOpen(false);
                                 setOpenLoginForm(true);
                             }}
-                            className="text-green-700 font-medium hover:underline"
+                            className="text-green-700 font-medium hover:underline cursor-pointer"
                         >
-                            Login
+                            Đăng nhập
                         </button>
                     </p>
                 </DialogFooter>
@@ -371,6 +446,7 @@ export default function SignUpForm({open, setOpen, setOpenLoginForm}: {open: boo
                         <X />
                     </button>
                 </DialogClose>
+
             </DialogContent>
         </Dialog>
     );

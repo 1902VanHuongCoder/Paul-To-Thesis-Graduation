@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { PlayCircle, Tag, MessageSquare, Eye, Share2, CircleUser } from "lucide-react";
+import { Tag, MessageSquare, Eye, Share2, CircleUser } from "lucide-react";
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 
@@ -34,21 +34,21 @@ export default function NewsItem({
     return (
         <div className="flex flex-col md:flex-row gap-6 bg-white rounded-lg border-1 border-solid border-primary/10 p-4 items-stretch">
             {/* Left Section: Image and Play Button */}
-            <div className="relative w-full md:w-1/3">
+            <div className="relative w-full md:w-1/3" onClick={onReadMore}>
                 <Image
                     src={image}
                     alt="News thumbnail"
-                    className="rounded-lg object-cover w-full h-full"
+                    className="rounded-lg object-cover w-full h-[250px]"
                     width={300}
-                    height={100}
+                    height={300}
                 />
-                {/* Play Button Overlay */}
+                {/* Play Button Overlay
                 <div className="absolute inset-0 flex items-center justify-center cursor-pointer">
                     <div className="relative">
                         <div className="absolute z-1 inset-0 bg-white animate-ping rounded-full"></div>
                         <PlayCircle size={48} className="relative z-2 text-black rounded-full p-2 bg-white" />
                     </div>
-                </div>
+                </div> */}
                 {/* Date Badge */}
                 <div className="absolute top-4 right-4 z-10 bg-yellow-400 text-brown rounded-full w-20 h-20 font-bold flex flex-col items-center justify-center">
                     <span className="text-xl">
@@ -62,31 +62,33 @@ export default function NewsItem({
 
             {/* Right Section: Article Summary */}
             <div className="flex-1 flex flex-col justify-between">
-                {/* Metadata */}
-                <div className="flex items-center gap-4 text-gray-600 text-sm flex-wrap border-b-[1px] border-solid border-black/10 pb-4">
-                    <div className="flex items-center gap-1">
-                        <CircleUser className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
-                        <span>By {author}</span>
+                <div>
+                    {/* Metadata */}
+                    <div className="flex items-center gap-4 text-gray-600 text-sm flex-wrap border-b-[1px] border-solid border-black/10 pb-4">
+                        <div className="flex items-center gap-1">
+                            <CircleUser className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
+                            <span>Bởi {author}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Tag className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
+                            <span>{category}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MessageSquare className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
+                            <span>{comments} Bình luận</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Eye className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
+                            <span>{views} Lượt xem</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Tag className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
-                        <span>{category}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <MessageSquare className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
-                        <span>{comments} Comments</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Eye className="text-primary" fill="#278D45" stroke="#ffffff" size={20} />
-                        <span>{views} Views</span>
-                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-lg font-bold text-gray-800 mt-2">{title}</h2>
+
+                    {/* Excerpt */}
+                    <p className="text-gray-600 mt-2">{excerpt}</p>
                 </div>
-
-                {/* Title */}
-                <h2 className="text-lg font-bold text-gray-800 mt-2">{title}</h2>
-
-                {/* Excerpt */}
-                <p className="text-gray-600 mt-2">{excerpt}</p>
 
                 {/* Call-to-Action and Share */}
                 <div className="flex items-center justify-between mt-4">

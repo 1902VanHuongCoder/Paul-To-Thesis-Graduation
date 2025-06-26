@@ -61,14 +61,22 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         await fetchWishlist(customerID);
-        toast.success(d?.wishlistAddToWishlistSuccess || "Thêm vào danh sách yêu thích thành công");
+        toast.success(d?.wishlistAddToWishlistSuccess || "Đã thêm vào danh sách yêu thích");
+      }else{
+        toast('Đã tồn tại trong danh sách yêu thích', {
+          // clap icon: '👏',
+          icon: '👏',
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+          },
+        })
       }
     }catch (error) { 
       console.error("Error adding to wishlist:", error);
       toast.error(d?.wishlistAddToWishlistError || "Lỗi khi thêm vào danh sách yêu thích");
     }
-    
-    
   };
 
   const removeFromWishlist = async (customerID: string, productID: number) => {

@@ -137,10 +137,9 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     useEffect(() => {
         if (user) {
-            fetchCart(user?.userID).catch((error) => {
-                toast.success(d?.toastFetchCartError || "Tai gio hang thanh cong");
-                console.error("Error fetching cart on mount:", error);
-            });
+            fetchCart(user?.userID);
+        } else {
+            return;
         }
     }, [user]);
 
