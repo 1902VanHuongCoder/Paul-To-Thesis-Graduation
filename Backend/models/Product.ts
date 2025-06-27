@@ -6,6 +6,9 @@ import SubCategory from "./Subcategory";
 
 class Product extends Model {
   productID: any;
+  barcode!: string; 
+  boxBarcode!: string;
+  boxQuantity!: number;
   productPrice!: number;
   productPriceSale!: number;
   productName!: string;
@@ -29,6 +32,21 @@ Product.init(
       primaryKey: true,
       autoIncrement: true,
     },
+    barcode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true, // Ensure that each product has a unique barcode
+    },
+    boxBarcode: {
+      type: DataTypes.STRING,
+      allowNull: true, // Allow null for products that do not have a box barcode
+      unique: true, // Ensure that each product box has a unique barcode
+    },
+    boxQuantity: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Allow null for products that do not have a box quantity
+      defaultValue: 0, // Default value for box quantity
+    }, 
     productName: {
       type: DataTypes.STRING,
       allowNull: false,

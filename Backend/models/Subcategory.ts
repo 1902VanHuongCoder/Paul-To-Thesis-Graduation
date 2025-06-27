@@ -28,6 +28,10 @@ SubCategory.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    quantityPerBox: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }, 
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,

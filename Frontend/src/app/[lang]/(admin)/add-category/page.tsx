@@ -109,6 +109,7 @@ export default function AddCategoryPage() {
           <label className="block mb-1 font-medium">Category Description</label>
           <Input {...register("categoryDescription")} />
         </div>
+        
         <Button type="submit" className="mt-4">Add Category</Button>
         {message && <div className="mt-2 text-green-600">{message}</div>}
       </form>

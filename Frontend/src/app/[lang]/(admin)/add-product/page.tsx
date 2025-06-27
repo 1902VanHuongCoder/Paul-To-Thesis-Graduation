@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, FormProvider} from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
@@ -30,6 +30,7 @@ import formatDate from "@/lib/format-date";
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/contexts/dictonary-context";
 import formatVND from "@/lib/format-vnd";
+import JsBarcode from 'jsbarcode';
 
 type ProductFormValues = {
   productID: number;
@@ -47,6 +48,8 @@ type ProductFormValues = {
   isShow: boolean;
   expiredAt: Date | null;
   unit: string;
+  barcode: string;
+  boxBarcode: string;
 };
 
 type Category = {
@@ -57,6 +60,7 @@ type Category = {
 type Subcategory = {
   subcategoryID: number;
   subcategoryName: string;
+  quantityPerBox: number;
 };
 type Origin = {
   originID: string;
@@ -68,11 +72,26 @@ type Tag = {
   tagName: string;
 };
 
+function generateBarcode() {
+  // Generate a random 12-digit barcode as a string
+  let barcode = '83';
+  for (let i = 0; i < 10; i++) {
+    barcode += Math.floor(Math.random() * 10).toString();
+  }
+  return barcode;
+}
 
+function generateBoxBarcode() {
+  let boxBarcode = '88';
+  for (let i = 0; i < 11; i++) {
+    boxBarcode += Math.floor(Math.random() * 10).toString();
+  }
+  return boxBarcode;
+}
 
 export default function AddProductPage() {
   const methods = useForm<ProductFormValues>();
-  const { register, handleSubmit, reset, watch, formState: { errors } } = methods;
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = methods;
   const [message, setMessage] = useState("");
   const { lang } = useDictionary();
   const router = useRouter();
@@ -80,10 +99,14 @@ export default function AddProductPage() {
   // State for dropdowns
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [subCateIsChoosen, setSubCateIsChoosen] = useState<Subcategory>();
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [editorImages, setEditorImages] = useState<File[]>([]);
   const [products, setProducts] = useState<ProductFormValues[]>([]);
+  const [barcode, setBarcode] = useState("");
+  const [barcodeImage, setBarcodeImage] = useState<string>("");
+  const [boxBarcode, setBoxBarcode] = useState<{ boxBarcode: string, boxBarcodeImage: string }>({ boxBarcode: "", boxBarcodeImage: "" })
 
   // Fetch categories, origins, tags on mount
   useEffect(() => {
@@ -201,11 +224,13 @@ export default function AddProductPage() {
         description: JSON.stringify(content),
       }
       );
+      alert(data.boxBarcode); 
       const res = await fetch(`${baseUrl}/api/product`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          boxQuantity: 0, // Add box quantity if needed
           productPrice: data.productPrice ? data.productPrice : 0,
           productPriceSale: data.productPriceSale ? data.productPriceSale : 0,
           quantityAvailable: data.quantityAvailable,
@@ -231,11 +256,11 @@ export default function AddProductPage() {
     }
 
   };
-  
+
   // Delete product and all related images
   const handleDeleteProduct = async (productID: number) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
-  
+
     // 1. Fetch product detail to get all image URLs
     const productRes = await fetch(`${baseUrl}/api/product/${productID}`);
     if (!productRes.ok) {
@@ -247,7 +272,7 @@ export default function AddProductPage() {
       ...(product.images || []),
       ...(product.descriptionImages || [])
     ].filter(Boolean);
-  
+
     // 2. Delete all images from storage
     if (allImageUrls.length > 0) {
       await fetch(`${baseUrl}/api/upload/multi-delete`, {
@@ -256,7 +281,7 @@ export default function AddProductPage() {
         body: JSON.stringify({ urls: allImageUrls }),
       });
     }
-  
+
     // 3. Delete product
     const res = await fetch(`${baseUrl}/api/product/${productID}`, {
       method: "DELETE",
@@ -285,10 +310,27 @@ export default function AddProductPage() {
 
   if (!editor) return null
 
+  // Function to generate barcode image
+  const handleGenerateBarcodeImage = () => {
+    const canvas = document.createElement('canvas');
+    JsBarcode(canvas, barcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+    setBarcodeImage(canvas.toDataURL("image/png"));
+  };
+
+  const handleGenerateBoxBarcodeImage = () => {
+    const canvas = document.createElement('canvas');
+    JsBarcode(canvas, boxBarcode.boxBarcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+    setBoxBarcode({ ...boxBarcode, boxBarcodeImage: canvas.toDataURL("image/png") })
+  };
+
+  console.log("boxBarcode", boxBarcode);
+
   return (
     <main className="mx-auto p-10">
       <h1 className="text-2xl font-bold mb-4">Add Product</h1>
       <FormProvider {...methods}>
+
+
         <FormItem>
           <FormLabel>Product Name</FormLabel>
           <FormControl>
@@ -304,13 +346,13 @@ export default function AddProductPage() {
               min={0}
               step={1}
               {...register("productPrice", {
-               
+
                 min: { value: 1, message: "Price must be at least 1" },
                 setValueAs: v => {
                   const num = Number(v);
-                  return num < 1000 ? num * 1000  : num;
+                  return num < 1000 ? num * 1000 : num;
                 },
-             
+
               })}
               onBlur={e => {
                 const value = Number(e.target.value);
@@ -330,7 +372,7 @@ export default function AddProductPage() {
         <FormItem>
           <FormLabel>Product price sale</FormLabel>
           <FormControl>
-            <Input 
+            <Input
               type="text"
               min={0}
               step={1}
@@ -379,12 +421,22 @@ export default function AddProductPage() {
         <FormItem>
           <FormLabel>Subcategory</FormLabel>
           <FormControl>
-            <select {...register("subcategoryID")} defaultValue="">
+            <select
+              {...register("subcategoryID")}
+              defaultValue=""
+              onChange={e => {
+                const selectedID = Number(e.target.value);
+                const chosen = subcategories.find(sub => sub.subcategoryID === selectedID);
+                setSubCateIsChoosen(chosen);
+                setValue("subcategoryID", selectedID); // keep react-hook-form in sync
+              }}
+            >
               <option value="">Select subcategory</option>
               {subcategories.map((sub) => (
                 <option key={sub.subcategoryID} value={sub.subcategoryID}>{sub.subcategoryName}</option>
               ))}
             </select>
+
           </FormControl>
         </FormItem>
 
@@ -575,8 +627,76 @@ export default function AddProductPage() {
           </div>
           <div className="element"></div>
         </div>
+        {/* Barcode Field */}
+        <FormItem>
+          <FormLabel>Barcode (12 digits)</FormLabel>
+          <FormControl>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Input
+                {...register("barcode", {
+                  required: true,
+                  pattern: { value: /^83+\d{10}$/, message: "Barcode must be 12 digits and start with 83" },
+                })}
+                value={barcode}
+                // replace non-numeric characters and limit to 12 digits
+                onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
+                placeholder="Enter or generate barcode"
+              />
+              <Button type="button" onClick={() => {
+                const newBarcode = generateBarcode();
+                setBarcode(newBarcode);
+                setValue("barcode", newBarcode);
+              }}>Generate</Button>
+              <Button type="button" onClick={handleGenerateBarcodeImage} disabled={barcode.length !== 12}>
+                Generate Barcode Image
+              </Button>
+            </div>
+
+          </FormControl>
+          {barcodeImage && (
+            <div style={{ marginTop: 8 }}>
+              <img src={barcodeImage} alt="Barcode" style={{ background: '#fff', padding: 4, border: '1px solid #eee' }} />
+            </div>
+          )}
+          {errors.barcode && <FormMessage>{errors.barcode.message || "Barcode is required"}</FormMessage>}
+        </FormItem>
+        {subCateIsChoosen && subCateIsChoosen.quantityPerBox > 0 &&
+          (<FormItem>
+            <FormLabel>Barcode (14 digits and start with 88+)</FormLabel>
+            <FormControl>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Input
+                  {...register("boxBarcode", {
+                    required: true,
+                    pattern: { value: /^88+\d{11}$/, message: "Barcode must be 14 digits and start with 88" },
+                  })}
+                  value={boxBarcode.boxBarcode}
+                  onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 14))}
+                  placeholder="Enter or generate barcode"
+                />
+                <Button type="button" onClick={() => {
+                  const newBarcode = generateBoxBarcode();
+                  // setBoxBarcode({ ...boxBarcode, boxBarcode: newBarcode });
+                  // setValue("boxBarcode", newBarcode);
+                  setBoxBarcode({ boxBarcode: newBarcode, boxBarcodeImage: "" });
+                  setValue("boxBarcode", newBarcode);
+                }}>Generate</Button>
+                <Button type="button" onClick={handleGenerateBoxBarcodeImage} disabled={boxBarcode.boxBarcode.length !== 13}>
+                  Generate Box Barcode
+                </Button>
+              </div>
+
+            </FormControl>
+            {boxBarcode.boxBarcodeImage && (
+              <div style={{ marginTop: 8 }}>
+                <img src={boxBarcode.boxBarcodeImage} alt="Barcode" style={{ background: '#fff', padding: 4, border: '1px solid #eee' }} />
+              </div>
+            )}
+          {errors.boxBarcode && <FormMessage>{errors.boxBarcode.message || "Barcode is required"}</FormMessage>}
+          </FormItem>)
+        }
         <Button variant="default" type="submit" className="mt-4" onClick={handleSubmit(onSubmit)}>Supj mit</Button>
-      </FormProvider>
+      </FormProvider >
       <h2 className="text-xl font-semibold mt-10 mb-2">Product List</h2>
       <div className="space-y-2">
         {products.map((prod) => (
@@ -618,6 +738,6 @@ export default function AddProductPage() {
           </div>
         ))}
       </div>
-    </main>
+    </main >
   );
 }

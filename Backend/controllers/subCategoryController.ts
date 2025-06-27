@@ -58,8 +58,14 @@ export const createSubCategory = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { subcategoryID, createdAt, updatedAt, subcategoryName, categoryID } =
-    req.body;
+  const {
+    subcategoryID,
+    createdAt,
+    updatedAt,
+    subcategoryName,
+    categoryID,
+    quantityPerBox,
+  } = req.body;
 
   try {
     const slug = generateSlug(subcategoryName);
@@ -69,6 +75,7 @@ export const createSubCategory = async (
       updatedAt,
       subcategoryName,
       categoryID,
+      quantityPerBox,
       subcategorySlug: slug,
     });
     res.status(201).json(newSubCategory);
@@ -84,7 +91,7 @@ export const updateSubCategory = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
-  const { subcategoryName, categoryID } = req.body;
+  const { subcategoryName, categoryID, quantityPerBox } = req.body;
 
   try {
     const subCategory = await SubCategory.findByPk(id);
@@ -94,7 +101,7 @@ export const updateSubCategory = async (
       return;
     }
 
-    await subCategory.update({ subcategoryName, categoryID });
+    await subCategory.update({ subcategoryName, categoryID, quantityPerBox });
     res
       .status(200)
       .json({ message: "Subcategory updated successfully", subCategory });
