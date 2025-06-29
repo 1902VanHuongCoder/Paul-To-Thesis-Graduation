@@ -62,23 +62,26 @@ interface Category {
 }
 
 export default function Navigation() {
-    const { user, logout } = useUser();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const { lang, dictionary: t } = useDictionary();
-    const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
-    const { addToCart, fetchCart } = useShoppingCart();
-    const [openSignUpForm, setOpenSignUpForm] = useState(false);
-    const [openLoginForm, setOpenLoginForm] = useState(false);
-    const [openUserDrawer, setOpenUserDrawer] = useState(false);
+    // Contexts
+    const { user, logout } = useUser(); // User context to manage user state
+    const { lang, dictionary: t } = useDictionary(); // Dictionary context for translations
+    const { addToCart, fetchCart } = useShoppingCart(); // Shopping cart context to manage cart operations
+    const { wishlists, removeFromWishlist, setWishlist } = useWishlist(); // Wishlist context to manage wishlist operations
 
+    // State variables
+    const [categories, setCategories] = useState<Category[]>([]); // List of categories fetched from the API 
+    const [openSignUpForm, setOpenSignUpForm] = useState(false); // State to control the visibility of the sign-up form
+    const [openLoginForm, setOpenLoginForm] = useState(false); // State to control the visibility of the login form
+    const [openUserDrawer, setOpenUserDrawer] = useState(false); // State to control the visibility of the user drawer (user profile, settings, etc.)
 
-    // Example handlers
+    // Function to handle removing an item from the wishlist 
     const handleRemoveItem = (productID: number, customerID: string) => {
         removeFromWishlist(customerID, productID);
         const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
         setWishlist(wishlistUpdated);
     };
 
+    // Function to handle adding an item to the cart from the wishlist
     const handleAddToCart = async (productID: number, customerID: string) => {
         addToCart(productID);
         fetchCart(customerID);
@@ -87,22 +90,21 @@ export default function Navigation() {
         setWishlist(wishlistUpdated);
     };
 
-
+    // Fetch categories from the API when the component mounts 
     useEffect(() => {
         fetch(`${baseUrl}/api/category`)
             .then((res) => res.json())
             .then((data) => {
                 setCategories(data);
-            }
-            )
+            });
     }, []);
 
     return (
-        <div className="relative w-full h-fit bg-white font-sans shadow-lg">
+        <div className="relative w-full h-fit font-sans shadow-lg">
             <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
                 <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority />
             </div>
-            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:py-4">
+            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:pt-4 md:pb-2">
                 <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
@@ -125,7 +127,7 @@ export default function Navigation() {
                                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             >
                                                 <div className="text-sm font-medium leading-none">{category.categoryName}</div>
-                                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                <p className="text-sm leading-snug text-muted-foreground line-clamp-1">
                                                     {category.categoryDescription}
                                                 </p>
                                             </Link>
@@ -151,11 +153,16 @@ export default function Navigation() {
                     </NavigationMenuList>
                 </NavigationMenu>
                 <div className="items-center flex gap-x-4 w-full justify-center md:justify-end">
+                    {/* Language switcher allow changing between languages */}
                     <LanguageSwitcher />
+                   
                     <div className="flex items-center gap-x-2">
+                        {/* Search form for searching products */}
                         <SearchForm />
+
+                        {/* Wishlist and shopping cart icons */}
                         {
-                            user && (
+                            user && ( // If user is logged in, show wishlist and shopping cart icon
                                 <>
                                     <ShoppingCart />
                                     <WishlistDialog

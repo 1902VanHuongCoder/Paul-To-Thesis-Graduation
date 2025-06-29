@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
-import { Breadcrumb } from "@/components";
+import { Breadcrumb, ContentLoading } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
 import { deleteOneImage, uploadAvatar } from "@/lib/upload-images";
@@ -24,11 +24,16 @@ interface UserProfile {
 }
 
 export default function UpdateUserProfilePage() {
+    // Search params
     const param = useSearchParams();
     const userID = param.get("userID") || "";
-    const { dictionary: d } = useDictionary();
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
+
+    // Contexts 
+    const { dictionary: d } = useDictionary(); // Dictionary for translations
+
+    // State variables
+    const [user, setUser] = useState<UserProfile | null>(null); // User profile data
+    const [loading, setLoading] = useState(true); // Loading state for fetching user data
     const [form, setForm] = useState({
         username: "",
         email: "",
@@ -36,21 +41,20 @@ export default function UpdateUserProfilePage() {
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
-    });
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [avatarPreview, setAvatarPreview] = useState<string>("");
-    const [errorMsg, setErrorMsg] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-    // const [showPasswordFields, setShowPasswordFields] = useState(false);
-    const [confirmingPassword, setConfirmingPassword] = useState(false);
-    const [showOldPassword, setShowOldPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    }); // Form state for updating user profile
+    const [avatarFile, setAvatarFile] = useState<File | null>(null); // Avatar file for upload
+    const [avatarPreview, setAvatarPreview] = useState<string>(""); // Avatar preview URL
+    const [errorMsg, setErrorMsg] = useState(""); // Error message state
+    const [submitting, setSubmitting] = useState(false); // Submitting state for form submission
+    const [confirmingPassword, setConfirmingPassword] = useState(false); // Confirming password state for old password validation
+    const [showOldPassword, setShowOldPassword] = useState(false); // Show/Hide old password
+    const [showNewPassword, setShowNewPassword] = useState(false); // Show/Hide new password
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Show/Hide confirm password
+    const fileInputRef = useRef<HTMLInputElement>(null); // Reference to file input for avatar upload
 
-    const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState("");
-    const [openForgetPassword, setOpenForgetPassword] = useState(false);
-    const [openCreateNewPass, setOpenCreateNewPass] = useState(false);
+    const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState(""); // Email for password reset confirmation code
+    const [openForgetPassword, setOpenForgetPassword] = useState(false); // State to control the visibility of the password forget dialog
+    const [openCreateNewPass, setOpenCreateNewPass] = useState(false); // State to control the visibility of the create new password dialog
 
     // Fetch user info
     useEffect(() => {
@@ -131,7 +135,7 @@ export default function UpdateUserProfilePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg("");
-        const err = validate();
+        const err = validate(); // Validate form inputs before submission
         if (err) {
             setErrorMsg(err);
             return;
@@ -139,7 +143,7 @@ export default function UpdateUserProfilePage() {
         setSubmitting(true);
         let avatarUrl = form.avatar;
         try {
-            if (avatarFile) {
+            if (avatarFile) { // If a new avatar file is selected, upload it
                 avatarUrl = await uploadAvatar(avatarFile);
                 deleteOneImage(form.avatar); // Delete old avatar if exists
             }
@@ -150,7 +154,7 @@ export default function UpdateUserProfilePage() {
             return;
         }
         // If changing password, confirm old password first
-        if (form.oldPassword && form.newPassword && form.confirmPassword) {
+        if (form.oldPassword && form.newPassword && form.confirmPassword) { 
             const ok = await confirmOldPassword();
             if (!ok) {
                 setSubmitting(false);
@@ -185,19 +189,19 @@ export default function UpdateUserProfilePage() {
             }));
         } catch (error) {
             console.error("Error updating user profile:", error);
-            // setErrorMsg("Có lỗi xảy ra khi cập nhật thông tin người dùng, hãy thử lại!");
+            setErrorMsg("Có lỗi xảy ra khi cập nhật thông tin người dùng, hãy thử lại!");
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Đang tải thông tin...</div>;
+    if (loading) return <ContentLoading />;
     if (!user) return <div className="p-8 text-center text-red-500">Không tìm thấy người dùng</div>;
 
     return (
         <div className="px-6 py-10">
             <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
-            <h1 className="text-xl font-bold mb-6 mt-6 uppercase">Cập nhật hồ sơ người dùng</h1>
+            <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Cập nhật hồ sơ người dùng</h1>
             <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
                     {/* Avatar */}

@@ -7,20 +7,21 @@ import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useDictionary } from "@/contexts/dictonary-context";
 import formatVND from "@/lib/format-vnd";
-// import { useNavigate } from "react-router-dom";
-// import { useCheckout } from "@/contexts/checkout-context";
 import { useRouter } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import toast from "react-hot-toast";
 import { useCheckout } from "@/contexts/checkout-context";
 import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";
+import Link from "next/link";
 
 export default function CartPage() {
-    const { cart, setCart, removeFromCart, updateCart } = useShoppingCart();
-    const { checkoutData, setCheckoutData } = useCheckout();
-    const { dictionary: d, lang } = useDictionary();
-    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false);
-    // const { setCheckoutData} = useCheckout(); 
+    // Contexts 
+    const { cart, setCart, removeFromCart, updateCart } = useShoppingCart(); // Shopping Cart Context  
+    const { checkoutData, setCheckoutData } = useCheckout(); // Checkout Context
+    const { dictionary: d, lang } = useDictionary(); // Dictionary Context
+
+    // States variables
+    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false); // Terms and Privacy Policy Dialog
     const [promoCode, setPromoCode] = useState({
         code: "",
         discount: 0,
@@ -126,6 +127,7 @@ export default function CartPage() {
         updateCart(cart.cartID, productID, quantity);
     };
 
+    // Handle remove item from cart
     const handleRemoveItem = (productID: number) => {
         const updatedProducts = cart.products.filter(p => p.productID !== productID);
         setCart({
@@ -139,7 +141,7 @@ export default function CartPage() {
         <div className="flex flex-col md:flex-row gap-8">
             {/* Left Section – Cart Items */}
             <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.shoppingCartPageTitle || "Giỏ hàng của bạn"}</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 uppercase text-center">{d?.shoppingCartPageTitle || "Giỏ hàng của bạn"}</h2>
                 <table className="w-full border-collapse">
                     <thead className="border-b border-[rgba(0,0,0,.2)]">
                         <tr className="text-left text-gray-600">
@@ -246,41 +248,6 @@ export default function CartPage() {
                         </span>
                         <span>- {formatVND(checkoutData?.discount?.discountValue || 0)} VND</span>
                     </div>
-                    {/* <div className="flex flex-col gap-2">
-                        <span className="text-gray-700">{
-                            d?.shoppingCartPageSumOrderShipping || "Chọn hình thức giao hàng"
-                        }</span>
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="shipping"
-                                value="free"
-                                checked={selectedShipping === "free"}
-                                onChange={() => setSelectedShipping("free")}
-                            />
-                            Free Shipping – $0.00
-                        </label>
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="shipping"
-                                value="local"
-                                checked={selectedShipping === "local"}
-                                onChange={() => setSelectedShipping("local")}
-                            />
-                            Local – $35.00
-                        </label>
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="shipping"
-                                value="flat"
-                                checked={selectedShipping === "flat"}
-                                onChange={() => setSelectedShipping("flat")}
-                            />
-                            Flat Rate – $35.00
-                        </label>
-                    </div> */}
                     <div className="flex justify-between text-gray-800 font-bold">
                         <span>{
                             d?.shoppingCartPageSumOrderTotal || "Tổng"
@@ -310,14 +277,14 @@ export default function CartPage() {
                                 d?.shoppingCartPageSumOrderCheckout || "Thanh toán"
                             }
                         </Button>
-                        <button
-                            // href="/shop"
+                        <Link
+                            href={`/${lang}/homepage`}
                             className="text-sm text-green-700 underline hover:text-green-800 block text-center mt-2"
                         >
                             {
                                 d?.shoppingCartPageSumOrderContinueShopping || "Tiếp tục mua sắm"
                             }
-                        </button>
+                        </Link>
                     </div>
                     <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
                 </div>

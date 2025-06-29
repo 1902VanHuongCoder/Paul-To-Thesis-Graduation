@@ -15,10 +15,10 @@ export const getAllComments = async (req: Request, res: Response): Promise<void>
 
 // GET a specific comment by ID
 export const getCommentById = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });
@@ -79,11 +79,11 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
 
 // PUT (update) an existing comment by ID
 export const updateComment = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
   const { content, rating, status } = req.body;
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });
@@ -105,10 +105,10 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
 
 // DELETE a comment by ID
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });

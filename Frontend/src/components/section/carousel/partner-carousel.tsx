@@ -22,11 +22,14 @@ interface Origin {
     className?: string;
 }
 
-
 const ParterCarousel = () => {
-    const { dictionary } = useDictionary(); 
-    const [origins, setOrigins] = useState<Origin[]>([]); 
+    // Contexts
+    const { dictionary } = useDictionary(); // Dictionary context to get the text in different languages
+    
+    // State variables 
+    const [origins, setOrigins] = useState<Origin[]>([]); // State to store the origins data
 
+    // Fetch origins data when the component mounts
     useEffect(() => {
         const fetchOrigins = async () => {
             try{
@@ -38,7 +41,7 @@ const ParterCarousel = () => {
         fetchOrigins();
     },[])
     return (
-        <section className="py-20 w-full font-sans border-t-2 border-primary/10">
+        <section className="py-20 w-full font-sans border-t-1 border-primary/10">
             <div className="flex flex-col items-center text-center w-full px-6">
                 <h1 className="my-6 text-pretty text-2xl font-bold lg:text-4xl">    
                     {dictionary?.partnerCarouselTitle || "Sự đồng hành của các thương hiệu uy tín"}

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/user-context";
 import { baseUrl } from "@/lib/base-url";
@@ -9,7 +8,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import toast from "react-hot-toast";
 
 export default function AddShippingAddressPage() {
-    const { user } = useUser();
+    // Contexts 
+    const { user } = useUser(); // Get user information from context
     const [form, setForm] = useState({
         province: "",
         district: "",
@@ -18,13 +18,15 @@ export default function AddShippingAddressPage() {
         phone: "",
         isDefault: false,
     });
+
+    // State variables
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [provinces, setProvinces] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [districts, setDistricts] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false); // Loading state for form submission 
 
     // Fetch provinces
     useEffect(() => {
@@ -62,6 +64,7 @@ export default function AddShippingAddressPage() {
         }
     }, [form.district, districts]);
 
+    // Handle form input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const target = e.target as HTMLInputElement | HTMLSelectElement;
         const { name, value, type } = target;
@@ -72,6 +75,7 @@ export default function AddShippingAddressPage() {
         }));
     };
 
+    // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -113,7 +117,7 @@ export default function AddShippingAddressPage() {
                 { label: "Trang chủ", href: "/" },
                 { label: "Thêm địa chỉ giao hàng" }
             ]} />
-            <h1 className="text-xl font-bold mb-6 mt-6 uppercase">Thêm địa chỉ giao hàng mới</h1>
+            <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Thêm địa chỉ giao hàng mới</h1>
             <div className="max-w-2xl mx-auto">
                 <form onSubmit={handleSubmit} className="space-y-3 my-7 border-[2px] border-gray-200 p-6 rounded-lg">
                     <div>

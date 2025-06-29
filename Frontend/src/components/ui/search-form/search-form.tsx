@@ -4,10 +4,10 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from 
 import { Input } from "@/components/ui/input/input";
 import { XIcon, MicIcon } from "lucide-react";
 import { DialogDescription, Title } from "@radix-ui/react-dialog";
-import Button from "../button/button-brand";
 import { baseUrl } from "@/lib/base-url";
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/contexts/dictonary-context";
+import { Button } from "../button/button";
 
 interface Product {
     productID: number;
@@ -32,24 +32,30 @@ interface Suggestion {
 
 
 export default function SearchForm() {
-    const router = useRouter();
-    const [search, setSearch] = useState("");
-    const { lang } = useDictionary();
-    const [listening, setListening] = useState(false);
-    const [openSearch, setOpenSearch] = useState(false);
-    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    const [selectedProductID, setSelectedProductID] = useState<string>("");
+    // Router
+    const router = useRouter(); // Router for navigation
 
-    const [, setLoadingSuggest] = useState(false);
+    // Contexts 
+    const { lang } = useDictionary(); // Language context for internationalization
+
+    // State variables 
+    const [search, setSearch] = useState(""); // Search input state
+    const [listening, setListening] = useState(false); // Voice recognition state
+    const [openSearch, setOpenSearch] = useState(false); // Search drawer open state 
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]); // Search suggestions state
+    const [selectedProductID, setSelectedProductID] = useState<string>(""); // Selected product ID from suggestion
+    const [loadingSuggest, setLoadingSuggest] = useState(false); // 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
 
     // Voice search handler
     const handleVoiceSearch = () => {
+        // Check if the browser supports speech recognization
         if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-            alert("Trình duyệt của bạn không hỗ trợ voice search.");
+            alert("Trình duyệt của bạn không hỗ trợ tìm kiêm bằng giọng nói.");
             return;
         }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!recognitionRef.current) {
@@ -78,11 +84,16 @@ export default function SearchForm() {
 
     // Fetch product name suggestions
     useEffect(() => {
+        // If search is empty, clear suggestions and return
         if (search.trim().length === 0) {
             setSuggestions([]);
             return;
         }
+
+        // Set loading state and fetch suggestions after a delay
         setLoadingSuggest(true);
+
+
         const timeout = setTimeout(() => {
             fetch(`${baseUrl}/api/product/name?name=${encodeURIComponent(search)}`)
                 .then(res => res.ok ? res.json() : [])
@@ -138,15 +149,32 @@ export default function SearchForm() {
                                     onChange={e => setSearch(e.target.value)}
                                     autoComplete="off"
                                 />
-                                <MicIcon
-                                    size={20}
-                                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 cursor-pointer ${listening ? "text-green-600 animate-pulse" : "text-gray-500 hover:text-primary"}`}
-                                    aria-label="Voice search"
-                                    onClick={handleVoiceSearch}
-                                />
+                                {loadingSuggest ? (
+                                    <svg
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary"
+                                        width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                        ></path>
+                                    </svg>
+                                ) : (
+                                    <MicIcon
+                                        size={20}
+                                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 cursor-pointer ${listening ? "text-green-600 animate-pulse" : "text-gray-500 hover:text-primary"}`}
+                                        aria-label="Voice search"
+                                        onClick={handleVoiceSearch}
+                                    />
+                                )}
                             </div>
-                            <Button onClick={handleViewProduct} variant="normal" type="button" className="px-4 py-2 bg-primary text-white rounded-md">
-                                Tìm kiếm
+                            <Button disabled={search === ""} onClick={handleViewProduct} variant="default" type="button" className="px-4 py-2 bg-primary text-white rounded-md disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:hover:text-white">
+                                Tìm kiếm 
                             </Button>
                         </div>
                         {/* Suggestions dropdown */}
@@ -159,6 +187,7 @@ export default function SearchForm() {
                                         onClick={() => {
                                             setSearch(item.productName); 
                                             setSelectedProductID(item.productID);
+                                            router.push(`/${lang}/homepage/product-details/${item.productID}`);
                                         }}
                                     >
                                         {item.productName}
@@ -169,7 +198,7 @@ export default function SearchForm() {
                     </form>
 
                     <div className="mt-4 text-sm text-gray-500 text-center">
-                        Press <span className="font-bold text-gray-700">CTRL+K</span> to quickly open the search.
+                        Ấn phím <span className="font-bold text-gray-700">CTRL+K</span> để nhanh chóng mở tìm kiếm.
                     </div>
                 </div>
             </DrawerContent>

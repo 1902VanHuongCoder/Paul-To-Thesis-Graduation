@@ -22,11 +22,14 @@ type News = {
 };
 
 function Footerdemo({ }) {
-    const { dictionary, lang } = useDictionary();
-    const [news, setNews] = React.useState<News[]>([]);
+    // Contexts
+    const { dictionary, lang } = useDictionary(); // Get dictionary and lang from context
 
+    // State variables
+    const [news, setNews] = React.useState<News[]>([]); // State to store news data
+
+    // Fetch news data when the component mounts or when the language changes
     React.useEffect(() => {
-        // Fetch news data from the API
         const fetchNews = async () => {
             try {
                 const response = await fetch(`${baseUrl}/api/news`);
@@ -57,7 +60,7 @@ function Footerdemo({ }) {
                         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white text-brown p-2 bg-secondary rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2m5.939 7.713v.646a.37.37 0 0 1-.38.37a5.364 5.364 0 0 1-2.903-1.108v4.728a3.938 3.938 0 0 1-1.18 2.81a4.011 4.011 0 0 1-2.87 1.17a4.103 4.103 0 0 1-2.862-1.17a3.98 3.98 0 0 1-1.026-3.805c.159-.642.48-1.232.933-1.713a3.58 3.58 0 0 1 2.79-1.313h.82v1.703a.348.348 0 0 1-.39.348a1.918 1.918 0 0 0-1.23 3.631c.27.155.572.246.882.267c.24.01.48-.02.708-.092a1.928 1.928 0 0 0 1.313-1.816V5.754a.359.359 0 0 1 .359-.36h1.415a.359.359 0 0 1 .359.34a3.303 3.303 0 0 0 1.282 2.245a3.25 3.25 0 0 0 1.641.636a.37.37 0 0 1 .338.35z" /></svg>                </a>
                         <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:text-white text-brown p-2 bg-secondary rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 840 790"><path fill="currentColor" d="M422 2q101 0 171 4t116 16t71 33t37 57t15 86t2 121l-2 121q-1 50-15 86t-37 56t-71 34t-116 16t-171 4t-171-4t-116-16t-71-34t-37-56t-14-86t-3-121t3-121t14-86t37-57t71-33T251 6t171-4zm132 331q12-6 12-14t-12-14l-185-86q-12-6-20-1t-9 20v162q0 14 9 19t20 0z" /></svg>                </a>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 840 600"><path fill="currentColor" d="M422 2q101 0 171 4t116 16t71 33t37 57t15 86t2 121l-2 121q-1 50-15 86t-37 56t-71 34t-116 16t-171 4t-171-4t-116-16t-71-34t-37-56t-14-86t-3-121t3-121t14-86t37-57t71-33T251 6t171-4zm132 331q12-6 12-14t-12-14l-185-86q-12-6-20-1t-9 20v162q0 14 9 19t20 0z" /></svg>                </a>
                     </div>
                 </div>
                 <div className="grid gap-12 md:grid-cols-3 lg:grid-cols-3 py-8 text-white max-w-screen overflow-hidden border-b-[1px] border-dashed border-white/40">
@@ -92,9 +95,10 @@ function Footerdemo({ }) {
                     </div>
                     <div>
                         <h3 className="mb-4 text-lg font-semibold">{dictionary?.footerNewestProductTitle || "Bài đăng mới"}</h3>
-                        <div>
+                        <div className="flex flex-col gap-4">
+                            {/* only show 3 news because it is in footer */}
                             {news.slice(0, 3).map((item) => (
-                                <div key={item.newsID} className="flex items-center gap-2 mb-4">
+                                <div key={item.newsID} className="flex items-center gap-2 mb-4 md:mb-0">
                                     <div className="min-w-[50px] h-[50px] bg-white rounded-md">
                                         {item.titleImageUrl && (
                                             <Image

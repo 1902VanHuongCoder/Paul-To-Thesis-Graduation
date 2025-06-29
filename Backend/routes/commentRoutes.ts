@@ -15,16 +15,16 @@ const router = express.Router();
 router.get("/", getAllComments);
 
 // GET a specific comment by ID
-router.get("/:id", getCommentById);
+router.get("/:commentID", getCommentById);
 
 // POST a new comment
 router.post("/", createComment);
 
 // PUT (update) an existing comment by ID
-router.put("/:id", updateComment);
+router.put("/:commentID", updateComment);
 
 // DELETE a comment by ID
-router.delete("/:id", deleteComment);
+router.delete("/:commentID", deleteComment);
 
 router.get("/product/:productID", getCommentsByProductId); 
 

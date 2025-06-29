@@ -32,6 +32,8 @@ export { default as ChatBot } from './section/chatbot/chatbot';
 export { default as NewsItem } from './ui/news-item/news-item';
 export { default as TypewriterText } from './ui/typewriter-text/typewriter-text';
 export { default as UserDrawer } from './ui/drawer/user-drawer';
+export { default as Hero} from './ui/hero/hero';
+export { default as ContentLoading } from './ui/loading/content-loading';
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

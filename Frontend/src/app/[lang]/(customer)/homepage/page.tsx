@@ -1,16 +1,12 @@
 "use client";
-import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton, TypewriterText } from "@/components";
-import { Funnel, Hand } from "lucide-react";
+import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Hero, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton } from "@/components";
+import { Funnel } from "lucide-react";
 import React, { useEffect } from "react";
-import greenField from "@public/images/rice-banner.png";
-import Image from "next/image";
-import vector02 from "@public/vectors/Vector+02.png";
 import { baseUrl } from "@/lib/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
 import removeDuplicates from "@/lib/remove-duplicate";
-import toast from "react-hot-toast";
 interface Category {
     categoryDescription: string,
     categoryID: number,
@@ -24,8 +20,8 @@ interface Category {
 interface Product {
     productID: number;
     productName: string;
-    productPrice: string;
-    productPriceSale: string;
+    productPrice: number;
+    productPriceSale: number;
     quantityAvailable: number;
     categoryID: number;
     originID: number;
@@ -49,7 +45,6 @@ const Homepage = () => {
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [tags, setTags] = React.useState<Tag[]>([]);
     const [products, setProducts] = React.useState<Product[]>([]);
-    const [heroAnimation, setHeroAnimation] = React.useState(true);
     const [currentPage, setCurrentPage] = React.useState(1);
     const [productView, setProductView] = React.useState("grid");
     const [productsAfterFilter, setProductsAfterFilter] = React.useState<Product[]>([]);
@@ -83,11 +78,6 @@ const Homepage = () => {
         }
     ];
 
-    const handleStopHeroAnimation = () => {
-        setHeroAnimation(!heroAnimation);
-        toast.success(heroAnimation ? dictionary?.stopHeroAnimationSuccess || "Dừng hiệu ứng thành công" : dictionary?.startHeroAnimationSuccess || "Chạy hiệu ứng thành công");
-    };
-
     const paginatedProducts = React.useMemo(() => {
         if (productsAfterFilter.length === 0) return [];
         const start = (currentPage - 1) * displayModeProps.resultsPerPage;
@@ -102,7 +92,7 @@ const Homepage = () => {
 
     const handleCashFilter = (min: number, max: number) => {
         const filteredProducts = products.filter((product) => {
-            const price = parseInt(product.productPrice);
+            const price = product.productPrice;
             return price >= min && price <= max;
         });
         setProductsAfterFilter(filteredProducts);
@@ -134,12 +124,12 @@ const Homepage = () => {
     }
 
     const sortByPriceAsc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => parseInt(a.productPrice) - parseInt(b.productPrice))
+        const sortedProducts = [...products].sort((a, b) => a.productPrice - b.productPrice)
         return sortedProducts;
     }
 
     const sortByPriceDesc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => parseInt(b.productPrice) - parseInt(a.productPrice))
+        const sortedProducts = [...products].sort((a, b) => b.productPrice - a.productPrice)
         return sortedProducts;
     }
 
@@ -202,40 +192,12 @@ const Homepage = () => {
             setLoading(false);
         }
         fetchAll();
-    }, []);
-
-    // useEffect(() => {
-    //     const fetchCategories = async () => {
-    //         try {
-    //             await fetch(`${baseUrl}/api/shopping-cart?customerID=1`).then((res) => res.json()).then((data) => console.log(data));
-    //         } catch (error) {
-    //             console.error("Error fetching categories:", error);
-    //         }
-    //     }
-    //     fetchCategories();
-    // }, []);
-
-    // setLoading(true);
+    }, [setLoading]);
+    
     return (
         <div className="relative mx-auto">
             {/* Hero */}
-            <div className="relative w-full h-[400px]">
-                <Image src={greenField} alt="Green Field" className="object-cover w-full h-full" />
-                <div className="absolute top-0 left-0 w-full h-full bg-[rgba(0,0,0,.5)]">
-                </div>
-                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-1 md:px-20 px-10">
-                    <TypewriterText
-                        text={["LÚA TỐT NHÀ NÔNG VUI", "CANH TÁC THÔNG MINH CHẲNG LO LÚA ỐM", "NFEAM HOUSE SỰ LỰA CHỌN HOÀN HẢO"]}
-                        speed={100}
-                        loop={heroAnimation}
-                        className="text-[40px] md:text-[80px] font-medium font-mono text-white"
-                    />
-                </div>
-                <div className="absolute -bottom-5 md:-bottom-7 left-0 w-full h-auto z-1">
-                    <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" />
-                </div>
-                <button onClick={handleStopHeroAnimation} className="z-20 bg-white absolute right-3 bottom-10 flex items-center gap-x-2 py-2 px-4 rounded-md cursor-pointer group hover:bg-primary hover:shadow-lg hover:drop-shadow-amber-50 transition-all"><Hand className="group-hover:text-white" /> <span className="font-bold group-hover:text-white">{heroAnimation ? dictionary?.stopHeroAnimationButton || "Dừng hiệu ứng" : dictionary?.startHeroAnimationButton || "Chạy hiệu ứng"}</span></button>
-            </div>
+            <Hero />
 
             {/* Main content */}
             <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:pb-10 pt-5 transition-all">
@@ -247,7 +209,7 @@ const Homepage = () => {
                     <TagFilter tags={tags} onTagSelect={(tagID) => handleTagFilter(tagID)} />
                     <Button
                         variant="normal"
-                        className="w-full mt-4 flex items-center justify-center gap-x-2"
+                        className="w-full mt-4 flex items-center justify-center gap-x-2 md:hidden"
                         onClick={() => {
                             setShowFilterKit(false);
                             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -281,11 +243,11 @@ const Homepage = () => {
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.4 }}
                                 className={productView === "grid"
-                                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center"
+                                    ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
                                     : "flex flex-col items-start gap-y-6"
                                 }
                             >
-                                {paginatedProducts.length > 0 && paginatedProducts.map((product) => (
+                                {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
                                     <Card
                                         key={product.productID}
                                         image={product.images[0]}
@@ -296,7 +258,7 @@ const Homepage = () => {
                                         productID={product.productID}
                                         productName={product.productName}
                                     />
-                                ))}
+                                )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
                             </motion.div>
                         </AnimatePresence>
                     </div>

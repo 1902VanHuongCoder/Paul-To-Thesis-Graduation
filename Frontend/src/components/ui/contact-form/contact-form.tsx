@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { Form, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
 import Image from "next/image";
@@ -8,7 +7,6 @@ import riceflowericon from "@public/vectors/Rice+Flower+Icon.png";
 import Button from "../button/button-brand";
 import { Input } from "../input/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../select/select";
-import cornimage from '@public/images/Corn+Image.png';
 import { baseUrl } from "@/lib/base-url";
 import { useUser } from "@/contexts/user-context";
 import TermsAndPrivacyDialog from "@/components/section/terms-and-privacy-policy/terms-and-privacy-policy";
@@ -23,22 +21,23 @@ interface ContactFormValues {
 }
 
 export default function ContactForm() {
+    // Contexts 
     const { user } = useUser();
-    const form = useForm<ContactFormValues>();
-    const [successMsg, setSuccessMsg] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false);
 
+    // State variables
+    const form = useForm<ContactFormValues>(); // Intialize form with ContactFormValues type
+    const [successMsg, setSuccessMsg] = useState(""); // State for success message 
+    const [errorMsg, setErrorMsg] = useState(""); // State for error message 
+    const [loading, setLoading] = useState(false); // State for loading status
+    const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false); // State for terms and policy dialog visibility
+
+    // Function to handle form submission
     const onSubmit = async (data: ContactFormValues) => {
         setSuccessMsg("");
         setErrorMsg("");
         setLoading(true);
         try {
-            // Compose subject from dropdown and name/phone
             const subject = data.subject;
-
-
             const res = await fetch(`${baseUrl}/api/contact`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -53,6 +52,8 @@ export default function ContactForm() {
                 throw new Error(err.error || "Gửi liên hệ thất bại");
             }
             setSuccessMsg("Gửi liên hệ thành công! Chúng tôi sẽ phản hồi qua email.");
+            
+            // Reset form fields after successful submission
             form.reset();
         } catch (err) {
             setErrorMsg(
@@ -186,16 +187,6 @@ export default function ContactForm() {
                     {errorMsg && <div className="text-red-400 text-center">{errorMsg}</div>}
                 </form>
             </Form>
-
-            {/* Illustration */}
-            <div className="absolute top-10 right-10 animate-bounce animate-infinite duration-[9000ms] animate-ease-linear">
-                <Image
-                    src={cornimage}
-                    alt="Corn Illustration"
-                    width={140}
-                    height={140}
-                />
-            </div>
             <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
         </div>
     );
