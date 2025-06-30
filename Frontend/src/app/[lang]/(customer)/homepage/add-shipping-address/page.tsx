@@ -119,7 +119,7 @@ export default function AddShippingAddressPage() {
             ]} />
             <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Thêm địa chỉ giao hàng mới</h1>
             <div className="max-w-2xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-3 my-7 border-[2px] border-gray-200 p-6 rounded-lg">
+                <form onSubmit={handleSubmit} className="space-y-3 my-7 border-[2px] border-gray-200 p-6 rounded-lg ">
                     <div>
                         <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
                         <Select

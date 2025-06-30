@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Button from "@/components/ui/button/button-brand";
-import { Binary, Building2, Heart, Layers, ListTodo, Tag } from "lucide-react";
+import { Binary, Building2, Layers, ListTodo, Tag } from "lucide-react";
 import Image from "next/image";
 import { Lens } from "@/components/ui/lens/lens";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
@@ -10,7 +10,8 @@ import { useWishlist } from "@/contexts/wishlist-context";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader } from "@/components/ui/dialog/dialog";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useUser } from "@/contexts/user-context";
-
+import { HeartButton } from "@/components";
+import NoImage from "@public/images/NoImage.jpg";
 interface Category {
     categoryID: number;
     categoryName: string;
@@ -69,6 +70,11 @@ export default function ProductDetails({
     const [hovering, setHovering] = useState(false); // State to track if the image is being hovered
     const [mainImage, setMainImage] = useState(images[0] || ""); // State to track the main image being displayed
     const [showContactDialog, setShowContactDialog] = useState(false); // State to control the visibility of the contact dialog
+    const [quantity, setQuantity] = useState(1);
+
+    // Handlers
+    const handleIncrease = () => setQuantity((prev) => prev + 1); // Increase quantity by 1
+    const handleDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1)); // Decrease quantity by 1, but not below 1
 
 
     const handleAddToCart = () => {
@@ -79,7 +85,7 @@ export default function ProductDetails({
         }
 
         // Otherwise, we will add the product to the cart
-        addToCart(productID);
+        addToCart(productID, quantity);
     }
     const handleAddToWishList = () => {
         // If the user is not logged in, we will not allow them to add products to the wishlist
@@ -102,22 +108,15 @@ export default function ProductDetails({
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Images */}
                 <div className="flex-shrink-0 border-1 border-primary/10 p-4">
-                    {images && images.length > 0 ? (
                         <Lens hovering={hovering} setHovering={setHovering}>
                             <Image
                                 width={300}
                                 height={256}
-                                src={mainImage}
+                                src={mainImage ? mainImage : NoImage}
                                 alt={productName}
                                 className="w-[400px] h-[400px] object-contain rounded shadow"
                             />
                         </Lens>
-
-                    ) : (
-                        <div className="w-64 h-64 bg-gray-100 flex items-center justify-center rounded">
-                            <span className="text-gray-400">Sản phẩm không có hình ảnh</span>
-                        </div>
-                    )}
                     <hr className="my-4" />
                     {/* Thumbnails */}
                     {images && images.length > 1 && (
@@ -198,10 +197,28 @@ export default function ProductDetails({
                     {/* Quantity Selector and Actions */}
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mt-4">
                         <div className="flex items-center gap-4">
+                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                <button
+                                    onClick={handleDecrease}
+                                    className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                    aria-label="Decrease quantity"
+                                >
+                                    -
+                                </button>
+                                <span className="px-4 py-2 text-gray-700">{quantity}</span>
+                                <button
+                                    onClick={handleIncrease}
+                                    className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                    aria-label="Increase quantity"
+                                >
+                                    +
+                                </button>
+                            </div>
                             <Button onClick={handleAddToCart} variant="primary" size="sm" className="flex items-center gap-2">
                                 Thêm vào giỏ hàng
                             </Button>
-                            <button onClick={handleAddToWishList} className="p-3 rounded-full border-1 border-primary/60 hover:bg-secondary hover:text-white hover:cursor-pointer"><Heart className="text-[#0D401C]" stroke="#0D401C" fill="#0D401C"/></button>
+                            {/* <button onClick={handleAddToWishList} className="p-3 rounded-full border-1 border-primary/60 hover:bg-secondary hover:text-white hover:cursor-pointer"><Heart className="text-[#0D401C]" stroke="#0D401C"/></button> */}
+                            <HeartButton onClick={handleAddToWishList} />
                         </div>
                     </div>
                 </div>

@@ -272,6 +272,7 @@ const Homepage = () => {
             <ChatBot />
             <ParterCarousel />
             <ToTopButton />
+           
         </div>
     )
 }

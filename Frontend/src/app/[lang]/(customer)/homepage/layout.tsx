@@ -1,5 +1,5 @@
 "use client";
-import { Footer, Navigation, TopHeader, TypewriterText } from "@/components";
+import {  Footer, Navigation, TopHeader, TypewriterText } from "@/components";
 import { useLoading } from "@/contexts/loading-context";
 import { Spinner } from "@/components/ui/spinner/spinner";
 import { Toaster } from "react-hot-toast";

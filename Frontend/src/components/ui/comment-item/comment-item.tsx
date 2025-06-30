@@ -22,11 +22,13 @@ interface CommentItemProps {
     commentID?: number;
     currentUserID?: string;
     onDelete?: () => void;
+    reFetchComments: () => void;
 }
 
 export default function CommentItem({
     index,
     commentsLength,
+    commentID,
     userID,
     avatar,
     name,
@@ -37,8 +39,7 @@ export default function CommentItem({
     rating = 0,
     onLike,
     onDislike,
-    commentID,
-    onDelete,
+    reFetchComments,
 }: CommentItemProps & { onLike?: () => void; onDislike?: () => void }) {
     // Contexts 
     const { user } = useUser();
@@ -65,6 +66,9 @@ export default function CommentItem({
         if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
         try {
             await fetch(`${baseUrl}/api/comment/${commentID}`, { method: "DELETE" });
+
+            // Refetch comments or update state in parent component
+            reFetchComments();
             alert("Xóa bình luận thành công!");
         } catch (err) {
             alert("Xóa bình luận thất bại!");
@@ -86,6 +90,8 @@ export default function CommentItem({
                             className="rounded-full w-full h-full object-cover"
                         />
                     </div>
+                    {commentsLength}
+                    {index}
                     <div>
                         <p className="font-bold text-gray-800">{name}</p>
                         <p className="text-sm text-gray-500">{date}</p>
@@ -160,6 +166,7 @@ export default function CommentItem({
                             )}
                         </AnimatePresence>
                     </button>
+                    
                     {user && user.userID === userID && (
                         <button
                             className="text-red-500 hover:underline hover:cursor-pointer"

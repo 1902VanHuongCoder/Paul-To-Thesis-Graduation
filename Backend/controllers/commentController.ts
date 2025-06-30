@@ -35,7 +35,7 @@ export const getCommentById = async (req: Request, res: Response): Promise<void>
 // GET comment by product ID
 export const getCommentsByProductId = async (req: Request, res: Response): Promise<void> => {
   const { productID } = req.params;
-
+  console.log("Fetching comments for productID:", productID);
   try {
     const comments = await Comment.findAll({
       where: { productID },
@@ -107,6 +107,7 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
   const { commentID } = req.params;
 
+  console.log("Deleting comment with ID:", commentID);
   try {
     const comment = await Comment.findByPk(commentID);
 

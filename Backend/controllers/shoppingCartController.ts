@@ -59,7 +59,7 @@ export const createShoppingCart = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { customerID = 1, productID, quantity = 1 } = req.body;
+  const { customerID , productID, quantity } = req.body;
 
   try {
     // Check if a shopping cart already exists for the customer
@@ -67,7 +67,7 @@ export const createShoppingCart = async (
 
     // If not, create a new shopping cart
     if (!cart) {
-      cart = await ShoppingCart.create({ customerID, totalQuantity: quantity });
+      cart = await ShoppingCart.create({ customerID, totalQuantity: 1 });
     } else {
       // If exists, increase totalQuantity by 1
       cart.totalQuantity += 1;

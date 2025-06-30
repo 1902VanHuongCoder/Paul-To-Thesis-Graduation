@@ -154,7 +154,7 @@ export default function UpdateUserProfilePage() {
             return;
         }
         // If changing password, confirm old password first
-        if (form.oldPassword && form.newPassword && form.confirmPassword) { 
+        if (form.oldPassword && form.newPassword && form.confirmPassword) {
             const ok = await confirmOldPassword();
             if (!ok) {
                 setSubmitting(false);
@@ -177,7 +177,7 @@ export default function UpdateUserProfilePage() {
             const data = await res.json();
             if (!res.ok) {
                 setErrorMsg(data.message || "Cập nhật thông tin người dùng thất bại, hãy thử lại!");
-                throw new Error(data.message || data.error || "Cập nhật thất bại"); 
+                throw new Error(data.message || data.error || "Cập nhật thất bại");
             }
             toast.success("Cập nhật thông tin thành công!");
             setUser(data.user);
@@ -206,13 +206,20 @@ export default function UpdateUserProfilePage() {
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
                     {/* Avatar */}
                     <div className="flex items-center gap-x-4">
-                        <Image
-                            width={80}
-                            height={80}
-                            src={avatarPreview || "/avatar.png"}
-                            alt="avatar"
-                            className="w-25 h-25 rounded-full object-cover border bg-white"
-                        />
+                        <div className="w-25 h-25 flex-shrink-0 bg-white rounded-full overflow-hidden">
+                            {avatarPreview ? (<Image
+                                width={80}
+                                height={80}
+                                src={avatarPreview || "/avatar.png"}
+                                alt="avatar"
+                                className="w-full h-full object-cover"
+                            />) : (
+                                <span className="w-full h-full text-center text-4xl flex justify-center items-center">{user.username?.[0]?.toUpperCase() || "U"}</span>
+                            )
+                            }
+
+                        </div>
+
                         <div className="flex flex-col gap-y-2">
                             <span className="text-5xl font-semibold text-white drop-shadow-6xl">{user.username}</span>
                             <p className="text-md text-white/80 pl-1">{user.email}</p>
@@ -304,7 +311,7 @@ export default function UpdateUserProfilePage() {
                                     name="newPassword"
                                     type={showNewPassword ? "text" : "password"}
                                     value={form.newPassword}
-                                    onChange={handleChange} 
+                                    onChange={handleChange}
                                     className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
                                 />
                                 <button

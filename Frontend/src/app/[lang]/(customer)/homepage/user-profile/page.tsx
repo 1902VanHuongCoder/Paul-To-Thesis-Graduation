@@ -231,7 +231,7 @@ export default function UserProfilePage() {
                         </button>
                     </div>
                     {showAddForm && (
-                        <form onSubmit={handleAddAddress} className="space-y-3 my-7 border-[1px] border-gray-200 p-6 rounded-lg">
+                        <form onSubmit={handleAddAddress} className="space-y-3 my-7 border-[1px] border-gray-200 p-6 rounded-lg bg-white">
                             <div>
                                 <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
                                 <Select
@@ -351,7 +351,7 @@ export default function UserProfilePage() {
                             {shippingAddresses.map(addr => (
                                 <li
                                     key={addr.shippingAddressID}
-                                    className={`relative p-4 rounded flex flex-col justify-between items-start ${addr.isDefault ? "border-primary-hover border-[1px]" : "border-gray-200 border-[1px]"} hover:shadow-xl transition shadow-gray-100`}
+                                    className={`relative bg-white p-4 rounded flex flex-col justify-between items-start ${addr.isDefault ? "border-primary-hover border-[1px]" : "border-gray-200 border-[1px]"} hover:shadow-xl transition shadow-gray-100`}
                                 >
                                     <div className="w-full">
                                         <div className="font-medium">{addr.address}</div>

@@ -34,6 +34,8 @@ export { default as TypewriterText } from './ui/typewriter-text/typewriter-text'
 export { default as UserDrawer } from './ui/drawer/user-drawer';
 export { default as Hero} from './ui/hero/hero';
 export { default as ContentLoading } from './ui/loading/content-loading';
+export { default as HeartButton } from './ui/button/heart-button';
+
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

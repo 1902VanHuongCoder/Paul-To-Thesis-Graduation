@@ -489,15 +489,15 @@ export default function CheckoutPage() {
                 <h1 className="text-2xl font-bold mb-2 uppercase text-center">THANH TOÁN</h1>
                 {/* Discount Section */}
                 {promoCode.discount !== 0 ? "" : (
-                    <div className="mt-6 flex items-center gap-4 mb-4">
+                    <div className="mt-6 flex items-center mb-4">
                         <input
                             type="text"
                             placeholder={d?.shoppingCartPagePromoCodeInput || "Nhập mã giảm giá"}
                             value={promoCode.code}
                             onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-tl-full rounded-bl-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                         />
-                        <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="w-fit">
+                        <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="shrink-0 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full py-3.5 bg-primary text-white transition-all">
                             {d?.shoppingCartPageApplyCoupon || "Áp dụng mã giảm giá"}
                         </Button>
                     </div>
@@ -507,7 +507,7 @@ export default function CheckoutPage() {
                         id="checkout-form"
                         onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
                         <FormItem>
-                            <FormLabel>{
+                            <FormLabel className="pl-1">{
                                 d?.checkoutPageFullName || "Tên người dùng"
                             } <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -520,7 +520,7 @@ export default function CheckoutPage() {
                             <FormMessage />
                         </FormItem>
                         <FormItem>
-                            <FormLabel>
+                            <FormLabel className="pl-1">
                                 {d?.checkoutPagePhone || "Số điện thoại"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -533,7 +533,7 @@ export default function CheckoutPage() {
                             <FormMessage />
                         </FormItem>
                         {/* <FormItem>
-                            <FormLabel>
+                            <FormLabel className="pl-1">
                                 {d?.checkoutPageProvince || "Tỉnh/Thành phố"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -564,7 +564,7 @@ export default function CheckoutPage() {
                             <FormMessage />
                         </FormItem>
                         <FormItem>
-                            <FormLabel>
+                            <FormLabel className="pl-1">
                                 {d?.checkoutPageDistrict || "Quận/Huyện"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -593,7 +593,7 @@ export default function CheckoutPage() {
                             <FormMessage />
                         </FormItem>
                         <FormItem>
-                            <FormLabel>
+                            <FormLabel className="pl-1">
                                 {d?.checkoutPageWard || "Phường/Xã"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -618,7 +618,7 @@ export default function CheckoutPage() {
                             <FormMessage />
                         </FormItem>
                         <FormItem>
-                            <FormLabel>
+                            <FormLabel className="pl-1">
                                 {d?.checkoutPageDetailAddress || "Địa chỉ"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
@@ -634,15 +634,15 @@ export default function CheckoutPage() {
 
                         {/* Address selection */}
                         {user && addresses.length > 0 && (
-                            <div className="mb-4">
-                                <FormLabel className="pb-2">Chọn địa chỉ giao hàng <span className="text-red-500">*</span></FormLabel>
-                                <div className="flex items-center gap-2">
+                            <div className="mb-4 ">
+                                <FormLabel className="pb-2 pl-1">Chọn địa chỉ giao hàng <span className="text-red-500">*</span></FormLabel>
+                                <div className="flex items-center">
                                     <Select
                                         value={selectedAddressID ? String(selectedAddressID) : undefined}
                                         onValueChange={val => setSelectedAddressID(Number(val))}
 
                                     >
-                                        <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                                        <SelectTrigger className="w-full px-4 py-6 rounded-tl-full rounded-bl-full  border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
                                         >
                                             <SelectValue placeholder="Chọn địa chỉ giao hàng" />
                                         </SelectTrigger>
@@ -657,7 +657,7 @@ export default function CheckoutPage() {
                                             </SelectGroup>
                                         </SelectContent>
                                     </Select>
-                                    <button className="border-primary border-1 rounded-full px-4 shrink-0 py-3 hover:bg-primary hover:text-white transition-all hover:cursor-pointer" onClick={() => setOpenAddAddress(true)}>
+                                    <button className="border-gray-300 border-1 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full px-4 shrink-0 py-3 bg-gray-200 text-black hover:bg-white hover:text-primary transition-all hover:cursor-pointer" onClick={() => setOpenAddAddress(true)}>
                                          Thêm địa chỉ
                                     </button>
                                 </div>
@@ -665,7 +665,7 @@ export default function CheckoutPage() {
                         )}
 
                         <FormItem>
-                            <FormLabel>{
+                            <FormLabel className="pl-1">{
                                 d?.checkoutPageNote || "Lưu ý"
                             }</FormLabel>
                             <FormControl>

@@ -1,10 +1,12 @@
+/* eslint-disable jsx-a11y/alt-text */
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import NextImage from "next/image";
 import { useDictionary } from "@/contexts/dictonary-context";
 import formatVND from "@/lib/format-vnd";
 import { useRouter } from "next/navigation";
+import { Image } from "lucide-react";
 
 interface Product {
   productID: number;
@@ -36,13 +38,18 @@ export default function NewestProduct({ products }: { products: Product[] }) {
             <li onClick={() => router.push(`/${lang}/homepage/product-details/${product.productID}`)} key={product.productID} className="flex items-center p-4 gap-4">
               {/* Product Image */}
               <div className="w-16 h-16 flex-shrink-0">
-                <Image
+                { 
+                  product.images.length === 0 ? (
+                    <span className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md"><Image /></span>
+                  ) : (<NextImage
                   src={product.images[0]}
                   alt={product.productName}
                   width={50}
                   height={40}
                   className="rounded-lg w-full h-full object-cover"
-                />
+                />) 
+                }
+                
               </div>
 
               {/* Product Details */}

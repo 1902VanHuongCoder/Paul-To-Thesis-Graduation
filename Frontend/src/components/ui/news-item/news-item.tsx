@@ -4,7 +4,7 @@ import React from "react";
 import { Tag, MessageSquare, Eye, Share2, CircleUser } from "lucide-react";
 import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
-
+import NoImage from "@public/images/NoImage.jpg";
 
 interface NewsItemProps {
     image: string;
@@ -35,20 +35,27 @@ export default function NewsItem({
         <div className="flex flex-col md:flex-row gap-6 bg-white rounded-lg border-1 border-solid border-primary/10 p-4 items-stretch">
             {/* Left Section: Image and Play Button */}
             <div className="relative w-full md:w-1/3" onClick={onReadMore}>
-                <Image
-                    src={image}
-                    alt="News thumbnail"
-                    className="rounded-lg object-cover w-full h-[250px]"
-                    width={300}
-                    height={300}
-                />
-                {/* Play Button Overlay
-                <div className="absolute inset-0 flex items-center justify-center cursor-pointer">
-                    <div className="relative">
-                        <div className="absolute z-1 inset-0 bg-white animate-ping rounded-full"></div>
-                        <PlayCircle size={48} className="relative z-2 text-black rounded-full p-2 bg-white" />
-                    </div>
-                </div> */}
+                <div className="relative w-full h-[250px] overflow-hidden rounded-lg">
+                    { image ? (
+                    
+                        <Image 
+                            src={image}
+                            alt="News Image"
+                            width={500}
+                            height={300}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <Image 
+                            src={NoImage}
+                            alt="No Image Available"
+                            width={500}
+                            height={300}
+                            className="w-full h-full object-cover"
+                        />
+                    )}
+                    
+                </div>
                 {/* Date Badge */}
                 <div className="absolute top-4 right-4 z-10 bg-yellow-400 text-brown rounded-full w-20 h-20 font-bold flex flex-col items-center justify-center">
                     <span className="text-xl">

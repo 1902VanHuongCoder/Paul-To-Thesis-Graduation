@@ -83,7 +83,7 @@ export default function Navigation() {
 
     // Function to handle adding an item to the cart from the wishlist
     const handleAddToCart = async (productID: number, customerID: string) => {
-        addToCart(productID);
+        addToCart(productID, 1); // Add the product to the cart with quantity 1
         fetchCart(customerID);
         removeFromWishlist(customerID, productID);
         const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);

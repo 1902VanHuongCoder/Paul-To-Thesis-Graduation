@@ -1,6 +1,6 @@
 "use client";
 
-import { Breadcrumb, CommentItem, ToTopButton } from "@/components";
+import { Breadcrumb, CommentItem, ContentLoading, ToTopButton } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -30,6 +30,7 @@ import { Tag } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea/textarea";
 import { Button } from "@/components/ui/button/button";
 import { useUser } from "@/contexts/user-context";
+import NoImage from "@public/images/NoImage.jpg";
 
 interface Author {
     username: string;
@@ -74,16 +75,24 @@ interface NewsDetail {
 }
 
 export default function NewsDetailPage() {
-    const { newsID } = useParams();
-    const { lang } = useDictionary();
-    const { user } = useUser();
-    const [news, setNews] = useState<NewsDetail | null>(null);
-    const [otherNews, setOtherNews] = useState<NewsDetail[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Get newsID from URL parameters
+    const { newsID } = useParams(); // Get newsID from URL parameters
+    
+    // Router
     const router = useRouter();
-    const [newComment, setNewComment] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-    const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+    // Contexts 
+    const { lang } = useDictionary(); // Language context to get the current language
+    const { user } = useUser(); // User context to get the current user
+
+    // State variables
+    const [news, setNews] = useState<NewsDetail | null>(null); // Current news detail
+    const [otherNews, setOtherNews] = useState<NewsDetail[]>([]); // List of other news items
+    const [loading, setLoading] = useState(true); // Loading state to show a loading message while fetching data
+    const [newComment, setNewComment] = useState(""); // New comment content
+    const [submitting, setSubmitting] = useState(false); // Submitting state to disable form while submitting
+    const commentInputRef = useRef<HTMLTextAreaElement>(null); // Reference to the comment input field
+
     // Only create the editor when news?.content is available
     const editor = useEditor({
         extensions: [
@@ -117,12 +126,10 @@ export default function NewsDetailPage() {
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newComment.trim() || !news || !user) return;
-
+        if (!newComment.trim() || !news || !user) return; // Ensure there's content and news is loaded
         setSubmitting(true);
         try {
-            // Replace with actual userID (e.g., from auth context)
-
+            // Post new comment to the API
             await fetch(`${baseUrl}/api/news-comment`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -132,20 +139,21 @@ export default function NewsDetailPage() {
                     content: newComment,
                 }),
             });
+
             // Refetch comments (or optimistically update)
             const res = await fetch(`${baseUrl}/api/news-comment/news/${news.newsID}`);
             const comments = await res.json();
             setNews((prev) => prev ? { ...prev, comments } : prev);
             setNewComment("");
-            commentInputRef.current?.focus();
+            commentInputRef.current?.focus(); // Reset input and focus it
         } catch (err) {
             console.error("Failed to submit comment:", err);
-            // Handle error (show toast, etc.)
         } finally {
             setSubmitting(false);
         }
     };
 
+    // Handle like and dislike actions for comments
     const handleLikeComment = async (commentID: number) => {
         try {
             await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
@@ -182,6 +190,8 @@ export default function NewsDetailPage() {
             console.log(error);
         }
     }
+
+    // Fetch news detail and other news when newsID changes
     useEffect(() => {
         const fetchNewsDetail = async () => {
             try {
@@ -204,9 +214,13 @@ export default function NewsDetailPage() {
         if (newsID) fetchNewsDetail();
     }, [newsID, editor]);
 
-    if (loading) return <div>Đang tải...</div>;
+    if (loading) return <ContentLoading />;
     if (!news) return <div>Bài đăng không tồn tại.</div>;
 
+    // Format breadcrumb title
+    // const firstWord = news && news.title.split(" ")[0][0].toUpperCase() + news.title.split(" ")[0].slice(1).toLowerCase() || ""; 
+    // const breadcrumbTitle = news && firstWord + " " + news.title.split(" ").slice(1).join(" ").toLowerCase() || "Tin tức";
+    
     return (
         <div className="py-10 px-6">
             <Breadcrumb
@@ -214,7 +228,7 @@ export default function NewsDetailPage() {
                 items={[
                     { label: "Trang chủ", href: "/" },
                     { label: "Tin tức", href: `/${lang}/homepage/news` },
-                    { label: news.title }
+                    { label: news.title || "Chi tiết bài đăng" }
                 ]}
             />
 
@@ -239,7 +253,7 @@ export default function NewsDetailPage() {
                         <NextImage
                             width={800}
                             height={400}
-                            src={news.titleImageUrl}
+                            src={news.titleImageUrl || NoImage}
                             alt={news.title}
                             className="w-full max-h-96 object-cover rounded mb-4"
                         />
@@ -261,13 +275,16 @@ export default function NewsDetailPage() {
                                 key={item.newsID}
                                 className="p-4 border rounded hover:bg-gray-100 cursor-pointer flex gap-4"
                             >
-                                <NextImage
-                                    width={80}
-                                    height={80}
-                                    src={item.titleImageUrl || "/placeholder.jpg"}
-                                    alt={item.title}
-                                    className="w-20 h-20 object-cover rounded"
-                                />
+                                <div className="flex-shrink-0 w-20 h-20"> 
+                                    
+                                    <NextImage
+                                        width={100}
+                                        height={100}
+                                        src={item.titleImageUrl || NoImage}
+                                        alt={item.title}
+                                        className="object-cover rounded w-full h-full"
+                                    />
+                                </div>
                                 <div className="">
                                     <div className="font-bold w-[280px] truncate">{item.title}</div>
                                     <div className="text-sm w-[280px] truncate text-gray-500">{item.subtitle}</div>
@@ -310,8 +327,11 @@ export default function NewsDetailPage() {
                     {news?.comments && news.comments.length > 0 ? (
                         news.comments
                             .filter(c => c.status === "active")
-                            .map((comment) => (
+                            .map((comment, index) => (
                                 <CommentItem
+                                    index={index}
+                                    commentsLength={news.comments.length}
+                                    userID={comment.userID}
                                     key={comment.commentID}
                                     avatar={"https://cdn-icons-png.freepik.com/256/197/197374.png"}
                                     name={comment.user_comments?.username || `User ${comment.userID}`}
@@ -321,6 +341,7 @@ export default function NewsDetailPage() {
                                     dislikeCount={comment.dislikeCount}
                                     onLike={() => handleLikeComment(comment.commentID)}
                                     onDislike={() => handleDislikeComment(comment.commentID)}
+                                    reFetchComments={() => {}}
                                 />
                             ))
                     ) : (

@@ -194,11 +194,9 @@ export default function ShoppingCart() {
                         <span className="text-lg font-semibold">{d?.shoppingCartTotal ? d.shoppingCartTotal : "Tổng cộng"}: </span>
                         <span className="text-xl font-bold text-primary">{formatVND(totalPayment)} <span className="text-sm">VND</span></span>
                     </div>
-
-
                     <div className="flex flex-col gap-2">
                         <button
-                            disabled={cart.products && cart.products.length === 0} // Disable if no products in cart
+                            disabled={!cart.products} // Disable if no products in cart
                             onClick={() => {
                                 setOpen(false); // Close the drawer
                                 router.push(`/${lang}/homepage/checkout`);
@@ -206,8 +204,9 @@ export default function ShoppingCart() {
                             className="w-full py-2 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary">
                             {d?.shoppingCartCheckout ? d.shoppingCartCheckout : "Thanh toán"}
                         </button>
+                        
                         <button
-                            disabled={cart.products && cart.products.length === 0} // Disable if no products in cart
+                            disabled={!cart.products} // Disable if no products in cart
                             onClick={
                                 () => {
                                     setOpen(false); // Close the drawer
