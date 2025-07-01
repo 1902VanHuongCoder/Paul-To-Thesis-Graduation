@@ -175,3 +175,21 @@
 .tiptap-content tr:nth-child(even) td {
   @apply bg-gray-50;
 }
+
+.custom-scrollbar {
+  scrollbar-width: 5px; /* Firefox: width of the scrollbar */
+  scrollbar-color: #4caf50 #e0e0e0; /* Firefox: thumb color, track color */
+}
+
+/* Chrome, Edge, Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px; /* width of the scrollbar */
+  background: #e0e0e0; /* track color */
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4caf50; /* thumb color */
+  border-radius: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #388e3c; /* thumb color on hover */
+}

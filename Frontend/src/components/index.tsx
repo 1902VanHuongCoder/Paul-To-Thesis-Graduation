@@ -19,6 +19,7 @@ export { default as DisplayModeSwitcher } from './ui/display-mode-switcher/displ
 export { default as ToTopButton } from './ui/button/to-top-button';
 export { default as CustomPagination } from './ui/pagination/custom-pagination';
 export { default as Breadcrumb } from './ui/breadcrumb/custome-breadcrum';
+export { default as DynamicBreadcrumb } from './ui/breadcrumb/dynamic-breadcrumb';
 export { default as AddToCartPanel } from './ui/add-to-cart-panel/add-to-cart-panel';
 export { default as WishlistDialog } from './ui/dialog/wishlist-dialog';
 export { default as ImageGallery } from './ui/image-gallery/image-gallery';

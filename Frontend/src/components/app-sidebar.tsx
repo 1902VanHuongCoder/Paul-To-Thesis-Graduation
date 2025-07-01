@@ -7,7 +7,7 @@ import {
   // AudioWaveform,
   // Command,
   // Frame,
-  Handshake,
+  // Handshake,
   LayoutList,
   MessageSquareText,
   Package,
@@ -18,7 +18,7 @@ import {
   Truck,
   User,
   UsersRound,
-  Warehouse,
+  // Warehouse,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -36,7 +36,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useUser } from "@/contexts/user-context"
-import { NavProjects } from "./nav-projects"
+// import { NavProjects } from "./nav-projects"
 
 // This is sample data.
 const data = {
@@ -71,15 +71,11 @@ const data = {
       items: [
         {
           title: "Tất cả người dùng",
-          url: "#",
+          url: "/vi/dashboard/users",
         },
         {
           title: "Thêm người dùng",
-          url: "#",
-        },
-        {
-          title: "Người dùng ngừng hoạt động",
-          url: "#",
+          url: "/vi/dashboard/users/add-new-user",
         },
       ],
     },
@@ -90,37 +86,33 @@ const data = {
       items: [
         {
           title: "Tất cả sản phẩm",
-          url: "#",
+          url: "/vi/dashboard/products",
         },
         {
           title: "Thêm sản phẩm",
-          url: "#",
+          url: "/vi/dashboard/products/add-product",
         },
         {
           title: "Thẻ sản phẩm",
-          url: "#",
+          url: "/vi/dashboard/products/tags",
         }, {
           title: "Chương trình giảm giá",
-          url: "#",
+          url: "/vi/dashboard/products/coupon",
         },
       ],
     },
     {
       title: "Danh mục",
       url: "#",
-      icon: LayoutList, 
+      icon: LayoutList,
       items: [
         {
-          title: "Tất cả danh mục",
-          url: "#",
+          title: "Danh mục chính",
+          url: "/vi/dashboard/category",
         },
         {
-          title: "Thêm danh mục",
-          url: "#",
-        },
-        {
-          title: "Thêm danh mục con",
-          url: "#",
+          title: "Danh mục phụ",
+          url: "/vi/dashboard/category/sub-category",
         },
       ],
     },
@@ -131,15 +123,15 @@ const data = {
       items: [
         {
           title: "Tất cả bài viết",
-          url: "#",
+          url: "/vi/dashboard/posts",
         },
         {
           title: "Thêm bài viết",
-          url: "#",
+          url: "/vi/dashboard/posts/add-post",
         },
         {
           title: "Thẻ bài viết",
-          url: "#",
+          url: "/vi/dashboard/posts/tags",
         },
       ],
     },
@@ -150,37 +142,33 @@ const data = {
       items: [
         {
           title: "Tất cả đơn hàng",
-          url: "#",
-        },
-        {
-          title: "Thêm đơn hàng",
-          url: "#",
+          url: "/vi/dashboard/orders",
         },
       ],
     },
-    {
-      title: "Kho",
-      url: "#",
-      icon: Warehouse,
-      items: [
-        {
-          title: "Danh sách các kho",
-          url: "#",
-        },
-        {
-          title: "Tất cả giao dịch kho",
-          url: "#",
-        },
-        {
-          title: "Thêm kho mới",
-          url: "#",
-        },
-        {
-          title: "Nhập kho",
-          url: "#",
-        },
-      ],
-    },
+    // {
+    //   title: "Kho",
+    //   url: "#",
+    //   icon: Warehouse,
+    //   items: [
+    //     {
+    //       title: "Danh sách các kho",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Tất cả giao dịch kho",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Thêm kho mới",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Nhập kho",
+    //       url: "#",
+    //     },
+    //   ],
+    // },
     {
       title: "Nhà cung cấp",
       url: "#",
@@ -188,12 +176,12 @@ const data = {
       items: [
         {
           title: "Tất cả nhà cung cấp",
-          url: "#",
+          url: "/vi/dashboard/origin",
         },
-        {
-          title: "Thêm nhà cung cấp",
-          url: "#",
-        },
+        // {
+        //   title: "Thêm nhà cung cấp",
+        //   url: "#",
+        // },
       ],
     },
     {
@@ -203,11 +191,11 @@ const data = {
       items: [
         {
           title: "Bình luận sản phẩm",
-          url: "#",
+          url: "/vi/dashboard/comments/products",
         },
         {
           title: "Bình luận bài viết",
-          url: "#",
+          url: "/vi/dashboard/comments/news",
         },
       ],
     },
@@ -218,39 +206,46 @@ const data = {
       items: [
         {
           title: "Tất cả phương thức giao hàng",
-          url: "#",
+          url: "/vi/dashboard/delivery-method",
         },
+      ],
+    },
+    {
+      title: "Liên hệ và phản hồi",
+      url: "#",
+      icon: Building2,
+      items: [
         {
-          title: "Thêm phương thức giao hàng",
-          url: "#",
+          title: "Tất cả cả liên hệ",
+          url: "/vi/dashboard/contacts",
         },
       ],
     },
   ],
-  projects: [
-    {
-      name: "Thông tin công ty",
-      url: "#",
-      icon: Building2 ,
-    },
-    {
-      name: "Chính sách và điều khoản",
-      url: "#",
-      icon: Handshake,
-    },
-  ],
+  // projects: [
+  //   {
+  //     name: "Thông tin công ty",
+  //     url: "/vi/dashboard/contacts",
+  //     icon: Building2,
+  //   },
+  //   {
+  //     name: "Liên hệ và phản hồi",
+  //     url: "#",
+  //     icon: Handshake,
+  //   },
+  // ],
 }
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useUser();
+  const { user, logout } = useUser();
   console.log(user);
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="bg-red-500">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+            <SidebarMenuButton size="lg" asChild className="bg-primary text-white">
+              <div>
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <User />
                 </div>
@@ -258,17 +253,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <span className="font-medium">Quản trị viên</span>
                   <span className="">v1.0.0</span>
                 </div>
-              </a>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="">
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        { user && <NavUser user={{name: user.username, email: user.email, avatar: user?.avatar || ""}} /> }
+        {user && <NavUser userInfo={{ name: user.username, email: user.email, avatar: user?.avatar || "" }} logout={logout}/>}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

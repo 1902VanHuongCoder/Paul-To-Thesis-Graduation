@@ -113,11 +113,11 @@ const chartData = [
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+    label: "Theo tuần",
+    color: "var(--color-sky-500)",
   },
   mobile: {
-    label: "Mobile",
+    label: "Theo tháng",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig
@@ -138,9 +138,9 @@ export function DashboardLineChart() {
     <Card className="py-4 sm:py-0">
       <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-          <CardTitle>Line Chart - Interactive</CardTitle>
+          <CardTitle>Biểu đồ doanh thu cửa hàng</CardTitle>
           <CardDescription>
-            Showing total visitors for the last 3 months
+            Hiển thị doanh thu theo tuần hoặc theo tháng.
           </CardDescription>
         </div>
         <div className="flex">
