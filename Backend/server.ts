@@ -92,8 +92,8 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/about", aboutRoutes); 
 
 // Create HTTP server and integrate Socket.IO
-const server = http.createServer(app);
-const io = new Server(server, {
+export const server = http.createServer(app);
+export const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000", // Your frontend origin
     methods: ["GET", "POST"],
@@ -103,6 +103,12 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  socket.on("admins", (data) => {
+    // data: { orderID, userName, createdAt, totalPayment }
+    console.log("New admin notification:", data);
+    socket.broadcast.emit("admins", data); // Broadcast to all connected clients
+  });
+
   socket.on("join_room", (room: string) => {
     socket.join(room);
     console.log(`User Id: ${socket.id} joined room: ${room}`);
@@ -111,6 +117,7 @@ io.on("connection", (socket) => {
   socket.on("send_message", (data) => {
     // data: { room, username, message, time }
     console.log("Message received:", data);
+    console.log("Broadcasting message to room:", data.room);
     socket.to(data.room).emit("send_message", data); // Broadcast message to the room
   });
 

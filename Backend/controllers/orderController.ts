@@ -10,6 +10,7 @@ import {
   Delivery,
 } from "../models";
 import { Transaction } from "sequelize";
+import { io } from "../server";
 
 // GET all orders
 export const getAllOrders = async (
@@ -175,6 +176,12 @@ export const createOrder = async (
       });
 
       await t?.commit();
+      io.emit("admins", {
+        orderID: newOrder.orderID,
+        userName : newOrder.fullName,
+        createdAt: newOrder.createdAt,
+        totalPayment: newOrder.totalPayment,
+      });
       res.status(201).json(newOrder);
     }
   } catch (error) {

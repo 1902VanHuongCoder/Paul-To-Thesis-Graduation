@@ -65,6 +65,8 @@ export default function ChatPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleReceiveMessage = (data: any) => {
       // If the message is for the current conversation, add it
+      alert("Get new message: " + data.message);
+      alert(data.room + " - " + joinedConversationID);
       if (String(data.room) === String(joinedConversationID)) {
         setMessages((prev) => [...prev, {
           messageID: Math.random(), // Temporary ID if not provided
@@ -265,6 +267,7 @@ export default function ChatPage() {
                     onClick={() => {
                       setJoinedConversationID(conv.conversationID);
                       setConversation(conv.conversation);
+                      socketRef.current?.emit("join_room", conv.conversationID);
                     }}
                   >
                     {conv.conversation.conversationName }
