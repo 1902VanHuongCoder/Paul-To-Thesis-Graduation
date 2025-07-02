@@ -37,6 +37,24 @@ export const getUserByID = async (
   }
 };
 
+// Get users based on their role
+export const getUsersBasedOnRole = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { role } = req.params;
+  try {
+    const users = await User.findAll({ where: { role } });
+    if (users.length === 0) {
+      res.status(404).json({ message: "No users found with this role" });
+    } else {
+      res.status(200).json(users);
+    }
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
 // Helper: Generate JWT token
 const generateToken = (user: any) => {
   return jwt.sign(

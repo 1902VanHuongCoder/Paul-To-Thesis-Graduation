@@ -62,54 +62,45 @@ export const createConversation = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const {
-    conversationID,
-    conversationName,
-    participants,
-    isGroup,
-  } = req.body;
+  const { conversationID, conversationName, participants, isGroup } = req.body;
 
-  console.log({
+  let existingConversation;
+
+  console.log("Creating conversation with data:", {
     conversationID,
     conversationName,
     participants,
     isGroup,
   });
 
-  let existingConversation;
+  // Conversation ID is created by concatenating two first participants's IDs, so if request conversationID is in two cases, it already existed
+  // const possibleIDs = [
+  //   `CON${participants[0]}${participants[1]}`,
+  //   `CON${participants[1]}${participants[0]}`,
+  // ];
 
-  if (!isGroup) {
-    // For 1-1 chat, check if conversationID matches either possible order
-    const possibleIDs = [
-      `CON${participants[0]}${participants[1]}`,
-      `CON${participants[1]}${participants[0]}`,
-    ];
-
-    console.log("Possible conversation IDs:", possibleIDs);
-    try {
-      existingConversation = await Conversation.findOne({
-        where: {
-          isGroup: false,
-          conversationID: { [Op.in]: possibleIDs },
-        },
-      });
-
-      if (existingConversation) {
-        console.log("Conversation already exists:", existingConversation);
-        res.status(200).json({
-          message: "Conversation already exists",
-          conversation: existingConversation,
-        });
-        return;
-      }
-    } catch (error) {
-      console.error("Error checking conversation existence:", error);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
+  try {
+    // Check if a conversation already exists with the possible IDs
+    existingConversation = await ConversationParticipant.findOne({
+      where: {
+         userID: participants[0],
+      },
+    });
+  } catch (error) {
+    console.error("Error checking conversation existence:", error);
+    res.status(500).json({ message: "Internal server error" });
+    return;
   }
-
-  if (!existingConversation) {
+  // Check if the conversation already exists
+  // If it existed, return the existing conversation
+  if (existingConversation) {
+    console.log("Conversation already exists:", existingConversation);
+    res.status(200).json({
+      message: "Conversation already exists",
+      conversation: existingConversation,
+    });
+    return;
+  } else {
     try {
       const newConversation = await Conversation.create({
         conversationID,
@@ -133,6 +124,63 @@ export const createConversation = async (
       return;
     }
   }
+  // Else, create a new conversation
+
+  // if (!isGroup) {
+  //   // For 1-1 chat, check if conversationID matches either possible order
+  //   const possibleIDs = [
+  //     `CON${participants[0]}${participants[1]}`,
+  //     `CON${participants[1]}${participants[0]}`,
+  //   ];
+
+  //   console.log("Possible conversation IDs:", possibleIDs);
+  //   try {
+  //     existingConversation = await Conversation.findOne({
+  //       where: {
+  //         isGroup: false,
+  //         conversationID: { [Op.in]: possibleIDs },
+  //       },
+  //     });
+
+  //     if (existingConversation) {
+  //       console.log("Conversation already exists:", existingConversation);
+  //       res.status(200).json({
+  //         message: "Conversation already exists",
+  //         conversation: existingConversation,
+  //       });
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking conversation existence:", error);
+  //     res.status(500).json({ message: "Internal server error" });
+  //     return;
+  //   }
+  // }
+
+  // if (!existingConversation) {
+  //   try {
+  //     const newConversation = await Conversation.create({
+  //       conversationID,
+  //       conversationName,
+  //       isGroup: isGroup,
+  //     });
+  //     await ConversationParticipant.bulkCreate(
+  //       participants.map((userID: number) => ({
+  //         conversationID: newConversation.get("conversationID"),
+  //         userID,
+  //       }))
+  //     );
+
+  //     res.status(201).json({
+  //       message: "Conversation created successfully",
+  //       conversation: newConversation,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error creating conversation:", error);
+  //     res.status(500).json({ message: "Internal server error" });
+  //     return;
+  //   }
+  // }
 };
 
 // Add a member into a group conversation
@@ -176,9 +224,9 @@ export const addMemberIntoGroup = async (
     console.error("Error adding member to group:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
-// Get all conversations that user belongs to 
+// Get all conversations that user belongs to
 export const getConversationsUserBelongs = async (
   req: Request,
   res: Response
@@ -207,4 +255,4 @@ export const getConversationsUserBelongs = async (
     console.error("Error fetching conversations for user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
