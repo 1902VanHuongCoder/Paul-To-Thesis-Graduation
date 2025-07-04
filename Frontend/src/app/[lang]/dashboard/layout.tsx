@@ -9,32 +9,93 @@ import {
 } from "@/components/ui/sidebar"
 import { baseUrl } from "@/lib/base-url"
 import { Bell } from "lucide-react"
+import { usePathname } from "next/navigation";
 import { useEffect } from "react"
-import toast, { Toaster } from "react-hot-toast"
 import { io, Socket } from "socket.io-client"
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import CustomToast from "@/components/ui/toast/custom-toast";
 
-interface SocketData {
-  userName: string;
-  totalPayment: number;
+interface OrderData {
+  username: string;
   createdAt: string;
-  orderID: number;
 }
 
-export default function DashboardLayout({children}: { children: React.ReactNode }) {
+interface chatData {
+  username: string;
+  createdAt: string;
+  userAvatar?: string; 
+  message: string; 
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+
+  const path = usePathname();
   useEffect(() => {
     const socket: Socket = io(baseUrl);
-    socket.emit("join_room", "admins"); // Join the 'admins' room
-    socket.on("admins", (data : SocketData) => {
-      console.log("New admin notification:", data);
-      toast.success(`hihi `); 
+    // If path is equal to "/vi/dashboard/chat", the system will not get chat notifications
+    if (path === "/vi/dashboard/chat") {
+      // disconnect to chat-notifications room 
+      socket.off("chat-notification");
+    } else {
+      // else we join the 'chat-notification room' to get chat notifications
+      socket.emit("join_room", "chat-notification");
+    }
+
+    // Join the 'order-notification' room to get order notifications
+    socket.emit("join_room", "order-notification");
+
+    // Listen for chat notifications
+    socket.on("chat-notification", (data: chatData) => {
+
+      toast.custom((t) => (
+        <CustomToast
+          t={t}
+          createdAt="2023-10-01T12:00:00Z"
+          username="John Doe"
+          type="order"
+        />
+
+
+      ), {
+        duration: 5000,
+        position: "bottom-right",
+        style: {
+          width: "400px",
+          maxWidth: "100%",
+        },
+      })
     });
+
+    // Listen for order notifications 
+    socket.on("order-notification", (data: OrderData) => {
+
+      toast.custom((t) => (
+        <CustomToast
+          t={t}
+          createdAt="2023-10-01T12:00:00Z"
+          username="John Doe"
+          type="order"
+        />
+
+
+      ), {
+        duration: 5000,
+        position: "bottom-right",
+        style: {
+          width: "400px",
+          maxWidth: "100%",
+        },
+      })
+    });
+
     return () => {
-      socket.off("admins");
+      socket.off("chat-notification");
+      socket.off("order-notification");
       socket.disconnect();
     };
-  }, []);
+  }, [path]);
 
-  
   return (
     <SidebarProvider>
       <Toaster position="top-right" />
@@ -50,10 +111,11 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             <DynamicBreadcrumb />
           </div>
           <div className="pr-6">
-            <Bell height={20} width={20}/>
+            <Bell height={20} width={20} />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 ">
+        
           {children}
         </div>
       </SidebarInset>

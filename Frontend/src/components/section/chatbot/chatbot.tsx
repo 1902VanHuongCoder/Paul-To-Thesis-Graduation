@@ -113,7 +113,6 @@ export default function ChatBot() {
     // On Bot icon click: fetch or create conversation, join room, load messages
     const handleOpenChat = async () => {
         if (!user) {
-            alert("Bạn cần đăng nhập để chat với admin.");
             return;
         }
         let admins: User[] = [];
@@ -144,7 +143,6 @@ export default function ChatBot() {
             }),
         });
         if (res.ok) {
-            alert("Đã tạo hoặc lấy cuộc trò chuyện với admin thành công.");
             const data = await res.json();
             setConversation(data.conversation);
             setJoinedConversationID(data.conversation?.conversationID);
@@ -153,7 +151,7 @@ export default function ChatBot() {
                 socketRef.current.emit("join_room", data.conversation.conversationID);
             }
         } else {
-            alert("Không thể tạo hoặc lấy cuộc trò chuyện với admin.");
+            console.log("Không thể tạo cuộc trò chuyện mới.");
         }
         setIsLoading(false);
     };
@@ -173,10 +171,12 @@ export default function ChatBot() {
         });
         // Emit via socket
         socketRef.current?.emit("send_message", {
+            userAvatar: user.avatar,
             room: joinedConversationID,
             username: user.username,
             message: input,
             senderID: user.userID,
+            createdAt: new Date().toISOString(),
         });
         setMessages((prev) => [
             ...prev,

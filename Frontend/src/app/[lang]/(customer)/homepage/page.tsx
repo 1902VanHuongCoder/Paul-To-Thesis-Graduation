@@ -193,7 +193,12 @@ const Homepage = () => {
         }
         fetchAll();
     }, [setLoading]);
-    
+
+    useEffect(() => {
+        // Increment access count when homepage is accessed
+        fetch(`${baseUrl}/api/statistic/increment`, { method: "POST" });
+    }, []);
+
     return (
         <div className="relative mx-auto">
             {/* Hero */}

@@ -29,6 +29,7 @@ import newsCommentRoutes from "./routes/newsCommentRoutes";
 import contactRoutes from "./routes/contactRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import aboutRoutes from "./routes/aboutRoutes"; 
+import statisticRoutes from "./routes/statisticRoutes";
 
 import http from "http";
 import { Server } from "socket.io";
@@ -48,7 +49,7 @@ sequelize
   .then(() => {
     console.log("✅ Database connected successfully");
     // Sync all models with the database
-    // return sequelize.sync({ force: false });
+    return sequelize.sync({ force: false });
   })
   .then(() => {
     console.log("✅ Database & tables synced");
@@ -90,6 +91,7 @@ app.use("/api/news-comment", newsCommentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/chat", chatRoutes); 
 app.use("/api/about", aboutRoutes); 
+app.use("/api/statistic", statisticRoutes); 
 
 // Create HTTP server and integrate Socket.IO
 export const server = http.createServer(app);
@@ -101,28 +103,36 @@ export const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("🟢 User connected:", socket.id);
 
-  socket.on("admins", (data) => {
-    // data: { orderID, userName, createdAt, totalPayment }
-    console.log("New admin notification:", data);
-    socket.broadcast.emit("admins", data); // Broadcast to all connected clients
+  // Socket to get and broadcast to all admins when a new order is created 
+  socket.on("order-notifications", (data) => {
+    socket.broadcast.emit("order-notification", data);
   });
 
+  // Socket to get and broadcast to all admins when a new chat message is sent
+  socket.on("chat-notifications", (data) => {
+    console.log("📬 Chat notification received:", data);
+    socket.to("chat-notification").emit("chat-notification", data); 
+  });
+
+  // Join a specific room based on room parameter
   socket.on("join_room", (room: string) => {
     socket.join(room);
-    console.log(`User Id: ${socket.id} joined room: ${room}`);
+    console.log(`🏠 User ${socket.id} joined room: ${room}`);
   });
 
+  // Handle to get and broadcast messages to a specific room
   socket.on("send_message", (data) => {
-    // data: { room, username, message, time }
-    console.log("Message received:", data);
-    console.log("Broadcasting message to room:", data.room);
+    console.log("📨 Message received:", data);
+    console.log("📢 Broadcasting message to room:", data.room);
     socket.to(data.room).emit("send_message", data); // Broadcast message to the room
+    socket.to("chat-notification").emit("chat-notification", data); 
+
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("🔴 User disconnected:", socket.id);
   });
 });
 
