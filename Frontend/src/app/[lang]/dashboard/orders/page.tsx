@@ -43,7 +43,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [sort, setSort] = useState<string>("createdAt-desc");
-  const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [, setViewOrder] = useState<Order | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -111,9 +111,10 @@ export default function OrdersPage() {
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="accepted">Accepted</SelectItem>
+                <SelectItem value="shipping">Shipping</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="shipping">Shipping</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -164,9 +165,10 @@ export default function OrdersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="accepted">Accepted</SelectItem>
+                    <SelectItem value="shipping">Shipping</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="shipping">Shipping</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>

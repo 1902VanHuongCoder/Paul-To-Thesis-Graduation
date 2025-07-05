@@ -24,10 +24,12 @@ export default function AddOrderForm({ open, onOpenChange, onOrderAdded }: { ope
   });
   const [loading, setLoading] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
@@ -71,9 +73,10 @@ export default function AddOrderForm({ open, onOpenChange, onOrderAdded }: { ope
             <SelectTrigger className="w-full"><SelectValue placeholder="Order Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
               <SelectItem value="shipping">Shipping</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancled">Cancled</SelectItem>
             </SelectContent>
           </Select>
           <DialogFooter>

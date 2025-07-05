@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DetectRiceDiseaseDemo() {
   const [file, setFile] = useState<File | null>(null);
@@ -47,6 +48,37 @@ export default function DetectRiceDiseaseDemo() {
           {loading ? "Detecting..." : "Detect Disease"}
         </button>
       </form>
+      {file && (
+        <div style={{ marginTop: 24, position: "relative", width: 320, height: 240, borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 8px #0001" }}>
+          <img
+            src={URL.createObjectURL(file)}
+            alt="Uploaded"
+            style={{ width: 320, height: 240, objectFit: "cover", borderRadius: 8, display: "block" }}
+          />
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                key="scan"
+                initial={{ y: -240, opacity: 0.7 }}
+                animate={{ y: 240, opacity: 0.7 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, repeat: Infinity, repeatType: "loop", ease: "linear" }}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  width: "100%",
+                  height: 32,
+                  background: "linear-gradient(90deg, #00eaff44 0%, #00eaffcc 50%, #00eaff44 100%)",
+                  borderRadius: 8,
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  filter: "blur(1px)",
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      )}
       {result && (
         <div style={{ marginTop: 24 }}>
           <h3>Result</h3>
