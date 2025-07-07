@@ -10,6 +10,7 @@ import {
   forgotPassword,
   checkRecoveryCode,
   getUsersBasedOnRole,
+  deleteUser,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -44,5 +45,8 @@ router.post("/forgot-password", forgotPassword);
 
 // Handle checking password recovery code 
 router.post("/check-recovery-code", checkRecoveryCode);
+
+// Handle deleting user account 
+router.delete("/:userID", deleteUser);
 
 export default router;

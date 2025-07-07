@@ -173,13 +173,18 @@ export const updateUser = async (
 ): Promise<void> => {
   const userID = req.params.userID;
   console.log("Updating user with ID:", userID);
-  const { username, email, avatar, password } = req.body;
+  const { username, email, avatar, password, isActive } = req.body;
   console.log(req.body);
   try {
     const user = await User.findByPk(userID);
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
+    }
+
+    // Update account status when user update account status
+    if (user && user.isActive !== isActive) {
+      user.isActive = isActive;
     }
 
     // Update user fields
@@ -192,6 +197,7 @@ export const updateUser = async (
         return;
       }
       user.email = email;
+     
     }
     if (avatar) user.avatar = avatar;
 
@@ -328,6 +334,29 @@ export const checkRecoveryCode = async (
       res.status(400).json({ message: "Invalid or expired code" });
     }
   } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Delete user account based on userID
+export const deleteUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userID = req.params.userID;
+  try {
+    // Delete all shipping addresses for this user first
+    await ShippingAddress.destroy({ where: { userID } });
+    // Then delete the user
+    const user = await User.findByPk(userID);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    await user.destroy();
+    res.status(200).json({ message: "User account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

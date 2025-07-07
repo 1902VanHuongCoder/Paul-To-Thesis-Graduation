@@ -3,15 +3,18 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge/badge"
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
-import { DashboardLineChart } from "@/components/ui/chart/dashboard-line-chart"
+import { DashboardBarChart } from "@/components/ui/chart/dashboard-bar-chart"
 import formatVND from '@/lib/format-vnd'
 import { baseUrl } from '@/lib/base-url'
+import { UserGrowthLineChart } from '@/components/ui/chart/user-growth-line-chart';
+import { NewsCommentRatingPieChart } from '@/components/ui/chart/dashboard-pie-chart';
+import DashboardCategoryPieChart from '@/components/ui/chart/dashboard-category-pie-chart';
 
 interface Order {
-  orderID: string
-  totalPayment: number
-  orderStatus: string
-  createdAt: string
+    orderID: string
+    totalPayment: number
+    orderStatus: string
+    createdAt: string
 }
 
 const Page = () => {
@@ -74,12 +77,12 @@ const Page = () => {
             const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
             const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
             // Users created in current month
-            const curUsers = users.filter((u: {createdAt: string}) => {
+            const curUsers = users.filter((u: { createdAt: string }) => {
                 const d = new Date(u.createdAt);
                 return d.getFullYear() === currentYear && (d.getMonth() + 1) === currentMonth;
             }).length;
             // Users created in previous month
-            const preUsers = users.filter((u: {createdAt: string}) => {
+            const preUsers = users.filter((u: { createdAt: string }) => {
                 const d = new Date(u.createdAt);
                 return d.getFullYear() === prevYear && (d.getMonth() + 1) === prevMonth;
             }).length;
@@ -110,8 +113,8 @@ const Page = () => {
             const stats = await res.json();
             // If backend returns an array of stats for all months
             const statArr = Array.isArray(stats) ? stats : [stats];
-            const curStat = statArr.find((s: {year: number, month: number}) => s.year === currentYear && s.month === currentMonth);
-            const preStat = statArr.find((s: {year: number, month: number}) => s.year === prevYear && s.month === prevMonth);
+            const curStat = statArr.find((s: { year: number, month: number }) => s.year === currentYear && s.month === currentMonth);
+            const preStat = statArr.find((s: { year: number, month: number }) => s.year === prevYear && s.month === prevMonth);
             const curAccess = curStat ? curStat.accessCount : 0;
             const preAccess = preStat ? preStat.accessCount : 0;
             setCurrentAccess(curAccess);
@@ -201,8 +204,14 @@ const Page = () => {
                     </CardFooter>
                 </Card>
             </div>
-            <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-6">
-                <DashboardLineChart />
+            <div className="min-h-[100vh] grid rounded-xl md:min-h-min mt-6 bg-white grid-rows-3 gap-4">
+                <div className='grid grid-cols-[1fr_16px_1fr]'>
+                    <NewsCommentRatingPieChart />
+                    <div></div>
+                    <DashboardCategoryPieChart />
+                </div>
+                <UserGrowthLineChart />
+                <DashboardBarChart />
             </div>
         </div>
     )

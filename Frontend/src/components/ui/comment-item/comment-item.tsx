@@ -1,7 +1,7 @@
 "use client";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import React from "react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/contexts/user-context";
 import { baseUrl } from "@/lib/base-url";
@@ -10,7 +10,7 @@ interface CommentItemProps {
     index: number;
     commentsLength: number;
     userID: string;
-    avatar: string;
+    avatar: string | StaticImageData;
     name: string;
     date: string;
     comment: string;
@@ -81,17 +81,15 @@ export default function CommentItem({
             {/* User Info */}
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                    <div className="w-[50px] h-[50px] flex-shrink-0">
+                    <div className="w-[50px] h-[50px] flex-shrink-0 border rounded-full overflow-hidden border-gray-300">
                         <Image
                             src={avatar}
                             alt={`${name}'s avatar`}
                             width={40}
                             height={40}
-                            className="rounded-full w-full h-full object-cover"
+                            className="rounded-full w-full h-full object-contain"
                         />
                     </div>
-                    {commentsLength}
-                    {index}
                     <div>
                         <p className="font-bold text-gray-800">{name}</p>
                         <p className="text-sm text-gray-500">{date}</p>

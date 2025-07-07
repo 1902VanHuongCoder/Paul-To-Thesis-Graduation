@@ -257,6 +257,7 @@ export default function CheckoutPage() {
 
     // Function to handle form submission
     const onSubmit = async (data: CheckoutFormValues) => {
+        alert("Submit form"); 
         if (!user) {
             toast.error("Bạn cần đăng nhập để đặt hàng.");
             return;
@@ -657,7 +658,7 @@ export default function CheckoutPage() {
                                             </SelectGroup>
                                         </SelectContent>
                                     </Select>
-                                    <button className="border-gray-300 border-1 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full px-4 shrink-0 py-3 bg-gray-200 text-black hover:bg-white hover:text-primary transition-all hover:cursor-pointer" onClick={() => setOpenAddAddress(true)}>
+                                    <button type="button" className="border-gray-300 border-1 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full px-4 shrink-0 py-3 bg-gray-200 text-black hover:bg-white hover:text-primary transition-all hover:cursor-pointer" onClick={() => setOpenAddAddress(true)}>
                                          Thêm địa chỉ
                                     </button>
                                 </div>
@@ -925,6 +926,7 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                 <h3 className="text-lg font-semibold mb-4">Thêm địa chỉ mới</h3>
                 <form onSubmit={async e => {
                     e.preventDefault();
+                    e.stopPropagation();
                     await handleAddAddress(form);
                 }} className="space-y-3">
                     <Select
@@ -933,7 +935,10 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={provinces.length === 0}
                     >
-                        <SelectTrigger className="w-full px-4 py-2 border rounded">
+                        <SelectTrigger 
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+
+                        >
                             <SelectValue placeholder="Chọn tỉnh/thành phố" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -951,7 +956,10 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={!form.province}
                     >
-                        <SelectTrigger className="w-full px-4 py-2 border rounded" disabled={!form.province}>
+                        <SelectTrigger 
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+
+                        disabled={!form.province}>
                             <SelectValue placeholder="Chọn quận/huyện" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -969,7 +977,11 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={!form.district}
                     >
-                        <SelectTrigger className="w-full px-4 py-2 border rounded" disabled={!form.district}>
+                        <SelectTrigger 
+                        
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+
+                        disabled={!form.district}>
                             <SelectValue placeholder="Chọn phường/xã" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -984,7 +996,7 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                     <input
                         name="detailAddress"
                         placeholder="Địa chỉ cụ thể"
-                        className="w-full px-4 py-2 border rounded"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                         required
                         value={form.detailAddress}
                         onChange={e => setForm(f => ({ ...f, detailAddress: e.target.value }))}
@@ -992,7 +1004,7 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                     <input
                         name="phone"
                         placeholder="Số điện thoại"
-                        className="w-full px-4 py-2 border rounded"
+                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
                         required
                         value={form.phone}
                         onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -1001,8 +1013,8 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         <input type="checkbox" name="isDefault" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} /> Đặt làm mặc định
                     </label>
                     <div className="flex gap-2 justify-end">
-                        <Button type="button" variant="outline" onClick={() => setOpenAddAddress(false)}>Hủy</Button>
-                        <Button type="submit" variant="primary">Lưu</Button>
+                        <Button type="button" variant="normal"  size="sm" onClick={() => setOpenAddAddress(false)}>Hủy thêm</Button>
+                        <Button type="submit" variant="primary" size="sm" >Lưu</Button>
                     </div>
                 </form>
             </div>

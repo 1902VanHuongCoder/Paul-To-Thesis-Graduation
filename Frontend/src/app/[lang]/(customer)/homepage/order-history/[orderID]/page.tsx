@@ -6,7 +6,7 @@ import { baseUrl } from "@/lib/base-url";
 import formatVND from "@/lib/format-vnd";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
-import { Breadcrumb, ContentLoading} from "@/components";
+import { Breadcrumb, ContentLoading } from "@/components";
 import { Stepper, StepperItem, StepperIndicator, StepperTitle, StepperSeparator } from "@/components/ui/stepper/stepper";
 import darkLogo from "@public/images/dark+logo.png";
 import { Clock, CheckCircle2, Truck, Star, XCircle } from "lucide-react";
@@ -33,6 +33,7 @@ interface Product {
 }
 
 interface Order {
+  userID: string;
   orderID: string;
   createdAt: string;
   totalPayment: number;
@@ -44,7 +45,7 @@ interface Order {
   deliveryCost?: number;
   delivery: DeliveryMethod;
   discount: number;
-  orderStatus: "pending" | "accepted" | "shipping" | "completed" | "cancled";
+  orderStatus: "pending" | "accepted" | "shipping" | "completed" | "cancelled";
 }
 
 export default function OrderDetailPage() {
@@ -54,7 +55,7 @@ export default function OrderDetailPage() {
 
   // Contexts
   const { dictionary: d, lang } = useDictionary(); // Get dictionary and language from the context
-  
+
   // State variables
   const [order, setOrder] = useState<Order | null>(null); // State to hold the order details
   const [loading, setLoading] = useState(true); // State to manage loading state
@@ -104,72 +105,102 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="px-6 py-10">
+    <div className="px-6 pt-10 pb-16">
       <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng", href: `/${lang}/homepage/order-history` }, { label: orderID }]} />
       <h1 className="text-2xl font-bold mb-4 mt-6 uppercase text-center">{d?.orderDetailTitle || "Chi tiết đơn hàng"}</h1>
+      {/* Order status */}
+      <div className="my-10">
+        <Stepper value={
+          order.orderStatus === "pending" ? 0 :
+            order.orderStatus === "accepted" ? 1 :
+              order.orderStatus === "shipping" ? 2 :
+                order.orderStatus === "completed" ? 3 : 0
+                  // order.orderStatus === "cancled" ? 4 : 0
+        } className="w-full flex justify-center gap-x-4">
+          <StepperItem className="w-[200px] shrink-0" step={0} completed={order.orderStatus !== "pending"}>
+            <div className="flex items-center gap-y-4 flex-col">
+              <StepperIndicator />
+              <StepperTitle><Clock className="inline mr-1" size={18} />Chờ xác nhận</StepperTitle>
+              {order.orderStatus === "pending" && (
+                <button
+                  className="px-4 py-1 bg-primary text-white rounded hover:bg-primary/90 transition hover:cursor-pointer"
+                  onClick={async () => {
+                    if (!confirm(d?.orderDetailCancelConfirm || "Bạn có chắc muốn hủy đơn hàng này?")) return;
+                    try {
+                      const res = await fetch(`${baseUrl}/api/order/${order.orderID}`, {
+                        
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ ...order, orderStatus: "cancelled" }),
+                      });
+                      if (!res.ok) throw new Error("Failed to cancel order");
+                      setOrder({ ...order, orderStatus: "cancelled" });
+                    } catch (err) {
+                      console.error(err);
+                      alert(d?.orderDetailCancelError || "Hủy đơn hàng thất bại. Vui lòng thử lại.");
+                    }
+                  }}
+                >
+                  {d?.orderDetailCancelButton || "Hủy đơn"}
+                </button>
+              )}
+            </div>
+            <StepperSeparator className="h-2 w-12 md:w-16" />
+          </StepperItem>
+          <StepperItem className="w-[200px] shrink-0" step={1} completed={order.orderStatus === "shipping" || order.orderStatus === "completed"}>
+            <div className="flex items-center gap-y-4 flex-col">
+
+              <StepperIndicator />
+              <StepperTitle><CheckCircle2 className="inline mr-1" size={18} />Đã xác nhận</StepperTitle>
+            </div>
+            <StepperSeparator className="h-2 w-12 md:w-16" />
+          </StepperItem>
+
+          <StepperItem className="w-[200px] shrink-0" step={2} completed={order.orderStatus === "completed" }>
+            <div className="flex items-center gap-y-4 flex-col">
+
+              <StepperIndicator />
+              <StepperTitle><Truck className="inline mr-1" size={18} />Đang giao hàng</StepperTitle>
+            </div>
+            <StepperSeparator className="h-2 w-12 md:w-16" />
+          </StepperItem>
+          <StepperItem className="w-[200px] shrink-0" step={3} completed={order.orderStatus === "completed"}>
+            <div className="flex items-center gap-y-4 flex-col">
+
+              <StepperIndicator />
+              <StepperTitle><Star className="inline mr-1" size={18} />Hoàn thành</StepperTitle>
+            </div>
+            <StepperSeparator className="h-2 w-12 md:w-16" />
+          </StepperItem>
+          <StepperItem className="" step={4} completed={order.orderStatus === "cancelled"}>
+            <div className="flex items-center gap-y-4 flex-col">
+
+              <StepperIndicator />
+              <StepperTitle><XCircle className="inline mr-1" size={18} />Đã hủy</StepperTitle>
+            </div>
+          </StepperItem>
+        </Stepper>
+      </div>
+
       <div className="relative max-w-4xl mx-auto bg-white rounded-lg p-6 border border-dashed border-gray-300 overflow-hidden">
         <Image src={darkLogo} alt="Logo" width={100} height={100} className="w-auto h-[50px]" />
         <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] -rotate-45 text-center">NFEAM HOUSE</div>
         <p className="py-8 text-center text-3xl font-bold">THÔNG TIN ĐƠN HÀNG</p>
-        
-        {/* Order status */}
-        <div className="mb-6">
-          <Stepper value={
-            order.orderStatus === "pending" ? 0 :
-            order.orderStatus === "accepted" ? 1 :
-            order.orderStatus === "shipping" ? 2 :
-            order.orderStatus === "completed" ? 3 :
-            order.orderStatus === "cancled" ? 4 : 0
-          } className="w-full">
-            <StepperItem step={0} completed={order.orderStatus !== "pending"}>
-              <StepperIndicator />
-              <StepperTitle><Clock className="inline mr-1" size={18}/>Chờ xác nhận</StepperTitle>
-              <StepperSeparator className="h-2 w-12 md:w-24" />
-            </StepperItem>
-            <StepperItem step={1} completed={order.orderStatus === "shipping" || order.orderStatus === "completed" || order.orderStatus === "cancled"}>
-              <StepperIndicator />
-              <StepperTitle><CheckCircle2 className="inline mr-1" size={18}/>Đã xác nhận</StepperTitle>
-              <StepperSeparator className="h-2 w-12 md:w-24" />
-            </StepperItem>
-            <StepperItem step={2} completed={order.orderStatus === "completed" || order.orderStatus === "cancled"}>
-              <StepperIndicator />
-              <StepperTitle><Truck className="inline mr-1" size={18}/>Đang giao hàng</StepperTitle>
-              <StepperSeparator className="h-2 w-12 md:w-24" />
-            </StepperItem>
-            <StepperItem step={3} completed={order.orderStatus === "completed"}>
-              <StepperIndicator />
-              <StepperTitle><Star className="inline mr-1" size={18}/>Hoàn thành</StepperTitle>
-              <StepperSeparator className="h-2 w-12 md:w-24" />
-            </StepperItem>
-            <StepperItem step={4} completed={order.orderStatus === "cancled"}>
-              <StepperIndicator />
-              <StepperTitle><XCircle className="inline mr-1" size={18}/>Đã hủy</StepperTitle>
-            </StepperItem>
-          </Stepper>
-          {order.orderStatus === "pending" && (
-            <button
-              className="mt-4 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-              onClick={async () => {
-                if (!confirm(d?.orderDetailCancelConfirm || "Bạn có chắc muốn hủy đơn hàng này?")) return;
-                try {
-                  const res = await fetch(`${baseUrl}/api/order/${order.orderID}/cancel`, { method: "PUT" });
-                  if (!res.ok) throw new Error("Failed to cancel order");
-                  setOrder({ ...order, status: "cancled" });
-                } catch (err) {
-                  console.error(err);
-                  alert(d?.orderDetailCancelError || "Hủy đơn hàng thất bại. Vui lòng thử lại.");
-                }
-              }}
-            >
-              {d?.orderDetailCancelButton || "Hủy đơn"}
-            </button>
-          )}
-        </div>
-        
+
         <div className="space-y-4 text-md">
           <div><span>{d?.orderDetailOrderID || "Mã đơn hàng"}: </span> <span className="font-semibold">{order.orderID}</span> </div>
           <div><span>{d?.orderDetailDate || "Ngày đặt"}: </span><span className="font-semibold">{new Date(order.createdAt).toLocaleString()}</span > </div>
-          <div className="absolute right-5 top-5 flex items-center gap-x-2 "><span className="w-[10px] h-[10px] bg-green-500 rounded-full"></span><span className="font-semibold text-md">{d?.orderDetailStatus || "Trạng thái"}:</span> {order.orderStatus || d?.orderHistoryStatusPending || "Đang xử lý"}</div>
+          <div className="absolute right-5 top-5 flex items-center gap-x-2 bg-white z-100 px-4 py-2 shadow-sm rounded-md">
+            <span className="w-[10px] h-[10px] bg-green-500 rounded-full animate-ping"></span>
+            <span className="font-semibold text-md">{d?.orderDetailStatus || "Trạng thái"}:</span> <span>
+              {order.orderStatus === "pending" ? d?.orderHistoryStatusPending || "Đang xử lý" :
+                order.orderStatus === "accepted" ? d?.orderHistoryStatusAccepted || "Đã xác nhận" :
+                  order.orderStatus === "shipping" ? d?.orderHistoryStatusShipping || "Đang giao hàng" :
+                    order.orderStatus === "completed" ? d?.orderHistoryStatusCompleted || "Hoàn thành" :
+                      order.orderStatus === "cancelled" ? d?.orderHistoryStatusCancelled || "Đã hủy" : d?.orderHistoryStatusUnknown || "Trạng thái không xác định"}
+            </span></div>
           <div><span>{d?.orderDetailCustomer || "Khách hàng"}: </span><span className="font-semibold">{order.fullName}</span> </div>
           <div><span>{d?.orderDetailPhone || "Số điện thoại"}: </span><span className="font-semibold">{order.phone}</span> </div>
           <div><span>{d?.orderDetailAddress || "Địa chỉ"}:</span><span className="font-semibold"> {order.address}</span></div>

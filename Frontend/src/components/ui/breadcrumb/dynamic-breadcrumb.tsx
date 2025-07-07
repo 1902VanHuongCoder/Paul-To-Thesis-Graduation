@@ -13,9 +13,10 @@ import React from "react";
 const pathToLabel = (segment: string) => {
   // Map route segments to readable labels
   switch (segment) {
-    case "dashboard": return "Trang quản trị";
-    case "products": return "Sản phẩm";
-    case "users": return "Người dùng";
+    case "dashboard": return "Thông tin tổng quan";
+    case "products": return "Quản lý sản phẩm";
+    case "edit-product": return "Cập nhật thông tin sản phẩm";
+    case "users": return "Quản lý người dùng";
     case "add-new-user": return "Thêm người dùng";
     case "add-product": return "Thêm sản phẩm";
     case "tags": return "Thẻ";

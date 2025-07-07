@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input/input";
@@ -27,9 +26,11 @@ import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import NextImage from "next/image";
-import formatVND from "@/lib/format-vnd";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select";
+import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, List, ListOrdered, ListChecks, Code2, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Minus, Table as TableIcon, Columns2, Rows2, Trash2, Merge, Split, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, SquareStack, Tag } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/tabs';
+import { Quote as QuoteIcon } from 'lucide-react';
 
 type Category = {
     categoryID: number;
@@ -67,6 +68,9 @@ type Product = {
     isShow: boolean;
     expiredAt: Date | null;
     unit: string;
+    barcode: string;
+    boxBarcode: string;
+    boxQuantity: number | null;
 };
 
 type ProductFormValues = {
@@ -82,6 +86,9 @@ type ProductFormValues = {
     isShow: boolean;
     expiredAt: string;
     unit: string;
+    barcode: string;
+    boxBarcode: string;
+    boxQuantity: string;
 };
 
 export default function EditProductPage() {
@@ -103,6 +110,8 @@ export default function EditProductPage() {
     const [message, setMessage] = useState("");
     const [editorLoaded, setEditorLoaded] = useState(false);
     const [productDescription, setProductDescription] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [dragActive, setDragActive] = useState(false);
 
     // TipTap editor
     const editor = useEditor({
@@ -151,6 +160,7 @@ export default function EditProductPage() {
         fetch(`${baseUrl}/api/product/${productID}`)
             .then(res => res.json())
             .then((prod: Product) => {
+                console.log("Fetched product:", prod);
                 setValue("productName", prod.productName);
                 setValue("productPrice", String(prod.productPrice));
                 setValue("productPriceSale", String(prod.productPriceSale || ""));
@@ -160,9 +170,12 @@ export default function EditProductPage() {
                 setValue("originID", String(prod.origin?.originID || ""));
                 setValue("tagIDs", prod.Tags?.map(t => String(t.tagID)) || []);
                 setValue("isShow", prod.isShow || false);
-                setValue("expiredAt", prod.expiredAt ? new Date(prod.expiredAt).toISOString().split("T")[0] : ""); 
+                setValue("expiredAt", prod.expiredAt ? new Date(prod.expiredAt).toISOString().split("T")[0] : "");
                 setValue("unit", prod.unit || "");
-                
+                setValue("barcode", prod.barcode || "");
+                setValue("boxBarcode", prod.boxBarcode || "");
+                setValue("boxQuantity", prod.boxQuantity !== undefined && prod.boxQuantity !== null ? String(prod.boxQuantity) : "");
+
                 setOldProductImages(prod.images || []);
                 setProductImages(prod.images || []);
                 setOldDescImages(prod.descriptionImages || []);
@@ -187,6 +200,7 @@ export default function EditProductPage() {
     }, [selectedCategoryID]);
 
     // Utility to extract all image URLs from TipTap JSON
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function extractImageUrls(node: any): string[] {
         if (!node) return [];
         let urls: string[] = [];
@@ -225,6 +239,11 @@ export default function EditProductPage() {
         }
     }, [editor, productDescription]);
 
+    // Format VND currency
+    function formatVND(value: number) {
+        return value.toLocaleString('vi-VN');
+    }
+
     // Submit handler
     const onSubmit = async (data: ProductFormValues) => {
         setMessage("");
@@ -248,12 +267,14 @@ export default function EditProductPage() {
                 uploadedUrls = (uploadData.files as { url: string }[]).map(f => f.url) || [];
             }
         } catch (error) {
+            console.error("Image upload failed:", error);
             setMessage("Failed to upload images.");
             return;
         }
         // Replace local URLs in editor content with uploaded URLs
         let content = editor?.getJSON();
         let urlIndex = data.images ? data.images.length : 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function replaceEditorImageUrls(node: any): any {
             if (!node) return node;
             if (Array.isArray(node)) return node.map(replaceEditorImageUrls);
@@ -278,6 +299,7 @@ export default function EditProductPage() {
                     body: JSON.stringify({ urls: imagesToDelete }),
                 });
             } catch (error) {
+                console.error("Failed to delete old images:", error);
                 setMessage("Failed to delete old images.");
                 return;
             }
@@ -301,6 +323,9 @@ export default function EditProductPage() {
                     isShow: data.isShow,
                     expiredAt: data.expiredAt ? new Date(data.expiredAt) : null,
                     unit: data.unit,
+                    barcode: data.barcode,
+                    boxBarcode: data.boxBarcode,
+                    boxQuantity: data.boxQuantity ? parseInt(data.boxQuantity, 10) : null,
                 }),
             });
             if (res.ok) {
@@ -309,6 +334,7 @@ export default function EditProductPage() {
                 setMessage("Failed to update product.");
             }
         } catch (error) {
+            console.error("Error updating product:", error);
             setMessage("Failed to update product.");
         }
     };
@@ -316,284 +342,407 @@ export default function EditProductPage() {
     if (!editor || !editorLoaded) return <div>Loading...</div>;
 
     return (
-        <main className="mx-auto p-10 max-w-2xl">
-            <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
+        <div className="">
+            <h1 className="text-2xl font-bold mb-4">Cập Nhật Thông Tin Sản Phẩm</h1>
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <FormItem>
-                        <FormLabel>Product Name</FormLabel>
+                        <FormLabel className="text-gray-600">Tên sản phẩm</FormLabel>
                         <FormControl>
                             <Input {...register("productName", { required: true })} />
                         </FormControl>
-                        {errors.productName && <FormMessage>Product name is required</FormMessage>}
+                        {errors.productName && <FormMessage>Tên sản phẩm không được phép rỗng.</FormMessage>}
                     </FormItem>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <FormItem>
+                            <FormLabel className="text-gray-600">Giá </FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    min={0}
+                                    step={1}
+                                    {...register("productPrice", {
+                                        required: "Giá sản phẩm không được phép rỗng.",
+                                        min: { value: 1, message: "Giá phải lớn hơn 0" },
+                                        setValueAs: v => {
+                                            const num = Number(v);
+                                            return num < 1000 ? num * 1000 : num;
+                                        },
+                                    })}
+                                    onBlur={e => {
+                                        const value = Number(e.target.value);
+                                        if (value > 0 && value < 1000) {
+                                            e.target.value = formatVND(value * 1000);
+                                        } else if (value >= 1000) {
+                                            e.target.value = formatVND(value);
+                                        } else {
+                                            e.target.value = "";
+                                        }
+                                    }}
+                                    placeholder="e.g. 100 (will be 100.000)"
+                                />
+                            </FormControl>
+                            {errors.productPrice && <FormMessage>{errors.productPrice.message || "Giá sản phẩm không được phép rỗng."}</FormMessage>}
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel className="text-gray-600">Giá giảm</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    min={0}
+                                    step={1}
+                                    {...register("productPriceSale", {
+                                        setValueAs: v => {
+                                            const num = Number(v);
+                                            return num < 1000 ? num * 1000 : num;
+                                        },
+                                    })}
+                                    onBlur={e => {
+                                        const value = Number(e.target.value);
+                                        if (value > 0 && value < 1000) {
+                                            e.target.value = formatVND(value * 1000);
+                                        } else if (value >= 1000) {
+                                            e.target.value = formatVND(value);
+                                        } else {
+                                            e.target.value = "";
+                                        }
+                                    }}
+                                    placeholder="e.g. 100 (will be 100.000)"
+                                />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel className="text-gray-600">Số lượng</FormLabel>
+                            <FormControl>
+                                <Input type="number" {...register("quantityAvailable", { required: true })} min={0} />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel className="text-gray-600">Số lượng/thùng(lô)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    {...register("boxQuantity")}
+                                    defaultValue={oldProductImages.length > 0 ? watch("boxQuantity") : ""}
+                                />
+                            </FormControl>
+                        </FormItem>
+                        <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr] gap-4">
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Danh mục</FormLabel>
+                                <FormControl>
+                                    <Select value={watch("categoryID")} onValueChange={val => setValue("categoryID", val)}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map(cat => (
+                                                <SelectItem key={cat.categoryID} value={String(cat.categoryID)}>{cat.categoryName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Danh mục con</FormLabel>
+                                <FormControl>
+                                    <Select value={watch("subcategoryID")} onValueChange={val => setValue("subcategoryID", val)}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Chọn danh mục con" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {subcategories.map(sub => (
+                                                <SelectItem key={sub.subcategoryID} value={String(sub.subcategoryID)}>{sub.subcategoryName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Nhà sản xuất</FormLabel>
+                                <FormControl>
+                                    <Select value={watch("originID")} onValueChange={val => setValue("originID", val)}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select origin" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {origins.map(origin => (
+                                                <SelectItem key={origin.originID} value={String(origin.originID)}>{origin.originName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                            </FormItem>
+                        </div>
+                        <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr] gap-4">
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Đơn vị sản phẩm</FormLabel>
+                                <FormControl>
+                                    <Input type="text" {...register("unit", { required: true })} />
+                                </FormControl>
+                                {errors.unit && <FormMessage>Đơn vị không được phép rỗng.</FormMessage>}
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Số mã vạch</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        {...register("barcode")}
+                                        defaultValue={oldProductImages.length > 0 ? watch("barcode") : ""}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Số mã vạch thùng (lô)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        {...register("boxBarcode")}
+                                        defaultValue={oldProductImages.length > 0 ? watch("boxBarcode") : ""}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        </div>
+                        <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr] gap-4">
+                            <FormItem className="col-span-2">
+                                <FormLabel className="text-gray-600">Ngày hết hạn</FormLabel>
+                                <FormControl>
+                                    <Input type="date" {...register("expiredAt")} />
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel className="text-gray-600">Hiển thị sản phẩm</FormLabel>
+                                <FormControl>
+                                    <Checkbox
+                                        checked={!!watch("isShow")}
+                                        onCheckedChange={checked => setValue("isShow", !!checked)}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        </div>
+                        <FormItem>
+                            <FormLabel className="text-gray-600">Thẻ</FormLabel>
+                            <FormControl>
+                                <div className="flex flex-wrap gap-2">
+                                    {tags.map(tag => {
+                                        const selected = watch("tagIDs")?.includes(String(tag.tagID));
+                                        return (
+                                            <button
+                                                type="button"
+                                                key={tag.tagID}
+                                                className={`flex gap-x-2 items-center px-3 py-1 rounded-full border text-sm transition-colors hover:cursor-pointer ${selected ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"}`}
+                                                onClick={() => {
+                                                    const current = watch("tagIDs") || [];
+                                                    if (selected) {
+                                                        setValue("tagIDs", current.filter(id => id !== String(tag.tagID)));
+                                                    } else {
+                                                        setValue("tagIDs", [...current, String(tag.tagID)]);
+                                                    }
+                                                }}
+                                            >
+                                                <span><Tag className="w-4" /></span>
+                                                <span>{tag.tagName}</span>
+
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    </div>
                     <FormItem>
-                        <FormLabel>Price</FormLabel>
+                        <FormLabel className="text-gray-600">Ảnh sản phẩm</FormLabel>
                         <FormControl>
-                            <Input type="number" min={0} step={1} {...register("productPrice", { required: true })} />
-                        </FormControl>
-                        {errors.productPrice && <FormMessage>Price is required</FormMessage>}
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Sale Price</FormLabel>
-                        <FormControl>
-                            <Input type="number" min={0} step={1} {...register("productPriceSale")} />
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Quantity</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...register("quantityAvailable", { required: true })} />
-                        </FormControl>
-                        {errors.quantityAvailable && <FormMessage>Quantity is required</FormMessage>}
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                            <Select value={watch("categoryID")} onValueChange={val => setValue("categoryID", val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map(cat => (
-                                        <SelectItem key={cat.categoryID} value={String(cat.categoryID)}>{cat.categoryName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </FormControl>
-                        {errors.categoryID && <FormMessage>Category is required</FormMessage>}
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Subcategory</FormLabel>
-                        <FormControl>
-                            <Select value={watch("subcategoryID")} onValueChange={val => setValue("subcategoryID", val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select subcategory" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {subcategories.map(sub => (
-                                        <SelectItem key={sub.subcategoryID} value={String(sub.subcategoryID)}>{sub.subcategoryName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Origin</FormLabel>
-                        <FormControl>
-                            <Select value={watch("originID")} onValueChange={val => setValue("originID", val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select origin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {origins.map(origin => (
-                                        <SelectItem key={origin.originID} value={String(origin.originID)}>{origin.originName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.map(tag => {
-                                    const selected = watch("tagIDs")?.includes(String(tag.tagID));
-                                    return (
-                                        <button
-                                            type="button"
-                                            key={tag.tagID}
-                                            className={`px-3 py-1 rounded-full border text-sm transition-colors ${selected ? "bg-primary text-white border-primary" : "bg-muted text-muted-foreground border-border"}`}
-                                            onClick={() => {
-                                                const current = watch("tagIDs") || [];
-                                                if (selected) {
-                                                    setValue("tagIDs", current.filter(id => id !== String(tag.tagID)));
-                                                } else {
-                                                    setValue("tagIDs", [...current, String(tag.tagID)]);
-                                                }
-                                            }}
-                                        >
-                                            {tag.tagName}
-                                        </button>
-                                    );
-                                })}
+                            <div
+                                className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center transition-colors cursor-pointer ${dragActive ? "border-primary bg-primary/10" : "border-gray-300 bg-gray-50"}`}
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={e => { e.preventDefault(); setDragActive(true); }}
+                                onDragLeave={e => { e.preventDefault(); setDragActive(false); }}
+                                onDrop={e => {
+                                    e.preventDefault();
+                                    setDragActive(false);
+                                    const files = Array.from(e.dataTransfer.files);
+                                    if (files.length > 0) {
+                                        // Update react-hook-form images field
+                                        const dt = new DataTransfer();
+                                        files.forEach(f => dt.items.add(f));
+                                        fileInputRef.current!.files = dt.files;
+                                        setValue("images", dt.files as unknown as FileList);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Kéo thả hoặc click để tải ảnh"
+                            >
+                                <input
+                                    type="file"
+                                    multiple
+                                    {...register("images")}
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={e => {
+                                        setValue("images", e.target.files as unknown as FileList);
+                                    }}
+                                />
+                                <span className="text-gray-500 text-sm mb-2">Kéo thả hoặc click để tải ảnh sản phẩm</span>
+                                <span className="text-xs text-gray-400">(Chọn nhiều ảnh được)</span>
                             </div>
                         </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Show Product</FormLabel>
-                        <FormControl>
-                            <Checkbox
-                                checked={!!watch("isShow")}
-                                onCheckedChange={checked => setValue("isShow", !!checked)}
-                            />
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Expiration Date</FormLabel>
-                        <FormControl>
-                            <Input type="date" {...register("expiredAt")} />
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Unit</FormLabel>
-                        <FormControl>
-                            <Input type="text" {...register("unit", { required: true })} />
-                        </FormControl>
-                        {errors.unit && <FormMessage>Unit is required</FormMessage>}
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Images</FormLabel>
-                        <FormControl>
-                            <Input type="file" multiple {...register("images")} />
-                        </FormControl>
-                        <div className="flex gap-2 mt-2">
-                            {productImages?.map((img, idx) => (
-                                <div key={img} className="relative group">
-                                    <NextImage src={img} alt="Product" width={60} height={60} className="rounded" />
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                            {/* Preview newly selected images */}
+                            {watch("images") && Array.from(watch("images")).map((file: File, idx: number) => (
+                                <div key={file.name + idx} className="relative group">
+                                    <NextImage
+                                        src={URL.createObjectURL(file)}
+                                        alt="Preview"
+                                        width={60}
+                                        height={60}
+                                        className="rounded object-cover w-[120px] h-[120px] border-dashed border-[2px]"
+                                    />
                                     <button
                                         type="button"
-                                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100 group-hover:scale-110 transition"
-                                        onClick={() => handleUpdateProductImage(idx)}
-                                        aria-label="Delete image"
+                                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100 group-hover:scale-110 transition hover:cursor-pointer"
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            const files = Array.from(watch("images"));
+                                            files.splice(idx, 1);
+                                            const dt = new DataTransfer();
+                                            files.forEach(f => dt.items.add(f));
+                                            fileInputRef.current!.files = dt.files;
+                                            setValue("images", dt.files as unknown as FileList);
+                                        }}
+                                        aria-label="Xóa ảnh mới"
                                     >
-                                        ×
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            {/* Preview already uploaded images */}
+                            {productImages?.map((img, idx) => (
+                                <div key={img} className="relative group">
+                                    <NextImage src={img} alt="Product" width={60} height={60} className="rounded object-cover w-[120px] h-[120px] border-dashed border-[2px]" />
+                                    <button
+                                        type="button"
+                                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100 group-hover:scale-110 transition hover:cursor-pointer"
+                                        onClick={e => { e.stopPropagation(); handleUpdateProductImage(idx); }}
+                                        aria-label="Xóa ảnh đã tải lên"
+                                    >
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             ))}
                         </div>
                     </FormItem>
                     <div>
-                        <label className="font-medium mb-1 block">Description</label>
-                        <div>
-                            <div className="flex gap-2 mb-2 flex-wrap">
-                                <button type="button" onClick={() => editor.chain().focus().toggleBold().run()}>Bold</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()}>Italic</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()}>Underline</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}>H4</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}>H5</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}>H6</button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                                    className={editor.isActive('bulletList') ? 'is-active' : ''}
-                                >
-                                    Toggle bullet list
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().splitListItem('listItem').run()}
-                                    disabled={!editor.can().splitListItem('listItem')}
-                                >
-                                    Split list item
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-                                    disabled={!editor.can().sinkListItem('listItem')}
-                                >
-                                    Sink list item
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-                                    disabled={!editor.can().liftListItem('listItem')}
-                                >
-                                    Lift list item
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().toggleTaskList().run()}
-                                    className={editor.isActive('taskList') ? 'is-active' : ''}
-                                >
-                                    Toggle task list
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().splitListItem('taskItem').run()}
-                                    disabled={!editor.can().splitListItem('taskItem')}
-                                >
-                                    Split list item
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().sinkListItem('taskItem').run()}
-                                    disabled={!editor.can().sinkListItem('taskItem')}
-                                >
-                                    Sink list item
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().liftListItem('taskItem').run()}
-                                    disabled={!editor.can().liftListItem('taskItem')}
-                                >
-                                    Lift list item
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()}>Left</button>
-                                <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()}>Center</button>
-                                <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()}>Right</button>
-                                <button type="button" onClick={() => {
-                                    const url = prompt('Enter URL');
-                                    if (url) editor.chain().focus().setLink({ href: url }).run();
-                                }}>Link</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()}>Ordered List</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()}>Blockquote</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</button>
-                                <label>
-                                    Image
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (!file) return;
-                                            setEditorImages(prev => [...prev, file]);
-                                            const url = URL.createObjectURL(file);
-                                            editor.chain().focus().setImage({ src: url }).run();
-                                        }}
-                                    />
-                                </label>
-                                <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-                                    Set horizontal rule
-                                </button>
-                                <button type="button"
-                                    onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-                                >
-                                    Insert table
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().addColumnBefore().run()}>
-                                    Add column before
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column after</button>
-                                <button type="button" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</button>
-                                <button type="button" onClick={() => editor.chain().focus().addRowBefore().run()}>Add row before</button>
-                                <button type="button" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row after</button>
-                                <button type="button" onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</button>
-                                <button type="button" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</button>
-                                <button type="button" onClick={() => editor.chain().focus().mergeCells().run()}>Merge cells</button>
-                                <button type="button" onClick={() => editor.chain().focus().splitCell().run()}>Split cell</button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>
-                                    Toggle header column
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
-                                    Toggle header row
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().toggleHeaderCell().run()}>
-                                    Toggle header cell
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().mergeOrSplit().run()}>Merge or split</button>
-                                <button type="button" onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}>
-                                    Set cell attribute
-                                </button>
-                                <button type="button" onClick={() => editor.chain().focus().fixTables().run()}>Fix tables</button>
-                                <button type="button" onClick={() => editor.chain().focus().goToNextCell().run()}>Go to next cell</button>
-                                <button type="button" onClick={() => editor.chain().focus().goToPreviousCell().run()}>
-                                    Go to previous cell
-                                </button>
-                            </div>
-                            {watch("productName") && <EditorContent editor={editor} className='tiptap-content' />}
+                        <label className="font-medium mb-1 block">Mô tả chi tiết sản phẩm</label>
+                        <div className="border rounded-lg bg-white dark:bg-gray-800">
+                            <Tabs defaultValue="text" className="mb-2 border-b p-4">
+                                <TabsList>
+                                    <TabsTrigger value="text">Văn bản</TabsTrigger>
+                                    <TabsTrigger value="heading">Tiêu đề</TabsTrigger>
+                                    <TabsTrigger value="list">Danh sách</TabsTrigger>
+                                    <TabsTrigger value="table">Bảng</TabsTrigger>
+                                    <TabsTrigger value="align">Căn lề</TabsTrigger>
+                                    <TabsTrigger value="insert">Chèn</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="text">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button type="button" title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><Bold size={18} /></button>
+                                        <button type="button" title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><Italic size={18} /></button>
+                                        <button type="button" title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><UnderlineIcon size={18} /></button>
+                                        <button type="button" title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive('blockquote') ? 'is-active' : ''}><QuoteIcon size={18} /></button>
+                                        <button type="button" title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={editor.isActive('codeBlock') ? 'is-active' : ''}><Code2 size={18} /></button>
+                                        <button type="button" title="Link" onClick={() => { const url = prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={editor.isActive('link') ? 'is-active' : ''}><LinkIcon size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="heading">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button type="button" title="H1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}><Heading1 size={18} /></button>
+                                        <button type="button" title="H2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}><Heading2 size={18} /></button>
+                                        <button type="button" title="H3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}><Heading3 size={18} /></button>
+                                        <button type="button" title="H4" onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={editor.isActive('heading', { level: 4 }) ? 'is-active' : ''}><Heading4 size={18} /></button>
+                                        <button type="button" title="H5" onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()} className={editor.isActive('heading', { level: 5 }) ? 'is-active' : ''}><Heading5 size={18} /></button>
+                                        <button type="button" title="H6" onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()} className={editor.isActive('heading', { level: 6 }) ? 'is-active' : ''}><Heading6 size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="list">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button type="button" title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}><List size={18} /></button>
+                                        <button type="button" title="Ordered List" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={editor.isActive('orderedList') ? 'is-active' : ''}><ListOrdered size={18} /></button>
+                                        <button type="button" title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={editor.isActive('taskList') ? 'is-active' : ''}><ListChecks size={18} /></button>
+                                        <button type="button" title="Split List Item" onClick={() => editor.chain().focus().splitListItem('listItem').run()} disabled={!editor.can().splitListItem('listItem')}><Split size={18} /></button>
+                                        <button type="button" title="Sink List Item" onClick={() => editor.chain().focus().sinkListItem('listItem').run()} disabled={!editor.can().sinkListItem('listItem')}><ArrowRight size={18} /></button>
+                                        <button type="button" title="Lift List Item" onClick={() => editor.chain().focus().liftListItem('listItem').run()} disabled={!editor.can().liftListItem('listItem')}><ArrowLeft size={18} /></button>
+                                        <button type="button" title="Split Task Item" onClick={() => editor.chain().focus().splitListItem('taskItem').run()} disabled={!editor.can().splitListItem('taskItem')}><Split size={18} /></button>
+                                        <button type="button" title="Sink Task Item" onClick={() => editor.chain().focus().sinkListItem('taskItem').run()} disabled={!editor.can().sinkListItem('taskItem')}><ArrowRight size={18} /></button>
+                                        <button type="button" title="Lift Task Item" onClick={() => editor.chain().focus().liftListItem('taskItem').run()} disabled={!editor.can().liftListItem('taskItem')}><ArrowLeft size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="table">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button type="button" title="Insert Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon size={18} /></button>
+                                        <button type="button" title="Add Column Before" onClick={() => editor.chain().focus().addColumnBefore().run()}><Columns2 size={18} /></button>
+                                        <button type="button" title="Add Column After" onClick={() => editor.chain().focus().addColumnAfter().run()}><Columns2 size={18} /></button>
+                                        <button type="button" title="Delete Column" onClick={() => editor.chain().focus().deleteColumn().run()}><Trash2 size={18} /></button>
+                                        <button type="button" title="Add Row Before" onClick={() => editor.chain().focus().addRowBefore().run()}><Rows2 size={18} /></button>
+                                        <button type="button" title="Add Row After" onClick={() => editor.chain().focus().addRowAfter().run()}><Rows2 size={18} /></button>
+                                        <button type="button" title="Delete Row" onClick={() => editor.chain().focus().deleteRow().run()}><Trash2 size={18} /></button>
+                                        <button type="button" title="Delete Table" onClick={() => editor.chain().focus().deleteTable().run()}><Trash2 size={18} /></button>
+                                        <button type="button" title="Merge Cells" onClick={() => editor.chain().focus().mergeCells().run()}><Merge size={18} /></button>
+                                        <button type="button" title="Split Cell" onClick={() => editor.chain().focus().splitCell().run()}><Split size={18} /></button>
+                                        <button type="button" title="Toggle Header Column" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>1</button>
+                                        <button type="button" title="Toggle Header Row" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>2</button>
+                                        <button type="button" title="Toggle Header Cell" onClick={() => editor.chain().focus().toggleHeaderCell().run()}><SquareStack size={18} /></button>
+                                        <button type="button" title="Merge or Split" onClick={() => editor.chain().focus().mergeOrSplit().run()}><Merge size={18} /></button>
+                                        <button type="button" title="Set Cell Attribute" onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}><Columns2 size={18} /></button>
+                                        <button type="button" title="Fix Tables" onClick={() => editor.chain().focus().fixTables().run()}><TableIcon size={18} /></button>
+                                        <button type="button" title="Go to Next Cell" onClick={() => editor.chain().focus().goToNextCell().run()}><ArrowDown size={18} /></button>
+                                        <button type="button" title="Go to Previous Cell" onClick={() => editor.chain().focus().goToPreviousCell().run()}><ArrowUp size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="align">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button type="button" title="Align Left" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}><AlignLeft size={18} /></button>
+                                        <button type="button" title="Align Center" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}><AlignCenter size={18} /></button>
+                                        <button type="button" title="Align Right" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}><AlignRight size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="insert">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <label title="Image">
+                                            <ImageIcon size={18} />
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setEditorImages(prev => [...prev, file]);
+                                                    const url = URL.createObjectURL(file);
+                                                    editor.chain().focus().setImage({ src: url }).run();
+                                                }}
+                                            />
+                                        </label>
+                                        <button type="button" title="Horizontal Rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}><Minus size={18} /></button>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                            {watch("productName") && (
+                                <EditorContent
+                                    editor={editor}
+                                    className="tiptap-content min-h-[300px] p-3 focus:outline-none bg-white focus:border-none"
+                                    style={{ minHeight: 300, height: 400 }}
+                                />
+                            )}
                         </div>
                     </div>
                     {message && <FormMessage className="mt-2">{message}</FormMessage>}
                     <Button variant="default" type="submit" className="mt-4">Update Product</Button>
                 </form>
             </FormProvider>
-        </main>
+        </div>
     );
 }

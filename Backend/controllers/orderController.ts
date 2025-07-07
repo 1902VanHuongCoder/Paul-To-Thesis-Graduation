@@ -213,6 +213,8 @@ export const updateOrder = async (
     orderStatus,
   } = req.body;
 
+  console.log(req.body);
+
   const t = await Order.sequelize?.transaction();
 
   try {

@@ -30,12 +30,13 @@ import { Tag } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea/textarea";
 import { Button } from "@/components/ui/button/button";
 import { useUser } from "@/contexts/user-context";
-import NoImage from "@public/images/NoImage.jpg";
+import NoImage from "@public/images/rice-and-leaf.png";
 
 interface Author {
     username: string;
     userID: string;
     email: string;
+    avatar: string | null; // Assuming avatar can be a URL or null
 }
 
 interface Tag {
@@ -333,7 +334,7 @@ export default function NewsDetailPage() {
                                     commentsLength={news.comments.length}
                                     userID={comment.userID}
                                     key={comment.commentID}
-                                    avatar={"https://cdn-icons-png.freepik.com/256/197/197374.png"}
+                                    avatar={comment.user_comments?.avatar || NoImage}
                                     name={comment.user_comments?.username || `User ${comment.userID}`}
                                     date={new Date(comment.commentAt).toLocaleDateString()}
                                     comment={comment.content}
