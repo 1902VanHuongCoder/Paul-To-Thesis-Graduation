@@ -31,6 +31,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, List, ListOrdered, ListChecks, Code2, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Minus, Table as TableIcon, Columns2, Rows2, Trash2, Merge, Split, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, SquareStack, Tag } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/tabs';
 import { Quote as QuoteIcon } from 'lucide-react';
+import clsx from "clsx";
+import toast from "react-hot-toast";
 
 type Category = {
     categoryID: number;
@@ -107,7 +109,7 @@ export default function EditProductPage() {
     const [editorImages, setEditorImages] = useState<File[]>([]);
     const [oldDescImages, setOldDescImages] = useState<string[]>([]);
     const [descriptionImages, setDescriptionImages] = useState<string[]>([]);
-    const [message, setMessage] = useState("");
+    const [,setMessage] = useState("");
     const [editorLoaded, setEditorLoaded] = useState(false);
     const [productDescription, setProductDescription] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -329,13 +331,13 @@ export default function EditProductPage() {
                 }),
             });
             if (res.ok) {
-                setMessage("Product updated successfully!");
+                toast.success("Cập nhật sản phẩm thành công!");
             } else {
-                setMessage("Failed to update product.");
+                toast.error("Cập nhật sản phẩm thất bại. Kiểm tra kết nối và thử lại.");
             }
         } catch (error) {
             console.error("Error updating product:", error);
-            setMessage("Failed to update product.");
+            toast.error("Cập nhật sản phẩm thất bại. Kiểm tra kết nối và thử lại.");
         }
     };
 
@@ -636,10 +638,10 @@ export default function EditProductPage() {
                         </div>
                     </FormItem>
                     <div>
-                        <label className="font-medium mb-1 block">Mô tả chi tiết sản phẩm</label>
+                        <label className="font-medium mb-1 block text-gray-600">Mô tả chi tiết sản phẩm</label>
                         <div className="border rounded-lg bg-white dark:bg-gray-800">
                             <Tabs defaultValue="text" className="mb-2 border-b p-4">
-                                <TabsList>
+                                <TabsList className="flex gap-2 px-1 mb-4">
                                     <TabsTrigger value="text">Văn bản</TabsTrigger>
                                     <TabsTrigger value="heading">Tiêu đề</TabsTrigger>
                                     <TabsTrigger value="list">Danh sách</TabsTrigger>
@@ -648,13 +650,13 @@ export default function EditProductPage() {
                                     <TabsTrigger value="insert">Chèn</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="text">
-                                    <div className="flex gap-2 flex-wrap">
-                                        <button type="button" title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><Bold size={18} /></button>
-                                        <button type="button" title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><Italic size={18} /></button>
-                                        <button type="button" title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><UnderlineIcon size={18} /></button>
-                                        <button type="button" title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive('blockquote') ? 'is-active' : ''}><QuoteIcon size={18} /></button>
-                                        <button type="button" title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={editor.isActive('codeBlock') ? 'is-active' : ''}><Code2 size={18} /></button>
-                                        <button type="button" title="Link" onClick={() => { const url = prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={editor.isActive('link') ? 'is-active' : ''}><LinkIcon size={18} /></button>
+                                    <div className="flex gap-4 flex-wrap">
+                                        <button type="button" title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={clsx(editor.isActive('bold') ? 'is-active' : '', 'flex items-center gap-x-1')}><Bold size={16} /><span>In đậm</span></button>
+                                        <button type="button" title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={clsx(editor.isActive('italic') ? 'is-active' : '', 'flex items-center gap-x-1')}><Italic size={16} /> <span>In nghiêng</span></button>
+                                        <button type="button" title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={clsx(editor.isActive('underline') ? 'is-active' : '', 'flex items-center gap-x-1')}><UnderlineIcon size={16} /><span>Gạch chân</span></button>
+                                        <button type="button" title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={clsx(editor.isActive('blockquote') ? 'is-active' : '', 'flex items-center gap-x-1')}><QuoteIcon size={16} /><span>Trích</span></button>
+                                        <button type="button" title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={clsx(editor.isActive('codeBlock') ? 'is-active' : '', 'flex items-center gap-x-1')}><Code2 size={16} /><span>Khối code</span></button>
+                                        <button type="button" title="Link" onClick={() => { const url = prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={clsx(editor.isActive('link') ? 'is-active' : '', 'flex items-center gap-x-1')}><LinkIcon size={16} /><span>Liên kết</span></button>
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="heading">
@@ -669,50 +671,50 @@ export default function EditProductPage() {
                                 </TabsContent>
                                 <TabsContent value="list">
                                     <div className="flex gap-2 flex-wrap">
-                                        <button type="button" title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}><List size={18} /></button>
+                                        <button type="button" title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}><List size={18} /><span></span></button>
                                         <button type="button" title="Ordered List" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={editor.isActive('orderedList') ? 'is-active' : ''}><ListOrdered size={18} /></button>
                                         <button type="button" title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={editor.isActive('taskList') ? 'is-active' : ''}><ListChecks size={18} /></button>
-                                        <button type="button" title="Split List Item" onClick={() => editor.chain().focus().splitListItem('listItem').run()} disabled={!editor.can().splitListItem('listItem')}><Split size={18} /></button>
-                                        <button type="button" title="Sink List Item" onClick={() => editor.chain().focus().sinkListItem('listItem').run()} disabled={!editor.can().sinkListItem('listItem')}><ArrowRight size={18} /></button>
-                                        <button type="button" title="Lift List Item" onClick={() => editor.chain().focus().liftListItem('listItem').run()} disabled={!editor.can().liftListItem('listItem')}><ArrowLeft size={18} /></button>
-                                        <button type="button" title="Split Task Item" onClick={() => editor.chain().focus().splitListItem('taskItem').run()} disabled={!editor.can().splitListItem('taskItem')}><Split size={18} /></button>
-                                        <button type="button" title="Sink Task Item" onClick={() => editor.chain().focus().sinkListItem('taskItem').run()} disabled={!editor.can().sinkListItem('taskItem')}><ArrowRight size={18} /></button>
-                                        <button type="button" title="Lift Task Item" onClick={() => editor.chain().focus().liftListItem('taskItem').run()} disabled={!editor.can().liftListItem('taskItem')}><ArrowLeft size={18} /></button>
+                                        <button type="button" title="Split List Item" onClick={() => editor.chain().focus().splitListItem('listItem').run()} disabled={!editor.can().splitListItem('listItem')}><Split size={16} /></button>
+                                        <button type="button" title="Sink List Item" onClick={() => editor.chain().focus().sinkListItem('listItem').run()} disabled={!editor.can().sinkListItem('listItem')}><ArrowRight size={16} /></button>
+                                        <button type="button" title="Lift List Item" onClick={() => editor.chain().focus().liftListItem('listItem').run()} disabled={!editor.can().liftListItem('listItem')}><ArrowLeft size={16} /></button>
+                                        <button type="button" title="Split Task Item" onClick={() => editor.chain().focus().splitListItem('taskItem').run()} disabled={!editor.can().splitListItem('taskItem')}><Split size={16} /></button>
+                                        <button type="button" title="Sink Task Item" onClick={() => editor.chain().focus().sinkListItem('taskItem').run()} disabled={!editor.can().sinkListItem('taskItem')}><ArrowRight size={16} /></button>
+                                        <button type="button" title="Lift Task Item" onClick={() => editor.chain().focus().liftListItem('taskItem').run()} disabled={!editor.can().liftListItem('taskItem')}><ArrowLeft size={16} /></button>
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="table">
                                     <div className="flex gap-2 flex-wrap">
-                                        <button type="button" title="Insert Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon size={18} /></button>
-                                        <button type="button" title="Add Column Before" onClick={() => editor.chain().focus().addColumnBefore().run()}><Columns2 size={18} /></button>
-                                        <button type="button" title="Add Column After" onClick={() => editor.chain().focus().addColumnAfter().run()}><Columns2 size={18} /></button>
-                                        <button type="button" title="Delete Column" onClick={() => editor.chain().focus().deleteColumn().run()}><Trash2 size={18} /></button>
-                                        <button type="button" title="Add Row Before" onClick={() => editor.chain().focus().addRowBefore().run()}><Rows2 size={18} /></button>
-                                        <button type="button" title="Add Row After" onClick={() => editor.chain().focus().addRowAfter().run()}><Rows2 size={18} /></button>
-                                        <button type="button" title="Delete Row" onClick={() => editor.chain().focus().deleteRow().run()}><Trash2 size={18} /></button>
-                                        <button type="button" title="Delete Table" onClick={() => editor.chain().focus().deleteTable().run()}><Trash2 size={18} /></button>
-                                        <button type="button" title="Merge Cells" onClick={() => editor.chain().focus().mergeCells().run()}><Merge size={18} /></button>
-                                        <button type="button" title="Split Cell" onClick={() => editor.chain().focus().splitCell().run()}><Split size={18} /></button>
+                                        <button type="button" title="Insert Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon size={16} /></button>
+                                        <button type="button" title="Add Column Before" onClick={() => editor.chain().focus().addColumnBefore().run()}><Columns2 size={16} /></button>
+                                        <button type="button" title="Add Column After" onClick={() => editor.chain().focus().addColumnAfter().run()}><Columns2 size={16} /></button>
+                                        <button type="button" title="Delete Column" onClick={() => editor.chain().focus().deleteColumn().run()}><Trash2 size={16} /></button>
+                                        <button type="button" title="Add Row Before" onClick={() => editor.chain().focus().addRowBefore().run()}><Rows2 size={16} /></button>
+                                        <button type="button" title="Add Row After" onClick={() => editor.chain().focus().addRowAfter().run()}><Rows2 size={16} /></button>
+                                        <button type="button" title="Delete Row" onClick={() => editor.chain().focus().deleteRow().run()}><Trash2 size={16} /></button>
+                                        <button type="button" title="Delete Table" onClick={() => editor.chain().focus().deleteTable().run()}><Trash2 size={16} /></button>
+                                        <button type="button" title="Merge Cells" onClick={() => editor.chain().focus().mergeCells().run()}><Merge size={16} /></button>
+                                        <button type="button" title="Split Cell" onClick={() => editor.chain().focus().splitCell().run()}><Split size={16} /></button>
                                         <button type="button" title="Toggle Header Column" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>1</button>
                                         <button type="button" title="Toggle Header Row" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>2</button>
-                                        <button type="button" title="Toggle Header Cell" onClick={() => editor.chain().focus().toggleHeaderCell().run()}><SquareStack size={18} /></button>
-                                        <button type="button" title="Merge or Split" onClick={() => editor.chain().focus().mergeOrSplit().run()}><Merge size={18} /></button>
-                                        <button type="button" title="Set Cell Attribute" onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}><Columns2 size={18} /></button>
-                                        <button type="button" title="Fix Tables" onClick={() => editor.chain().focus().fixTables().run()}><TableIcon size={18} /></button>
-                                        <button type="button" title="Go to Next Cell" onClick={() => editor.chain().focus().goToNextCell().run()}><ArrowDown size={18} /></button>
-                                        <button type="button" title="Go to Previous Cell" onClick={() => editor.chain().focus().goToPreviousCell().run()}><ArrowUp size={18} /></button>
+                                        <button type="button" title="Toggle Header Cell" onClick={() => editor.chain().focus().toggleHeaderCell().run()}><SquareStack size={16} /></button>
+                                        <button type="button" title="Merge or Split" onClick={() => editor.chain().focus().mergeOrSplit().run()}><Merge size={16} /></button>
+                                        <button type="button" title="Set Cell Attribute" onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}><Columns2 size={16} /></button>
+                                        <button type="button" title="Fix Tables" onClick={() => editor.chain().focus().fixTables().run()}><TableIcon size={16} /></button>
+                                        <button type="button" title="Go to Next Cell" onClick={() => editor.chain().focus().goToNextCell().run()}><ArrowDown size={16} /></button>
+                                        <button type="button" title="Go to Previous Cell" onClick={() => editor.chain().focus().goToPreviousCell().run()}><ArrowUp size={16} /></button>
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="align">
                                     <div className="flex gap-2 flex-wrap">
-                                        <button type="button" title="Align Left" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}><AlignLeft size={18} /></button>
-                                        <button type="button" title="Align Center" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}><AlignCenter size={18} /></button>
-                                        <button type="button" title="Align Right" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}><AlignRight size={18} /></button>
+                                        <button type="button" title="Align Left" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}><AlignLeft size={16} /></button>
+                                        <button type="button" title="Align Center" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}><AlignCenter size={16} /></button>
+                                        <button type="button" title="Align Right" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}><AlignRight size={16} /></button>
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="insert">
                                     <div className="flex gap-2 flex-wrap">
                                         <label title="Image">
-                                            <ImageIcon size={18} />
+                                            <ImageIcon size={16} />
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -726,23 +728,40 @@ export default function EditProductPage() {
                                                 }}
                                             />
                                         </label>
-                                        <button type="button" title="Horizontal Rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}><Minus size={18} /></button>
+                                        <button type="button" title="Horizontal Rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}><Minus size={16} /></button>
                                     </div>
                                 </TabsContent>
                             </Tabs>
                             {watch("productName") && (
                                 <EditorContent
                                     editor={editor}
-                                    className="tiptap-content min-h-[300px] p-3 focus:outline-none bg-white focus:border-none"
-                                    style={{ minHeight: 300, height: 400 }}
+                                    className="tiptap-content min-h-[300px] p-3 focus:outline-none rounded-br-md rounded-bl-md focus:border-none"
+                                // style={{ minHeight: 300, height: 400 }}
                                 />
                             )}
                         </div>
                     </div>
-                    {message && <FormMessage className="mt-2">{message}</FormMessage>}
-                    <Button variant="default" type="submit" className="mt-4">Update Product</Button>
+                    {/* {message && <FormMessage className="mt-2">{message}</FormMessage>} */}
+                    <div className="flex justify-end"><Button variant="default" type="submit" className="">Cập nhật sản phẩm</Button></div>
                 </form>
             </FormProvider>
+            {/* Hidden outline, border, and box-shadow when user focus on tiptap editor */}
+            <style jsx global>{`
+  .tiptap-content:focus, .tiptap-content:focus-visible,
+  .tiptap-content *:focus, .tiptap-content *:focus-visible {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .is-active {
+    background-color: #e9e9e9; /* Light blue background */
+    color: #000; /* Blue text color */
+    border-color: #2563eb; /* Blue border color */
+    padding: 0.2rem 0.5rem;
+    border-radius: calc(var(--radius) /* 0.25rem = 4px */ - 2px);
+    }
+`}</style>
         </div>
     );
 }

@@ -99,7 +99,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 // PUT (update) a category by ID
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { categoryName } = req.body;
+  const { categoryName, categoryDescription } = req.body;
 
   try {
     const category = await Category.findByPk(id);
@@ -109,7 +109,7 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    await category.update({ categoryName });
+    await category.update({ categoryName, categoryDescription });
     res.status(200).json({ message: "Category updated successfully", category });
   } catch (error) {
     console.error("Error updating category:", error);
