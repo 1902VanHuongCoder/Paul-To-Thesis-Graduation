@@ -141,6 +141,8 @@ export const updateProduct = async (
   const { productID } = req.params;
   const {
     barcode, // <-- add barcode
+    boxBarcode, // <-- add boxBarcode
+    boxQuantity, // <-- add boxQuantity if needed
     productName,
     productPrice,
     productPriceSale,
@@ -168,6 +170,8 @@ export const updateProduct = async (
     // Update the product
     await product.update({
       barcode, // <-- add barcode
+      boxBarcode, // <-- add boxBarcode
+      boxQuantity, // <-- add boxQuantity if needed
       productName,
       productPrice,
       productPriceSale,

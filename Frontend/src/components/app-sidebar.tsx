@@ -93,6 +93,14 @@ const data = {
           url: "/vi/dashboard/products/add-product",
         },
         {
+          title: "Nhập kho sản phẩm",
+          url: "/vi/dashboard/products/import-product",
+        },
+        {
+          title: "Tất cả giao dịch kho",
+          url: "/vi/dashboard/products/stock-transactions",
+        },
+        {
           title: "Thẻ sản phẩm",
           url: "/vi/dashboard/products/tags",
         }, {

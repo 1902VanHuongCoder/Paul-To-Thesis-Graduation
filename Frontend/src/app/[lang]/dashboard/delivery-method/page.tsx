@@ -4,6 +4,14 @@ import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
 import { baseUrl } from "@/lib/base-url";
+import { Input } from "@/components/ui/input/input";
+import { Button } from "@/components/ui/button/button";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog/dialog";
+import { Pencil, Trash } from "lucide-react";
+import toast from "react-hot-toast";
+import { Checkbox } from "@/components/ui/checkbox/checkbox";
 
 type DeliveryFormValues = {
   name: string;
@@ -11,7 +19,6 @@ type DeliveryFormValues = {
   basePrice: number;
   minOrderAmount?: number;
   region?: string;
-  speed?: string;
   isActive: boolean;
   isDefault: boolean;
 };
@@ -23,12 +30,16 @@ type Delivery = {
   basePrice: number;
   minOrderAmount?: number;
   region?: string;
-  speed?: string;
   isActive: boolean;
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
 };
+
+// Helper for formatting VND
+function formatVND(value: number) {
+  return value.toLocaleString("vi-VN");
+}
 
 export default function AddDeliveryMethodPage() {
   const methods = useForm<DeliveryFormValues>({
@@ -38,16 +49,16 @@ export default function AddDeliveryMethodPage() {
       basePrice: 0,
       minOrderAmount: undefined,
       region: "",
-      speed: "",
       isActive: true,
       isDefault: false,
     },
   });
 
-  // List state
   const [deliveryList, setDeliveryList] = useState<Delivery[]>([]);
   const [editID, setEditID] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Delivery> | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteID, setDeleteID] = useState<number | null>(null);
 
   // Fetch all delivery methods
   const fetchDeliveryList = async () => {
@@ -73,31 +84,37 @@ export default function AddDeliveryMethodPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to add delivery method");
-      alert("Delivery method added successfully!");
+      if (!res.ok) throw new Error("Thêm phương thức giao hàng thất bại");
+      toast.success("Thêm phương thức giao hàng thành công!");
       methods.reset();
       fetchDeliveryList();
     } catch (error) {
-      alert("Error: " + (error as Error).message);
+      toast.error("Lỗi: " + (error as Error).message);
     }
   };
 
   // Delete delivery method
-  const handleDelete = async (id: number) => {
-    if (!confirm("Bạn có chắc muốn xóa phương thức này?")) return;
+  const handleDelete = (id: number) => {
+    setDeleteID(id);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteID) return;
     try {
-      const res = await fetch(`${baseUrl}/api/delivery/${id}`, {
+      const res = await fetch(`${baseUrl}/api/delivery/${deleteID}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        alert("Đã xóa phương thức giao hàng.");
+        toast.success("Đã xóa phương thức giao hàng.");
         fetchDeliveryList();
       } else {
-        alert("Xóa thất bại.");
+        toast.error("Không thể xóa vì hiện tại có đơn hàng sử dụng phương thức này.");
       }
     } catch {
-      alert("Có lỗi xảy ra khi xóa.");
+      toast.error("Có lỗi xảy ra khi xóa.");
     }
+    setShowConfirm(false);
   };
 
   // Start editing
@@ -116,219 +133,260 @@ export default function AddDeliveryMethodPage() {
         body: JSON.stringify(editForm),
       });
       if (res.ok) {
-        alert("Cập nhật thành công!");
+        toast.success("Cập nhật thành công!");
         setEditID(null);
         setEditForm(null);
         fetchDeliveryList();
       } else {
-        alert("Cập nhật thất bại.");
+        toast.error("Cập nhật thất bại.");
       }
     } catch {
-      alert("Có lỗi xảy ra khi cập nhật.");
+      toast.error("Có lỗi xảy ra khi cập nhật.");
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Thêm phương thức giao hàng mới</h1>
+    <main className="">
+      <h1 className="text-2xl font-bold mb-4">Thêm Phương Thức Giao Hàng</h1>
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
-          {/* ...existing form fields... */}
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <FormItem>
             <FormLabel>Tên phương thức</FormLabel>
             <FormControl>
-              <input
-                {...methods.register("name", { required: "Tên là bắt buộc" })}
-                className="input input-bordered w-full"
-                placeholder="Tên phương thức"
-              />
+              <Input {...methods.register("name", { required: true })} placeholder="Nhập tên phương thức" />
             </FormControl>
-            <FormMessage />
+            {methods.formState.errors.name && <FormMessage>Tên phương thức không được để trống.</FormMessage>}
           </FormItem>
           <FormItem>
             <FormLabel>Mô tả</FormLabel>
             <FormControl>
-              <textarea
-                {...methods.register("description")}
-                className="input input-bordered w-full"
-                placeholder="Mô tả"
-              />
+              <Input {...methods.register("description")} placeholder="Nhập mô tả phương thức" />
             </FormControl>
-            <FormMessage />
           </FormItem>
           <FormItem>
             <FormLabel>Giá cơ bản (VND)</FormLabel>
             <FormControl>
-              <input
-                type="number"
-                step="1000"
-                {...methods.register("basePrice", { required: "Giá cơ bản là bắt buộc", min: 0 })}
-                className="input input-bordered w-full"
-                placeholder="Giá cơ bản"
+              <Input
+                type="text"
+                min={0}
+                step={1}
+                {...methods.register("basePrice", {
+                  setValueAs: v => {
+                    const num = Number(v);
+                    return num < 1000 ? num * 1000 : num;
+                  },
+                  required: true,
+                  min: 0,
+                })}
+                onBlur={e => {
+                  const value = Number(e.target.value);
+                  if (value > 0 && value < 1000) {
+                    e.target.value = formatVND(value * 1000);
+                  } else if (value > 0 && value >= 1000) {
+                    e.target.value = formatVND(value);
+                  } else {
+                    e.target.value = "0";
+                  }
+                }}
+                placeholder="e.g. 100 (sẽ là 100.000)"
               />
             </FormControl>
-            <FormMessage />
+            {methods.formState.errors.basePrice && <FormMessage>Giá cơ bản là bắt buộc.</FormMessage>}
           </FormItem>
           <FormItem>
             <FormLabel>Đơn tối thiểu để miễn phí (VND)</FormLabel>
             <FormControl>
-              <input
-                type="number"
-                step="1000"
-                {...methods.register("minOrderAmount")}
-                className="input input-bordered w-full"
-                placeholder="Đơn tối thiểu để miễn phí"
+              <Input
+                type="text"
+                min={0}
+                step={1}
+                {...methods.register("minOrderAmount", {
+                  setValueAs: v => {
+                    const num = Number(v);
+                    return num < 1000 ? num * 1000 : num;
+                  },
+                })}
+                onBlur={e => {
+                  const value = Number(e.target.value);
+                  if (value > 0 && value < 1000) {
+                    e.target.value = formatVND(value * 1000);
+                  } else if (value > 0 && value >= 1000) {
+                    e.target.value = formatVND(value);
+                  } else {
+                    e.target.value = "0";
+                  }
+                }}
+                placeholder="e.g. 100 (sẽ là 100.000)"
               />
             </FormControl>
-            <FormMessage />
           </FormItem>
           <FormItem>
             <FormLabel>Khu vực</FormLabel>
             <FormControl>
-              <select {...methods.register("region")} className="input input-bordered w-full">
-                <option value="">Tất cả</option>
-                <option value="urban">Thành phố</option>
-                <option value="suburb">Ngoại thành</option>
-              </select>
+              <Select value={methods.watch("region") || ""} onValueChange={val => methods.setValue("region", val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn khu vực" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="urban">Thành phố</SelectItem>
+                  <SelectItem value="suburb">Ngoại thành</SelectItem>
+                </SelectContent>
+              </Select>
             </FormControl>
-            <FormMessage />
-          </FormItem>
-          <FormItem>
-            <FormLabel>Tốc độ giao</FormLabel>
-            <FormControl>
-              <select {...methods.register("speed")} className="input input-bordered w-full">
-                <option value="">Chọn tốc độ</option>
-                <option value="standard">Tiêu chuẩn</option>
-                <option value="fast">Nhanh</option>
-                <option value="same_day">Trong ngày</option>
-              </select>
-            </FormControl>
-            <FormMessage />
           </FormItem>
           <FormItem>
             <FormLabel>
-              <input type="checkbox" {...methods.register("isActive")} className="mr-2" />
+              <Checkbox {...methods.register("isActive")} className="mr-2" />
               Kích hoạt
             </FormLabel>
           </FormItem>
           <FormItem>
             <FormLabel>
-              <input type="checkbox" {...methods.register("isDefault")} className="mr-2" />
+              <Checkbox {...methods.register("isDefault")} className="mr-2" />
               Mặc định
             </FormLabel>
           </FormItem>
-          <button type="submit" className="btn btn-primary mt-4 w-full">
-            Thêm phương thức giao hàng
-          </button>
+          <div className="flex justify-end">
+            <Button type="submit" className="mt-4">Thêm phương thức</Button>
+          </div>
         </form>
       </FormProvider>
-
-      <h2 className="text-xl font-semibold mt-10 mb-2">Danh sách phương thức giao hàng</h2>
-      <div className="space-y-2">
-        {deliveryList.map((delivery) => (
-          <div key={delivery.deliveryID} className="flex items-center gap-2 border-b py-2">
-            {editID === delivery.deliveryID && editForm ? (
-              <>
-                <input
-                  className="w-32 border px-2 py-1"
-                  value={editForm.name}
-                  onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                />
-                <input
-                  className="w-40 border px-2 py-1"
-                  value={editForm.description || ""}
-                  onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-                />
-                <input
-                  className="w-20 border px-2 py-1"
-                  type="number"
-                  value={editForm.basePrice}
-                  onChange={e => setEditForm({ ...editForm, basePrice: Number(e.target.value) })}
-                />
-                <input
-                  className="w-20 border px-2 py-1"
-                  type="number"
-                  value={editForm.minOrderAmount || ""}
-                  onChange={e => setEditForm({ ...editForm, minOrderAmount: Number(e.target.value) })}
-                />
-                <select
-                  className="w-24 border px-2 py-1"
-                  value={editForm.region || ""}
-                  onChange={e => setEditForm({ ...editForm, region: e.target.value })}
-                >
-                  <option value="">Tất cả</option>
-                  <option value="urban">Thành phố</option>
-                  <option value="suburb">Ngoại thành</option>
-                </select>
-                <select
-                  className="w-24 border px-2 py-1"
-                  value={editForm.speed || ""}
-                  onChange={e => setEditForm({ ...editForm, speed: e.target.value })}
-                >
-                  <option value="">Chọn tốc độ</option>
-                  <option value="standard">Tiêu chuẩn</option>
-                  <option value="fast">Nhanh</option>
-                  <option value="same_day">Trong ngày</option>
-                </select>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isActive}
-                    onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
-                  />
-                  Kích hoạt
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isDefault}
-                    onChange={e => setEditForm({ ...editForm, isDefault: e.target.checked })}
-                  />
-                  Mặc định
-                </label>
-                <button
-                  className="px-2 py-1 bg-green-500 text-white rounded"
-                  onClick={() => handleEditSave(delivery.deliveryID)}
-                >
-                  Lưu
-                </button>
-                <button
-                  className="px-2 py-1 bg-gray-300 rounded"
-                  onClick={() => {
-                    setEditID(null);
-                    setEditForm(null);
-                  }}
-                >
-                  Hủy
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="font-medium">{delivery.name}</span>
-                <span className="text-gray-500 text-sm">{delivery.description}</span>
-                <span className="text-gray-500 text-sm">{delivery.basePrice}₫</span>
-                <span className="text-xs text-gray-400">Min: {delivery.minOrderAmount}</span>
-                <span className="text-xs">{delivery.region}</span>
-                <span className="text-xs">{delivery.speed}</span>
-                <span className="text-xs px-2 py-1 rounded bg-gray-100">{delivery.isActive ? "Kích hoạt" : "Ẩn"}</span>
-                <span className="text-xs px-2 py-1 rounded bg-gray-200">{delivery.isDefault ? "Mặc định" : ""}</span>
-                <button
-                  className="px-2 py-1 bg-yellow-500 text-white rounded"
-                  onClick={() => startEdit(delivery)}
-                >
-                  Sửa
-                </button>
-                <button
-                  className="px-2 py-1 bg-red-500 text-white rounded"
-                  onClick={() => handleDelete(delivery.deliveryID)}
-                >
-                  Xóa
-                </button>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+      <hr className="my-6" />
+      <h2 className="text-xl font-semibold mb-2">Danh sách phương thức giao hàng</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tên phương thức</TableHead>
+            <TableHead>Mô tả</TableHead>
+            <TableHead>Giá cơ bản</TableHead>
+            <TableHead>Đơn tối thiểu</TableHead>
+            <TableHead>Khu vực</TableHead>
+            <TableHead>Kích hoạt</TableHead>
+            <TableHead>Mặc định</TableHead>
+            <TableHead className="w-32">Hành động</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {deliveryList.map((delivery) => (
+            <TableRow key={delivery.deliveryID}>
+              {editID === delivery.deliveryID && editForm ? (
+                <>
+                  <TableCell>
+                    <Input value={editForm.name || ""} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Input value={editForm.description || ""} onChange={e => setEditForm({ ...editForm, description: e.target.value })} className="w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="text"
+                      value={editForm.basePrice === undefined ? '' : editForm.basePrice}
+                      onChange={e => {
+                        console.log(e.target.value);
+                        const num = Number(e.target.value);
+                        setEditForm({ ...editForm, basePrice: num});
+                      }}
+                      onBlur={e => {
+                        console.log(".. RUN ..");
+                        const value = Number(e.target.value);
+                        if (value > 0 && value < 1000) {
+                          e.target.value = formatVND(value * 1000);
+                        } else if (value >= 1000) {
+                          e.target.value = formatVND(value);
+                        } else {
+                          e.target.value = "0";
+                        }
+                      }}
+                      className="w-full"
+                      placeholder="e.g. 100 (sẽ là 100.000)"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="text"
+                     
+                      value={editForm.minOrderAmount === undefined ? '' : editForm.minOrderAmount}
+                      onChange={e => {
+                        const num = Number(e.target.value);
+                        setEditForm({ ...editForm, minOrderAmount: num });
+                      }}
+                      onBlur={e => {
+                        const value = Number(e.target.value);
+                        if (value > 0 && value < 1000) {
+                          e.target.value = formatVND(value * 1000);
+                        } else if (value >= 1000) {
+                          e.target.value = formatVND(value);
+                        } else {
+                          e.target.value = "0";
+                        }
+                      }}
+                      className="w-full"
+                      placeholder="e.g. 100 (sẽ là 100.000)"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select value={editForm.region || ""} onValueChange={val => setEditForm({ ...editForm, region: val })}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Chọn khu vực" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="urban">Thành phố</SelectItem>
+                        <SelectItem value="suburb">Ngoại thành</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={!!editForm.isActive}
+                      onCheckedChange={checked => setEditForm({ ...editForm, isActive: !!checked })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={!!editForm.isDefault}
+                      onCheckedChange={checked => setEditForm({ ...editForm, isDefault: !!checked })}
+                    />
+                  </TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" onClick={() => handleEditSave(delivery.deliveryID)} className="hover:cursor-pointer">Lưu</Button>
+                    <Button size="sm" variant="outline" onClick={() => { setEditID(null); setEditForm(null); }} className="hover:cursor-pointer hover:bg-gray-200">Hủy</Button>
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell className="font-medium">{delivery.name}</TableCell>
+                  <TableCell>{delivery.description}</TableCell>
+                  <TableCell>{delivery.basePrice?.toLocaleString()}₫</TableCell>
+                  <TableCell>{delivery.minOrderAmount?.toLocaleString()}đ</TableCell>
+                  <TableCell>{delivery.region === "urban" ? "Thành phố" : delivery.region === "suburb" ? "Ngoại thành" : "Tất cả"}</TableCell>
+                  <TableCell>{delivery.isActive ? "Có" : "Không"}</TableCell>
+                  <TableCell>{delivery.isDefault ? "Có" : "Không"}</TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(delivery)} className="hover:cursor-pointer hover:bg-gray-200"><Pencil /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDelete(delivery.deliveryID)} className="hover:cursor-pointer hover:bg-gray-200"><Trash className="text-red-500" /></Button>
+                  </TableCell>
+                </>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa phương thức giao hàng</DialogTitle>
+          </DialogHeader>
+          <div>Bạn có chắc chắn muốn xóa phương thức giao hàng này không?</div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="hover:cursor-pointer hover:bg-gray-200">Hủy</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDelete} className="hover:cursor-pointer ">Xóa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </main>
   );
 }

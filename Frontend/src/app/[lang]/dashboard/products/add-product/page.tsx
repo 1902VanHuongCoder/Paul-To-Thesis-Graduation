@@ -84,21 +84,28 @@ type Tag = {
   tagName: string;
 };
 
+// Generate a EAN 13 valid barcode for a product 
 function generateBarcode() {
-  // Generate a random 12-digit barcode as a string
-  let barcode = '83';
-  for (let i = 0; i < 10; i++) {
-    barcode += Math.floor(Math.random() * 10).toString();
+  const countryCode = '893';
+  const businessCode = '8386';
+  let productCode = '';
+  for (let i = 0; i < 4; i++) {
+    productCode += Math.floor(Math.random() * 10).toString();
   }
+  const barcode = countryCode + businessCode + productCode + '0'; 
   return barcode;
 }
 
+// Generate a barcode for a box of product
 function generateBoxBarcode() {
-  let boxBarcode = '88';
-  for (let i = 0; i < 10; i++) {
-    boxBarcode += Math.floor(Math.random() * 10).toString();
+  const countryCode = '893';
+  const businessCode = '8386';
+  let productCode = '';
+  for (let i = 0; i < 4; i++) {
+    productCode += Math.floor(Math.random() * 10).toString();
   }
-  return boxBarcode;
+  const barcode = countryCode + businessCode + productCode + '1';
+  return barcode;
 }
 
 export default function AddProductPage() {
@@ -321,7 +328,7 @@ export default function AddProductPage() {
                 step={1}
                 {...register("productPrice", {
 
-                  min: { value: 1, message: "Giá phải lớn hơn 1." },
+                  // min: { value: 0, message: "Giá phải lớn hơn 0." },
                   setValueAs: v => {
                     const num = Number(v);
                     return num < 1000 ? num * 1000 : num;
@@ -335,7 +342,7 @@ export default function AddProductPage() {
                   } else if (value > 0 && value >= 1000) {
                     e.target.value = formatVND(value);
                   } else {
-                    e.target.value = "";
+                    e.target.value = "0";
                   }
                 }}
                 placeholder="e.g. 100 (sẽ là 100.000)" />
@@ -363,7 +370,7 @@ export default function AddProductPage() {
                   } else if (value > 0 && value >= 1000) {
                     e.target.value = formatVND(value);
                   } else {
-                    e.target.value = "";
+                    e.target.value = "0";
                   }
                 }}
                 placeholder="e.g. 100 (sẽ là 100.000)"
@@ -469,7 +476,7 @@ export default function AddProductPage() {
                 <Input
                   {...register("barcode", {
                     required: true,
-                    pattern: { value: /^83+\d{10}$/, message: "Mã vạch phải dài 13 số và bắt đầu với số 83" },
+                    pattern: { value: /\d{12}$/, message: "Mã vạch phải dài 12 số" },
                   })}
                   value={barcode}
                   // replace non-numeric characters and limit to 12 digits
@@ -502,7 +509,7 @@ export default function AddProductPage() {
                   <Input
                     {...register("boxBarcode", {
                       required: true,
-                      pattern: { value: /^88+\d{10}$/, message: "Mã vạch lô thùng phải dài 12 ký tự và bắt đầu với 88." }, 
+                      pattern: { value: /\d{12}$/, message: "Mã vạch lô thùng phải dài 12 số." }, 
                     })}
                     value={boxBarcode.boxBarcode}
                     onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}

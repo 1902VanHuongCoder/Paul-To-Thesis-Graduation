@@ -21,7 +21,6 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import NextImage from 'next/image';
-import { useRouter } from "next/navigation";
 import { useDictionary } from "@/contexts/dictonary-context";
 import NoImage from "@public/images/NoImage.jpg";
 import { CircleUserRound, Eye, MessageCircle} from "lucide-react";
@@ -56,12 +55,9 @@ type News = {
 };
 
 export default function AddNewsPage() {
-    const router = useRouter();
     const { lang } = useDictionary();
 
-
     const [newsList, setNewsList] = useState<News[]>([]);
-
 
     const editor = useEditor({
         extensions: [
@@ -95,11 +91,6 @@ export default function AddNewsPage() {
         ],
         content: '<p>Hello World! 🌎️</p>',
     })
-
-    // Start editing
-    const startEdit = (newsID: number) => {
-        router.push(`/${lang}/dashboard/posts/edit-post/${newsID}`);
-    };
 
     // Delete news
     const handleDelete = async (newsID: number) => {
@@ -198,8 +189,8 @@ export default function AddNewsPage() {
                             {news.titleImageUrl && (
                                 <div className="w-full h-60 relative rounded-lg overflow-hidden">
                                     <NextImage
-                                        width={120}
-                                        height={120}
+                                        width={400}
+                                        height={400}
                                         src={news.titleImageUrl ? news.titleImageUrl : NoImage}
                                         alt={news.title}
                                         className="object-cover w-full h-full hover:scale-105 transition-transform duration-200 ease-in-out z-10"
@@ -225,8 +216,8 @@ export default function AddNewsPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2 items-center mt-2 justify-between">
                                     <span className={clsx("text-xs px-2 py-1 rounded bg-gray-100", news.isPublished ? "bg-green-100 text-green-700" : "")}>{news.isPublished ? "Công khai" : "Nháp"}</span>
-                                    <div className="flex gap-2">
-                                        <Button size="sm" variant="outline" onClick={() => startEdit(news.newsID)} className="cursor-pointer hover:bg-gray-200">Sửa</Button>
+                                    <div className="flex gap-2 items-center">
+                                        <NextLink href={`/${lang}/dashboard/posts/edit-post/${news.newsID}`} className="px-2 bg-gray-100 py-1 rounded-md cursor-pointer hover:bg-gray-200">Sửa</NextLink>
                                         <Button size="sm" variant="destructive" onClick={() => handleDelete(news.newsID)} className="cursor-pointer ">Xóa</Button>
                                     </div>
                                 </div>
@@ -235,7 +226,7 @@ export default function AddNewsPage() {
                     </div>
                 ))}
             </div>
-            <div className="my-4 flex justify-end">
+            <div className="my-4 flex justify-end mt-8">
                 <NextLink className="bg-primary text-white py-2 px-4 rounded-md" href={`/${lang}/dashboard/posts/add-post`}>Thêm bài viết mới</NextLink>
             </div>
         </div>

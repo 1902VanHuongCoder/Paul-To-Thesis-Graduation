@@ -16,6 +16,8 @@ const pathToLabel = (segment: string) => {
     case "dashboard": return "Thông tin tổng quan";
     case "products": return "Quản lý sản phẩm";
     case "edit-product": return "Cập nhật thông tin sản phẩm";
+    case "import-product": return "Nhập kho sản phẩm";
+    case "stock-transactions": return "Quản lý giao dịch kho";
     case "users": return "Quản lý người dùng";
     case "add-new-user": return "Thêm người dùng";
     case "add-product": return "Thêm sản phẩm";

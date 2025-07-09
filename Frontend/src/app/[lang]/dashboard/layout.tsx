@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [path]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="overflow-x-hidden">
       <Toaster position="top-right" />
       <AppSidebar />
       <SidebarInset>

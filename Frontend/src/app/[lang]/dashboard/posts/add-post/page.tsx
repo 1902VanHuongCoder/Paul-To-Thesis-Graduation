@@ -23,7 +23,7 @@ import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import NextImage from 'next/image';
 import { useUser } from "@/contexts/user-context";
-import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, List, ListOrdered, ListChecks, Code2, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Minus, Table as TableIcon, Columns2, Rows2, Trash2, Merge, Split, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, SquareStack, Tag } from "lucide-react";
+import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, List, ListOrdered, ListChecks, Code2, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Minus, Table as TableIcon, Columns2, Rows2, Trash2, Merge, Split, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, SquareStack,  } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/tabs';
 import { Quote as QuoteIcon } from 'lucide-react';
 import {
@@ -39,6 +39,7 @@ import clsx from "clsx";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { Button } from "@/components/ui/button/button";
 import toast from "react-hot-toast";
+import generateSlug from "@/lib/generateSlug";
 
 
 export default function AddNewsPage() {
@@ -270,7 +271,9 @@ export default function AddNewsPage() {
                         <FormItem>
                             <FormLabel>Slug bài viết (SEO)</FormLabel>
                             <FormControl>
-                                <Input {...slug} placeholder="https://example.com/news/slug" />
+                                <Input 
+                                value={'https://example.com/news/' + generateSlug(watch("title"))}
+                                {...slug} placeholder="https://example.com/news/slug" />
                             </FormControl>
                         </FormItem>
                         <FormItem className="col-span-2">
@@ -484,7 +487,7 @@ export default function AddNewsPage() {
                         <label htmlFor="isPublished">Công khai bài viết</label>
                     </div>
                     <div className="mt-6 flex justify-end">
-                        <Button variant="default" disabled={loading}>
+                        <Button variant="default" disabled={loading} className="cursor-pointer">
                             {loading ? "Đang lưu..." : "Tạo bài viết"}
                         </Button>
                     </div>

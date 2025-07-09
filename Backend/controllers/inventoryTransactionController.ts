@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import InventoryTransaction from "../models/InventoryTransaction";
-import Inventory from "../models/Inventory";
+// import InventoryTransaction from "../models/InventoryTransaction";
+import { Product, InventoryTransaction } from "../models";
 
 // GET all inventory transactions
 export const getAllInventoryTransactions = async (req: Request, res: Response): Promise<void> => {
   try {
     const transactions = await InventoryTransaction.findAll({
-      include: [{ model: Inventory, as: "inventory" }],
+      include: [{ model: Product, as: "product" }],
     });
     res.status(200).json(transactions);
   } catch (error) {
@@ -21,7 +21,7 @@ export const getInventoryTransactionById = async (req: Request, res: Response): 
 
   try {
     const transaction = await InventoryTransaction.findByPk(id, {
-      include: [{ model: Inventory, as: "inventory" }],
+      include: [{ model: Product, as: "product" }],
     });
 
     if (!transaction) {
@@ -38,11 +38,11 @@ export const getInventoryTransactionById = async (req: Request, res: Response): 
 
 // POST a new inventory transaction
 export const createInventoryTransaction = async (req: Request, res: Response): Promise<void> => {
-  const { inventoryID, quantityChange, transactionType, note, performedBy } = req.body;
+  const { productID, quantityChange, transactionType, note, performedBy } = req.body;
 
   try {
     const newTransaction = await InventoryTransaction.create({
-      inventoryID,
+      productID,
       quantityChange,
       transactionType,
       note,
@@ -59,7 +59,7 @@ export const createInventoryTransaction = async (req: Request, res: Response): P
 // PUT (update) an existing inventory transaction by ID
 export const updateInventoryTransaction = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { inventoryID, quantityChange, transactionType, note, performedBy } = req.body;
+  const { productID, quantityChange, transactionType, note, performedBy } = req.body;
 
   try {
     const transaction = await InventoryTransaction.findByPk(id);
@@ -70,7 +70,7 @@ export const updateInventoryTransaction = async (req: Request, res: Response): P
     }
 
     await transaction.update({
-      inventoryID,
+      productID,
       quantityChange,
       transactionType,
       note,

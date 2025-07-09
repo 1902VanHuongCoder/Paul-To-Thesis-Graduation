@@ -6,7 +6,6 @@ import Tag from "./Tag";
 import ProductTag from "./ProductTag";
 import Origin from "./Origin";
 import InventoryTransaction from "./InventoryTransaction";
-import Inventory from "./Inventory";
 import Location from "./Location";
 import Order from "./Order";
 import OrderProduct from "./OrderProduct";
@@ -29,15 +28,8 @@ import Message from "./Message";
 // 1. User - ShippingAddress
 User.hasMany(ShippingAddress, {
   foreignKey: "userID",
-  as: "shipping-address"
-})
-
-
-
-
-
-
-
+  as: "shipping-address",
+});
 
 SubCategory.hasMany(Product, {
   foreignKey: "subcategoryID", // Foreign key in the Product model
@@ -47,7 +39,10 @@ SubCategory.belongsTo(Category, {
   foreignKey: "categoryID", // Foreign key in the SubCategory model
 });
 
-Product.belongsTo(SubCategory, { foreignKey: "subcategoryID", as: "subcategory" }); // Foreign key in the Product model
+Product.belongsTo(SubCategory, {
+  foreignKey: "subcategoryID",
+  as: "subcategory",
+}); // Foreign key in the Product model
 
 Product.belongsTo(Category, { foreignKey: "categoryID", as: "category" }); // Foreign key in the Product model
 
@@ -69,15 +64,6 @@ Origin.hasMany(Product, {
 Tag.belongsToMany(Product, { through: ProductTag, foreignKey: "tagID" });
 Product.belongsToMany(Tag, { through: ProductTag, foreignKey: "productID" });
 
-InventoryTransaction.belongsTo(Inventory, { foreignKey: "inventoryID", as: "inventory" });
-Inventory.hasMany(InventoryTransaction, { foreignKey: "inventoryID", as: "transactions" });
-
-Inventory.belongsTo(Product, { foreignKey: "productID", as: "product" });
-Inventory.belongsTo(Location, { foreignKey: "locationID", as: "location" });
-
-Product.hasMany(Inventory, { foreignKey: "productID", as: "inventories" });
-Location.hasMany(Inventory, { foreignKey: "locationID", as: "inventories" });
-
 Order.belongsToMany(Product, {
   through: OrderProduct,
   foreignKey: "orderID",
@@ -89,7 +75,7 @@ Product.belongsToMany(Order, {
   as: "orders",
 });
 
-Order.belongsTo(User, { foreignKey: "userID", as: "user" }); 
+Order.belongsTo(User, { foreignKey: "userID", as: "user" });
 Order.belongsTo(Delivery, { foreignKey: "deliveryID", as: "delivery" });
 
 ShoppingCart.belongsToMany(Product, {
@@ -114,8 +100,8 @@ News.belongsTo(User, { foreignKey: "userID", as: "author" });
 User.hasMany(News, { foreignKey: "userID", as: "news" });
 
 User.hasMany(ShippingAddress, {
-  foreignKey: "shippingAddressID", 
-  as: "shippingAddresses"
+  foreignKey: "shippingAddressID",
+  as: "shippingAddresses",
 });
 
 News.belongsToMany(TagOfNews, {
@@ -134,12 +120,11 @@ TagOfNews.belongsToMany(News, {
 Wishlist.belongsTo(User, { foreignKey: "customerID", as: "customer" });
 Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
 
-News.hasMany(NewsComment, {foreignKey: "newsID", as: "comments" });
-User.hasMany(NewsComment, {foreignKey: "userID", as: "user_comments" });
-NewsComment.belongsTo(User,{foreignKey: "userID", as: "user_comments" });
+News.hasMany(NewsComment, { foreignKey: "newsID", as: "comments" });
+User.hasMany(NewsComment, { foreignKey: "userID", as: "user_comments" });
+NewsComment.belongsTo(User, { foreignKey: "userID", as: "user_comments" });
 
 Contact.belongsTo(User, { foreignKey: "userID", as: "user" });
-
 
 User.belongsToMany(Conversation, {
   through: ConversationParticipant,
@@ -167,7 +152,18 @@ Message.belongsTo(Conversation, {
   as: "conversation",
 });
 User.hasMany(Message, { foreignKey: "senderID", as: "sentMessages" });
-Message.belongsTo(User, { foreignKey: "senderID", as: "sender" }); 
+Message.belongsTo(User, { foreignKey: "senderID", as: "sender" });
+
+Product.hasMany(InventoryTransaction, {
+  foreignKey: "productID",
+  as: "transactions",
+});
+
+InventoryTransaction.belongsTo(Product, {
+  foreignKey: "productID",
+  as: "product",
+});
+
 export {
   User,
   Product,
@@ -177,7 +173,6 @@ export {
   ProductTag,
   Origin,
   InventoryTransaction,
-  Inventory,
   Location,
   Order,
   OrderProduct,
@@ -195,6 +190,5 @@ export {
   Contact,
   Conversation,
   ConversationParticipant,
-  Message
+  Message,
 };
-
