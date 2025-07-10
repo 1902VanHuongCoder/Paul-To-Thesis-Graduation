@@ -9,7 +9,10 @@ import {
   Tag,
   User,
 } from "../models";
+import InventoryTransaction from "../models/InventoryTransaction";
 import { Op } from "sequelize";
+
+
 
 export const getAllProducts = async (
   req: Request,
@@ -157,6 +160,7 @@ export const updateProduct = async (
     unit,
     isShow,
     expiredAt,
+    performedBy,
   } = req.body;
 
   try {
@@ -168,6 +172,7 @@ export const updateProduct = async (
     }
 
     // Update the product
+    const oldQuantity = product.quantityAvailable;
     await product.update({
       barcode, // <-- add barcode
       boxBarcode, // <-- add boxBarcode
@@ -186,6 +191,17 @@ export const updateProduct = async (
       isShow,
       expiredAt,
     });
+
+    // If quantityAvailable changed, create an 'update' inventory transaction
+    if (typeof quantityAvailable === 'number' && oldQuantity !== quantityAvailable) {
+      await InventoryTransaction.create({
+        productID: product.productID,
+        quantityChange: quantityAvailable - oldQuantity,
+        transactionType: 'update',
+        note: `Cập nhật sản phẩm ${product.productID}`,
+        performedBy: performedBy || 'system',
+      });
+    }
 
     // Handle tags
     if (tagIDs && Array.isArray(tagIDs)) {
@@ -309,12 +325,29 @@ export const updateListOfProducts = async (
   }
 
   try {
-    const updatePromises = products.map((product: Product) =>
-      Product.update(
-        { quantityAvailable: product.quantityAvailable },
+    const updatePromises = products.map(async (product: {productID: number, quantityAvailable: number, note: string, performedBy: string}) => {
+      // Find the existing product to get the old quantity
+      const existing = await Product.findByPk(product.productID);
+      if (!existing) return;
+      const oldQty = existing.quantityAvailable;
+      const newQty = product.quantityAvailable;
+      const quantityChange = newQty - oldQty;
+      // Update product quantity
+      await Product.update(
+        { quantityAvailable: newQty },
         { where: { productID: product.productID } }
-      )
-    );
+      );
+      // Only create transaction if quantity actually changed
+      if (quantityChange !== 0) {
+        await InventoryTransaction.create({
+          productID: product.productID,
+          quantityChange,
+          transactionType: "import",
+          performedBy: product.performedBy,
+          note: product.note,
+        });
+      }
+    });
 
     await Promise.all(updatePromises);
 

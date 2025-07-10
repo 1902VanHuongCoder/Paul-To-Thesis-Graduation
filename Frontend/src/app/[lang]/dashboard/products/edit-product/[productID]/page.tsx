@@ -33,6 +33,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/t
 import { Quote as QuoteIcon } from 'lucide-react';
 import clsx from "clsx";
 import toast from "react-hot-toast";
+import { useUser } from "@/contexts/user-context";
 
 type Category = {
     categoryID: number;
@@ -96,6 +97,7 @@ export default function EditProductPage() {
     const params = useParams();
     const productID = params?.productID as string;
 
+    const { user} = useUser();
     const methods = useForm<ProductFormValues>();
     const { register, handleSubmit, setValue, watch, formState: { errors } } = methods;
 
@@ -246,6 +248,10 @@ export default function EditProductPage() {
 
     // Submit handler
     const onSubmit = async (data: ProductFormValues) => {
+        if (!user){
+            toast.error("Bạn cần đăng nhập để thực hiện thao tác này.");
+            return;
+        }
         setMessage("");
         let uploadedUrls: string[] = [];
         const filesToUpload: File[] = [];
@@ -325,6 +331,7 @@ export default function EditProductPage() {
                     unit: data.unit,
                     barcode: data.barcode,
                     boxBarcode: data.boxBarcode,
+                    performedBy: user.userID,
                 }),
             });
             if (res.ok) {

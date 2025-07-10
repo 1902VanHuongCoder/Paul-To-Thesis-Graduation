@@ -1,0 +1,4 @@
+- Create inventory transaction in these cases: 
+    + Importing products both manual and barcode scanner - completed 
+    + An order is created - completed
+    + Update product - completed 

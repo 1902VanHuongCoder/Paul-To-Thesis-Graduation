@@ -9,6 +9,7 @@ import {
   Discount,
   Delivery,
 } from "../models";
+import InventoryTransaction from "../models/InventoryTransaction";
 import { Transaction } from "sequelize";
 import { io } from "../server";
 
@@ -163,6 +164,23 @@ export const createOrder = async (
             transaction: t,
           });
         }
+      }
+
+      // 5. For each cart item, create an 'export' inventory transaction and update product quantity
+      for (const item of cartItems) {
+        // Create export transaction
+        await InventoryTransaction.create({
+          productID: item.productID,
+          quantityChange: -item.quantity,
+          transactionType: "export",
+          note: `Đơn hàng ${newOrder.orderID}`,
+          performedBy: fullName || "system",
+        }, { transaction: t });
+        // Update product quantity
+        await Product.increment(
+          { quantityAvailable: -item.quantity },
+          { where: { productID: item.productID }, transaction: t }
+        );
       }
 
       await CartItem.destroy({

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button/button";
 import { Input } from "@/components/ui/input/input";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@/contexts/user-context";
+import toast from "react-hot-toast";
 
 interface Product {
     productID: number;
@@ -23,6 +25,8 @@ interface Product {
 }
 
 export default function ImportProductUsingBarcodePage() {
+    const {user} = useUser();
+    const [note, setNote] = useState<string>("");
     const [products, setProducts] = useState<Product[]>([]);
     const [error, setError] = useState<string>("");
     const [isBox, setIsBox] = useState<boolean>(false);
@@ -124,11 +128,14 @@ export default function ImportProductUsingBarcodePage() {
 
     // Update product quantities in the backend
     const handleUpdateProductQuantity = async () => {
+        if(!user) { toast.error("Bạn cần đăng nhập để thực hiện thao tác này."); return; }
         try {
             const res = await fetch(`${baseUrl}/api/product/update/quantity`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(products.map(p => ({
+                    performedBy: user.userID,
+                    note: note,
                     productID: p.productID,
                     quantityAvailable: p.quantityAvailable,
                 })))
@@ -238,7 +245,15 @@ export default function ImportProductUsingBarcodePage() {
                     </TableBody>
                 </Table>
             )}
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+                <Input
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Ghi chú cho thao tác nhập kho"
+                    className="w-full p-2 border rounded mb-4"
+                    autoFocus
+                />
                 <Button onClick={handleUpdateProductQuantity} className="mt-4">
                     Cập nhật số lượng trong kho
                 </Button></div>
