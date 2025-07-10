@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 type SubCategoryFormValues = {
   subcategoryName: string;
   categoryID: string;
-  quantityPerBox?: number;
+  // quantityPerBox?: number;
 };
 
 type Category = {
@@ -36,7 +36,7 @@ type SubCategory = {
   subcategoryName: string;
   categoryID: string;
   category?: Category;
-  quantityPerBox?: number;
+  // quantityPerBox?: number;
 };
 
 export default function AddSubCategoryPage() {
@@ -164,12 +164,12 @@ export default function AddSubCategoryPage() {
               Danh mục không được phép rỗng.
             </FormMessage>}
           </FormItem>
-          <FormItem>
+          {/* <FormItem>
             <FormLabel>Số lượng trên thùng/lô</FormLabel>
             <FormControl>
               <Input type="number" {...register("quantityPerBox", { required: true })} placeholder="Nhập số lượng sản phẩm/lô(thùng) nếu có."/>
             </FormControl>
-          </FormItem>
+          </FormItem> */}
           <div className="flex justify-end">
             <Button type="submit" className="mt-4">Thêm danh mục con</Button>
           </div>

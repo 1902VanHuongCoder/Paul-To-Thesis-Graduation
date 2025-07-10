@@ -62,6 +62,7 @@ type ProductFormValues = {
   unit: string;
   barcode: string;
   boxBarcode: string;
+  quantityPerBox?: number;
 };
 
 type Category = {
@@ -92,7 +93,7 @@ function generateBarcode() {
   for (let i = 0; i < 4; i++) {
     productCode += Math.floor(Math.random() * 10).toString();
   }
-  const barcode = countryCode + businessCode + productCode + '0'; 
+  const barcode = countryCode + businessCode + productCode + '0';
   return barcode;
 }
 
@@ -117,7 +118,6 @@ export default function AddProductPage() {
   // State for dropdowns
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [subCateIsChoosen, setSubCateIsChoosen] = useState<Subcategory>();
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [editorImages, setEditorImages] = useState<File[]>([]);
@@ -250,7 +250,6 @@ export default function AddProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          boxQuantity: 0, // Add box quantity if needed
           productPrice: data.productPrice ? data.productPrice : 0,
           productPriceSale: data.productPriceSale ? data.productPriceSale : 0,
           quantityAvailable: data.quantityAvailable,
@@ -261,6 +260,7 @@ export default function AddProductPage() {
           isShow: data.isShow || false,
           expiredAt: data.expiredAt ? new Date(data.expiredAt) : null,
           unit: data.unit || "",
+          quantityPerBox: data.quantityPerBox,
         }),
       });
 
@@ -400,7 +400,7 @@ export default function AddProductPage() {
                 </Select>
               </FormControl>
               {errors.categoryID && <FormMessage>
-                Danh mục không được phép rỗng.  
+                Danh mục không được phép rỗng.
               </FormMessage>}
             </FormItem>
 
@@ -411,8 +411,6 @@ export default function AddProductPage() {
                   value={String(watch("subcategoryID") ?? "")}
                   onValueChange={val => {
                     const selectedID = Number(val);
-                    const chosen = subcategories.find(sub => sub.subcategoryID === selectedID);
-                    setSubCateIsChoosen(chosen);
                     setValue("subcategoryID", selectedID);
                   }}
                 >
@@ -447,7 +445,13 @@ export default function AddProductPage() {
               </FormControl>
             </FormItem>
           </div>
-          <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr] gap-4">
+          <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr_1fr] gap-4">
+            <FormItem>
+              <FormLabel>Số lượng trên thùng/lô</FormLabel>
+              <FormControl>
+                <Input type="number" {...register("quantityPerBox", { required: true })} placeholder="Nhập số lượng sản phẩm/lô(thùng) nếu có." />
+              </FormControl>
+            </FormItem>
             <FormItem>
               <FormLabel>Số lượng</FormLabel>
               <FormControl>
@@ -501,18 +505,26 @@ export default function AddProductPage() {
             )}
             {errors.barcode && <FormMessage>{errors.barcode.message || "Mã vạch không thể để trống."}</FormMessage>}
           </FormItem>
-          {subCateIsChoosen && subCateIsChoosen.quantityPerBox > 0 &&
+          {(watch("quantityPerBox") ?? 0) > 0 &&
             (<FormItem className="col-span-2">
-              <FormLabel>Mã vạch lô/thùng (13 số)</FormLabel>
+              <FormLabel>Mã vạch lô/thùng (12 số)</FormLabel>
               <FormControl>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <Input
                     {...register("boxBarcode", {
                       required: true,
-                      pattern: { value: /\d{12}$/, message: "Mã vạch lô thùng phải dài 12 số." }, 
+                      pattern: { value: /\d{12}$/, message: "Mã vạch lô thùng phải dài 12 số." },
                     })}
                     value={boxBarcode.boxBarcode}
-                    onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
+                    onChange={e => {
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(
+                        0, 12);
+                      setBoxBarcode({
+                        boxBarcode: value, boxBarcodeImage: boxBarcode.boxBarcodeImage
+                      });
+                      setValue("boxBarcode", value);
+                    }}
+                    // replace non-numeric characters and limit to 12 digits
                     placeholder="Nhập hoặc sinh tự động mã vạch"
                   />
                   <Button type="button" onClick={() => {

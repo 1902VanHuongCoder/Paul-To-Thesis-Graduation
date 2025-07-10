@@ -72,8 +72,7 @@ type Product = {
     unit: string;
     barcode: string;
     boxBarcode: string;
-    boxQuantity: number | null;
-};
+    quantityPerBox ?: number;};
 
 type ProductFormValues = {
     productName: string;
@@ -90,7 +89,7 @@ type ProductFormValues = {
     unit: string;
     barcode: string;
     boxBarcode: string;
-    boxQuantity: string;
+    quantityPerBox ?: number;
 };
 
 export default function EditProductPage() {
@@ -176,8 +175,7 @@ export default function EditProductPage() {
                 setValue("unit", prod.unit || "");
                 setValue("barcode", prod.barcode || "");
                 setValue("boxBarcode", prod.boxBarcode || "");
-                setValue("boxQuantity", prod.boxQuantity !== undefined && prod.boxQuantity !== null ? String(prod.boxQuantity) : "");
-
+                setValue("quantityPerBox", prod.quantityPerBox || 0);
                 setOldProductImages(prod.images || []);
                 setProductImages(prod.images || []);
                 setOldDescImages(prod.descriptionImages || []);
@@ -327,7 +325,6 @@ export default function EditProductPage() {
                     unit: data.unit,
                     barcode: data.barcode,
                     boxBarcode: data.boxBarcode,
-                    boxQuantity: data.boxQuantity ? parseInt(data.boxQuantity, 10) : null,
                 }),
             });
             if (res.ok) {
@@ -419,18 +416,13 @@ export default function EditProductPage() {
                                 <Input type="number" {...register("quantityAvailable", { required: true })} min={0} />
                             </FormControl>
                         </FormItem>
-                        <FormItem>
-                            <FormLabel className="text-gray-600">Số lượng/thùng(lô)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="number"
-                                    min={0}
-                                    step={1}
-                                    {...register("boxQuantity")}
-                                    defaultValue={oldProductImages.length > 0 ? watch("boxQuantity") : ""}
-                                />
-                            </FormControl>
-                        </FormItem>
+                            <FormItem>
+                                      <FormLabel>Số lượng trên thùng/lô</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" {...register("quantityPerBox", { required: true })} placeholder="Nhập số lượng sản phẩm/lô(thùng) nếu có." />
+                                      </FormControl>
+                                    </FormItem>
+                                
                         <div className="col-span-2 grid grid-cols-[1fr_1fr_1fr] gap-4">
                             <FormItem>
                                 <FormLabel className="text-gray-600">Danh mục</FormLabel>

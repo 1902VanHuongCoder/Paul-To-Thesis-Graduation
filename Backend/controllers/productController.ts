@@ -68,7 +68,7 @@ export const createProduct = async (
   const {
     barcode, // <-- add barcode
     boxBarcode, // <-- add boxBarcode
-    boxQuantity, // <-- add boxQuantity if needed
+    quantityPerBox,
     productName,
     productPrice,
     productPriceSale,
@@ -92,7 +92,7 @@ export const createProduct = async (
     const newProduct = await Product.create({
       barcode, // <-- add barcode
       boxBarcode, // <-- add boxBarcode
-      boxQuantity, // <-- add boxQuantity if needed
+      quantityPerBox,
       productName,
       productPrice,
       productPriceSale,
@@ -142,7 +142,7 @@ export const updateProduct = async (
   const {
     barcode, // <-- add barcode
     boxBarcode, // <-- add boxBarcode
-    boxQuantity, // <-- add boxQuantity if needed
+    quantityPerBox,
     productName,
     productPrice,
     productPriceSale,
@@ -171,7 +171,7 @@ export const updateProduct = async (
     await product.update({
       barcode, // <-- add barcode
       boxBarcode, // <-- add boxBarcode
-      boxQuantity, // <-- add boxQuantity if needed
+      quantityPerBox,
       productName,
       productPrice,
       productPriceSale,

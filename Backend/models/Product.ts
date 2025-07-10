@@ -8,7 +8,6 @@ class Product extends Model {
   productID: any;
   barcode!: string; 
   boxBarcode!: string;
-  boxQuantity!: number;
   productPrice!: number;
   productPriceSale!: number;
   productName!: string;
@@ -23,6 +22,7 @@ class Product extends Model {
   isShow: boolean = true;
   unit!: string;
   expiredAt: Date | null = null;
+  quantityPerBox!: number; // Assuming this is a field you want to keep, but not in the original code snippet
 }
 
 Product.init(
@@ -42,11 +42,6 @@ Product.init(
       allowNull: true, // Allow null for products that do not have a box barcode
       unique: true, // Ensure that each product box has a unique barcode
     },
-    boxQuantity: {
-      type: DataTypes.INTEGER,
-      allowNull: true, // Allow null for products that do not have a box quantity
-      defaultValue: 0, // Default value for box quantity
-    }, 
     productName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -116,6 +111,11 @@ Product.init(
     unit: {
       type: DataTypes.STRING,
       allowNull: true, // Allow null for products that do not have a specific unit
+    },
+    quantityPerBox: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Allow null for products that do not have a quantity per box
+      defaultValue: 0, // Default value for quantity per box
     },
   },
   {
