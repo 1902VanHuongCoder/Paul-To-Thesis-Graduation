@@ -134,9 +134,9 @@ export default function ImportProductUsingBarcodePage() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(products.map(p => ({
+                    productID: p.productID,
                     performedBy: user.userID,
                     note: note,
-                    productID: p.productID,
                     quantityAvailable: p.quantityAvailable,
                 })))
             });

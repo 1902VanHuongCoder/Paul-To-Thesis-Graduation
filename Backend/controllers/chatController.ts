@@ -48,6 +48,12 @@ export const addNewMessage = async (
       content,
       createdAt: new Date(),
     });
+    // Update the newest message in the conversation
+    await Conversation.update(
+      { newestMessage: content },
+      { where: { conversationID } }
+    );
+    
     res.status(201).json({
       message: "Message sent successfully",
       data: newMessage,
@@ -62,7 +68,14 @@ export const createConversation = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { conversationID, conversationName, participants, isGroup } = req.body;
+  const {
+    conversationID,
+    conversationName,
+    participants,
+    isGroup,
+    hostID,
+    conversationAvatar,
+  } = req.body;
 
   let existingConversation;
 
@@ -71,6 +84,7 @@ export const createConversation = async (
     conversationName,
     participants,
     isGroup,
+    conversationAvatar,
   });
 
   // Conversation ID is created by concatenating two first participants's IDs, so if request conversationID is in two cases, it already existed
@@ -83,7 +97,7 @@ export const createConversation = async (
     // Check if a conversation already exists with the possible IDs
     existingConversation = await ConversationParticipant.findOne({
       where: {
-         userID: participants[0],
+        userID: participants[0],
       },
     });
   } catch (error) {
@@ -105,6 +119,9 @@ export const createConversation = async (
       const newConversation = await Conversation.create({
         conversationID,
         conversationName,
+        conversationAvatar,
+        hostID: participants[0],
+        newestMessage: "",
         isGroup: isGroup,
       });
       await ConversationParticipant.bulkCreate(
@@ -239,13 +256,22 @@ export const getConversationsUserBelongs = async (
   }
 
   try {
+   // Fetch conversations where the user is a paticipant 
+   // and count unread messages for each conversation
     const conversations = await ConversationParticipant.findAll({
       where: { userID },
       include: [
         {
           model: Conversation,
           as: "conversation",
-          include: [{ model: User, as: "participants" }],
+          include: [
+            {
+              model: Message,
+              as: "messages",
+              where: { isRead: false, senderID: { [Op.ne]: userID } },
+              required: false,
+            },
+          ],
         },
       ],
     });
@@ -256,3 +282,57 @@ export const getConversationsUserBelongs = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Get all conversations and messages belongs to that conversation (use for admin dashboard)
+export const getAllConversationsAndMessages = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const conversations = await Conversation.findAll({
+      include: [
+        {
+          model: Message,
+          as: "messages",
+          include: [{ model: User, as: "sender" }],
+        },
+      ],
+    });
+
+    res.status(200).json(conversations);
+  } catch (error) {
+    console.error("Error fetching all conversations and messages:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const markMessagesAsRead = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { conversationID, userID } = req.body;
+
+  if (!conversationID || !userID) {
+    res.status(400).json({ message: "conversationID and userID are required" });
+    return;
+  }
+
+  try {
+    // Mark all unread messages in the conversation as read
+    await Message.update(
+      { isRead: true },
+      {
+        where: {
+          conversationID,
+          isRead: false,
+          senderID: { [Op.ne]: userID }, // Only mark messages not sent by the user
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Messages marked as read successfully" });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

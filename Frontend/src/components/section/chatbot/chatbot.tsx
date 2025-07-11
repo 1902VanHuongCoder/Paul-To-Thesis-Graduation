@@ -137,7 +137,8 @@ export default function ChatBot() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 conversationID,
-                conversationName: `Chat với admin`,
+                conversationName: user.username,
+                conversationAvatar: user.avatar,
                 participants: [user.userID, ...participants],
                 isGroup: false,
             }),
@@ -218,7 +219,7 @@ export default function ChatBot() {
                         <div className="flex flex-col h-80">
                             <div className="flex-1 overflow-y-auto pr-2">
                                 {messages.length === 0 && <div className="text-gray-400">Chưa có tin nhắn nào.</div>}
-                                {messages.map((msg) => (
+                                {messages.length > 0 && messages.map((msg) => (
                                     <div
                                         key={msg.messageID || Math.random()}
                                         className={`mb-2 flex ${msg.senderID === user?.userID ? "justify-end" : "justify-start"}`}
