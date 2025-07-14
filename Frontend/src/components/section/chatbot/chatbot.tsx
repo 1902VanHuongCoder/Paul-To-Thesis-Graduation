@@ -124,7 +124,6 @@ export default function ChatBot() {
                 throw new Error("Không thể lấy danh sách admin.");
             }
             admins = await res.json();
-            console.log("Admins:", admins);
          } catch (error) {
             console.error("Error initializing chat:", error);
         }

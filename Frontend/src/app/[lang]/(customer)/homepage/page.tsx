@@ -1,12 +1,16 @@
 "use client";
 import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Hero, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton } from "@/components";
 import { Funnel } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { baseUrl } from "@/lib/base-url";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
 import removeDuplicates from "@/lib/remove-duplicate";
+import Head from "next/head";
+import { fetchProducts } from "@/lib/product-apis";
+import { fetchCategories } from "@/lib/category-apis";
+import { fetchTags } from "@/lib/product-tag-apis";
+import { increaseNoAccess } from "@/lib/statistic-apis";
 interface Category {
     categoryDescription: string,
     categoryID: number,
@@ -39,7 +43,6 @@ interface Tag {
 }
 
 const Homepage = () => {
-    const { dictionary } = useDictionary();
     const { setLoading } = useLoading();
     const [showFilterKit, setShowFilterKit] = React.useState(false);
     const [categories, setCategories] = React.useState<Category[]>([]);
@@ -62,19 +65,19 @@ const Homepage = () => {
     const sortOptions = [
         {
             value: "default",
-            label: dictionary?.sortDropdownDV || "Mặc định",
+            label: "Mặc định",
         },
         {
             value: "asc",
-            label: dictionary?.sortDropdownIn || "Giá tăng dần",
+            label:  "Giá tăng dần",
         },
         {
             value: "desc",
-            label: dictionary?.sortDropdownDe || "Giá giảm dần",
+            label: "Giá giảm dần",
         },
         {
             value: "highRating",
-            label: dictionary?.sortDropdownHR || "Đánh giá cao",
+            label: "Đánh giá cao",
         }
     ];
 
@@ -84,26 +87,25 @@ const Homepage = () => {
         return productsAfterFilter.slice(start, start + displayModeProps.resultsPerPage);
     }, [productsAfterFilter, currentPage, displayModeProps.resultsPerPage]);
 
-    const handleCategoryFilter = (categoryID: number) => {
+    // Memoize filter handlers for performance
+    const handleCategoryFilter = useCallback((categoryID: number) => {
         const filteredProducts = products.filter((product) => product.categoryID === categoryID);
         setProductsAfterFilter(filteredProducts);
         setCurrentPage(1);
-    }
+    }, [products]);
 
-    const handleCashFilter = (min: number, max: number) => {
+    const handleCashFilter = useCallback((min: number, max: number) => {
         const filteredProducts = products.filter((product) => {
             const price = product.productPrice;
             return price >= min && price <= max;
         });
         setProductsAfterFilter(filteredProducts);
         setCurrentPage(1);
-    }
+    }, [products]);
 
-    const handleTagFilter = (tagID: number) => {
+    const handleTagFilter = useCallback((tagID: number) => {
         const listOfTagIDTemp = [...listOfTagID, tagID];
-
         const uniqueArr = removeDuplicates(listOfTagIDTemp);
-
         setListOfTagID(uniqueArr);
         const fetchProductIDContainTagID = async () => {
             try {
@@ -121,7 +123,7 @@ const Homepage = () => {
             }
         }
         fetchProductIDContainTagID();
-    }
+    }, [listOfTagID, products]);
 
     const sortByPriceAsc = (products: Product[]) => {
         const sortedProducts = [...products].sort((a, b) => a.productPrice - b.productPrice)
@@ -162,124 +164,117 @@ const Homepage = () => {
     }, [showFilterKit]);
 
     useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                await fetch(`${baseUrl}/api/category`).then((res) => res.json()).then((data) => setCategories(data));
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-            }
-        }
-        const fetchTags = async () => {
-            try {
-                await fetch(`${baseUrl}/api/tag`).then((res) => res.json()).then((data) => setTags(data));
-            } catch (error) {
-                console.error("Error fetching tags:", error);
-            }
-        }
-        const fetchProducts = async () => {
-            try {
-                await fetch(`${baseUrl}/api/product`).then((res) => res.json()).then((data) => {
-                    setProducts(data);
-                    setProductsAfterFilter(data);
-                });
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            }
-        }
         const fetchAll = async () => {
             setLoading(true);
-            await Promise.all([fetchCategories(), fetchTags(), fetchProducts()]);
+            try {
+                const [categoriesData, tagsData, productsData] = await Promise.all([
+                    fetchCategories(),
+                    fetchTags(),
+                    fetchProducts(),
+                ]);
+                setCategories(categoriesData);
+                setTags(tagsData);
+                setProducts(productsData);
+                setProductsAfterFilter(productsData);
+            } catch (error) {
+                console.error(error);
+            }
             setLoading(false);
-        }
+        };
         fetchAll();
     }, [setLoading]);
 
     useEffect(() => {
-        // Increment access count when homepage is accessed
-        fetch(`${baseUrl}/api/statistic/increment`, { method: "POST" });
+        increaseNoAccess();
     }, []);
 
     return (
-        <div className="relative mx-auto">
-            {/* Hero */}
-            <Hero />
+        <>
+            <Head>
+                <title>{"NFeam House - Trang chủ"}</title>
+                <meta name="description" content={ "NFeam House - Nền tảng nông nghiệp thông minh, cung cấp giải pháp quản lý, tư vấn, và kết nối cho nhà nông hiện đại."} />
+            </Head>
+            <main className="relative mx-auto" aria-label="Nội dung chính trang chủ">
+                {/* Hero */}
+                <Hero />
 
-            {/* Main content */}
-            <div className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:pb-10 pt-5 transition-all">
-                {/* Filter kits group */}
-                <div className={`col-start-1 col-end-2 w-full max-w-full flex flex-col gap-y-6 md:max-h-fit  filter-kit-transition  ${showFilterKit ? "max-h-[1600px]" : "max-h-0"} ${showFilterKit ? "h-fit" : ""} origin-top overflow-hidden transition-all duration-300 px-1`}>
-                    <CategoryFilter categories={categories} onCategorySelect={(categoryID) => handleCategoryFilter(categoryID)} />
-                    <CashFilter onFilter={(min, max) => { handleCashFilter(min, max) }} />
-                    <NewestProduct products={products} />
-                    <TagFilter tags={tags} onTagSelect={(tagID) => handleTagFilter(tagID)} />
-                    <Button
-                        variant="normal"
-                        className="w-full mt-4 flex items-center justify-center gap-x-2 md:hidden"
-                        onClick={() => {
-                            setShowFilterKit(false);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                    >
-                        {dictionary?.filterButton || "Thực hiện lọc"}
-                    </Button>
-                </div>
+                {/* Main content */}
+                <section className="w-full min-h-screen block md:grid md:grid-cols-[1fr_1px_3fr] gap-6 px-6 pb-10 md:pb-10 pt-5 transition-all" aria-label="Bộ lọc và sản phẩm">
+                    {/* Filter kits group */}
+                    <aside className={`col-start-1 col-end-2 w-full max-w-full flex flex-col gap-y-6 md:max-h-fit  filter-kit-transition  ${showFilterKit ? "max-h-[1600px]" : "max-h-0"} ${showFilterKit ? "h-fit" : ""} origin-top overflow-hidden transition-all duration-300 px-1`} aria-label="Bộ lọc sản phẩm">
+                        <CategoryFilter categories={categories} onCategorySelect={handleCategoryFilter} />
+                        <CashFilter onFilter={handleCashFilter} />
+                        <NewestProduct products={products} />
+                        <TagFilter tags={tags} onTagSelect={handleTagFilter} />
+                        <Button
+                            variant="normal"
+                            className="w-full mt-4 flex items-center justify-center gap-x-2 md:hidden"
+                            onClick={() => {
+                                setShowFilterKit(false);
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
+                            aria-label={"Thực hiện lọc"}
+                        >
+                            {"Thực hiện lọc"}
+                        </Button>
+                    </aside>
 
-                {/* Divider */}
-                <div className="col-start-2 col-end-3 bg-[#eee9e9] w-[1px] h-full md:block hidden" />
+                    {/* Divider */}
+                    <div className="col-start-2 col-end-3 bg-[#eee9e9] w-[1px] h-full md:block hidden" />
 
-                {/* Products */}
-                <div className="col-start-3 col-end-4 w-full mt-10 md:mt-0 md:pl-1 flex flex-col justify-between gap-y-10">
-                    <div>
-                        <div className="flex items-start md:items-center md:justify-between mb-4 md:flex-row gap-y-6 flex-col-reverse">
-                            <DisplayModeSwitcher {...displayModeProps} />
-                            <div className="flex items-center md:justify-end justify-between w-full md:w-fit">
-                                <SortDropdown options={sortOptions} onSortChange={handleSortingProducts} />
-                                <IconButton className="md:hidden border-2 border-solid border-primary/10 hover:bg-secondary" iconColor="#0D401C" icon={Funnel} onClick={() => {
-                                    setShowFilterKit(!showFilterKit);
+                    {/* Products */}
+                    <section className="col-start-3 col-end-4 w-full mt-10 md:mt-0 md:pl-1 flex flex-col justify-between gap-y-10" aria-label="Danh sách sản phẩm">
+                        <div>
+                            <div className="flex items-start md:items-center md:justify-between mb-4 md:flex-row gap-y-6 flex-col-reverse">
+                                <DisplayModeSwitcher {...displayModeProps} />
+                                <div className="flex items-center md:justify-end justify-between w-full md:w-fit">
+                                    <SortDropdown options={sortOptions} onSortChange={handleSortingProducts} />
+                                    <IconButton className="md:hidden border-2 border-solid border-primary/10 hover:bg-secondary" iconColor="#0D401C" icon={Funnel} onClick={() => {
+                                        setShowFilterKit(!showFilterKit);
 
-                                }} />
+                                    }} />
+                                </div>
                             </div>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={productView}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.4 }}
+                                    className={productView === "grid"
+                                        ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
+                                        : "flex flex-col items-start gap-y-6"
+                                    }
+                                >
+                                    {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
+                                        <Card
+                                            key={product.productID}
+                                            image={product.images[0]}
+                                            title={product.productName}
+                                            discountPrice={product.productPriceSale}
+                                            price={product.productPrice}
+                                            rating={product.rating}
+                                            productID={product.productID}
+                                            productName={product.productName}
+                                        />
+                                    )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={productView}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.4 }}
-                                className={productView === "grid"
-                                    ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
-                                    : "flex flex-col items-start gap-y-6"
-                                }
-                            >
-                                {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
-                                    <Card
-                                        key={product.productID}
-                                        image={product.images[0]}
-                                        title={product.productName}
-                                        discountPrice={product.productPriceSale}
-                                        price={product.productPrice}
-                                        rating={product.rating}
-                                        productID={product.productID}
-                                        productName={product.productName}
-                                    />
-                                )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-                    <CustomPagination
-                        totalPages={Math.ceil(products.length / displayModeProps.resultsPerPage)}
-                        currentPage={currentPage}
-                        onPageChange={setCurrentPage}
-                    />
-                </div>
-            </div>
-            <ChatBot />
-            <ParterCarousel />
-            <ToTopButton />
-           
-        </div>
-    )
+                        <CustomPagination
+                            totalPages={Math.ceil(products.length / displayModeProps.resultsPerPage)}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage}
+                        />
+                    </section>
+                </section>
+                <ChatBot />
+                <ParterCarousel />
+                <ToTopButton />
+            </main>
+        </>
+    );
 }
 
 export default Homepage;

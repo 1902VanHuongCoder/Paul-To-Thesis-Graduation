@@ -1,6 +1,4 @@
 "use client";
-
-import { useDictionary } from "@/contexts/dictonary-context";
 import React from "react";
 
 interface Category {
@@ -22,30 +20,45 @@ export default function CategoryFilter({
   categories,
   onCategorySelect,
 }: CategoryFilterProps) {
-  const { dictionary } = useDictionary();
+
+  // Memoize handler for performance
+  const handleCategoryKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLLIElement>, categoryID: number) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onCategorySelect?.(categoryID);
+      }
+    },
+    [onCategorySelect]
+  );
+
   return (
-    <div className="w-full max-w-sm rounded-lg shadow-md overflow-hidden border-1 border-gray-300 bg-white">
+    <section
+      className="w-full max-w-sm rounded-lg shadow-md overflow-hidden border-1 border-gray-300 bg-white"
+      aria-label={"Danh mục"}
+    >
       {/* Header Section */}
-      <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        {dictionary?.categoryFilter ? dictionary.categoryFilter : "Danh mục"}
-      </div>
+      <h2 className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg" tabIndex={-1} id="category-filter-heading">
+        {"Danh mục"}
+      </h2>
 
       {/* Category List */}
-      <ul className="divide-y divide-dashed divide-gray-300">
+      <ul className="divide-y divide-dashed divide-gray-300" aria-labelledby="category-filter-heading">
         {categories.map((category) => (
           <li
             key={category.categoryID}
-            className="flex justify-between items-center p-4 hover:bg-gray-100 cursor-pointer"
+            className="flex justify-between items-center p-4 hover:bg-gray-100 cursor-pointer focus:bg-primary/10 outline-none"
             onClick={() => onCategorySelect?.(category.categoryID)}
+            onKeyDown={(e) => handleCategoryKeyDown(e, category.categoryID)}
             role="button"
             tabIndex={0}
-            aria-label={`Filter by ${category.categoryName}`}
+            aria-label={`Lọc theo ${category.categoryName}`}
           >
             <span className="text-black font-semibold">{category.categoryName}</span>
             <span className="text-gray-500">({category.count})</span>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useDictionary } from "@/contexts/dictonary-context";
 import React from "react";
 
 interface Tag {
@@ -14,38 +13,41 @@ interface TagFilterProps {
 }
 
 export default function TagFilter({ tags, onTagSelect }: TagFilterProps) {
-  const { dictionary } = useDictionary();
   const [selectedTag, setSelectedTag] = React.useState<number[]>([]);
-  const handleTagSelect = (tagID: number) => {
-    if (selectedTag.includes(tagID)) {
-      setSelectedTag((selectedTag) => selectedTag.filter((id) => id !== tagID));
-    } else {
-      setSelectedTag([...selectedTag, tagID]);
-    }
-  }
+
+  // Memoize handler for performance
+  const handleTagSelect = React.useCallback((tagID: number) => {
+    setSelectedTag((prev) =>
+      prev.includes(tagID) ? prev.filter((id) => id !== tagID) : [...prev, tagID]
+    );
+    onTagSelect?.(tagID);
+  }, [onTagSelect]);
+
   return (
-    <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden border-1 border-gray-300 ">
+    <section
+      className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden border-1 border-gray-300"
+      aria-label={"Thẻ"}
+    >
       {/* Header Section */}
-      <div className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg">
-        {dictionary?.tagFilter || "Thẻ"}
-      </div>
+      <h2 className="bg-primary text-white font-bold text-lg p-4 rounded-t-lg" tabIndex={-1} id="tag-filter-heading">
+        {"Thẻ"}
+      </h2>
 
       {/* Tags List */}
-      <div className="p-4 flex flex-wrap gap-2">
-        {tags.map((tag, index) => (
-          index < 10 && (
-            <button
-              key={tag.tagID}
-              onClick={() => { onTagSelect?.(tag.tagID); handleTagSelect(tag.tagID) }}
-              className={`px-4 py-2 text-sm text-green-700 border-[1px]  border-primary/50 rounded-full hover:bg-primary hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${selectedTag.includes(tag.tagID) ? "bg-primary text-white" : "bg-white text-primary"}`}
-              aria-label={`Filter by ${tag}`}
-            >
-              {tag.tagName}
-            </button>
-          )
-
+      <div className="p-4 flex flex-wrap gap-2" aria-labelledby="tag-filter-heading">
+        {tags.slice(0, 10).map((tag) => (
+          <button
+            key={tag.tagID}
+            onClick={() => handleTagSelect(tag.tagID)}
+            className={`px-4 py-2 text-sm text-green-700 border-[1px] border-primary/50 rounded-full hover:bg-primary hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${selectedTag.includes(tag.tagID) ? "bg-primary text-white" : "bg-white text-primary"}`}
+            aria-pressed={selectedTag.includes(tag.tagID)}
+            aria-label={`Lọc theo thẻ ${tag.tagName}`}
+            tabIndex={0}
+          >
+            {tag.tagName}
+          </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

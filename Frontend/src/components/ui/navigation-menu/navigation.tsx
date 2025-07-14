@@ -18,15 +18,14 @@ import SearchForm from "../search-form/search-form";
 import ShoppingCart from "../shopping-cart/shopping-cart";
 import WishlistDialog from "../dialog/wishlist-dialog";
 import MobileDrawer from "../drawer/mobile-drawer";
-import LanguageSwitcher from "../language-switcher/language-switcher";
-import { baseUrl } from "@/lib/base-url";
-import { useDictionary } from "@/contexts/dictonary-context";
+// import LanguageSwitcher from "../language-switcher/language-switcher";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import SignUpForm from "@/components/section/signup-page/signup-page";
 import LoginForm from "@/components/section/login-page/login-page";
 import { useUser } from "@/contexts/user-context";
 import UserDrawer from "../drawer/user-drawer";
+import { fetchCategories } from "@/lib/category-apis";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -64,7 +63,6 @@ interface Category {
 export default function Navigation() {
     // Contexts
     const { user, logout } = useUser(); // User context to manage user state
-    const { lang, dictionary: t } = useDictionary(); // Dictionary context for translations
     const { addToCart, fetchCart } = useShoppingCart(); // Shopping cart context to manage cart operations
     const { wishlists, removeFromWishlist, setWishlist } = useWishlist(); // Wishlist context to manage wishlist operations
 
@@ -74,57 +72,60 @@ export default function Navigation() {
     const [openLoginForm, setOpenLoginForm] = useState(false); // State to control the visibility of the login form
     const [openUserDrawer, setOpenUserDrawer] = useState(false); // State to control the visibility of the user drawer (user profile, settings, etc.)
 
-    // Function to handle removing an item from the wishlist 
-    const handleRemoveItem = (productID: number, customerID: string) => {
-        removeFromWishlist(customerID, productID);
-        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
-        setWishlist(wishlistUpdated);
-    };
 
-    // Function to handle adding an item to the cart from the wishlist
-    const handleAddToCart = async (productID: number, customerID: string) => {
-        addToCart(productID, 1); // Add the product to the cart with quantity 1
+    // Memoized handlers for performance
+    const handleRemoveItem = React.useCallback((productID: number, customerID: string) => {
+        removeFromWishlist(customerID, productID);
+        setWishlist(wishlists.filter((item) => item.productID !== productID));
+    }, [removeFromWishlist, setWishlist, wishlists]);
+
+    const handleAddToCart = React.useCallback(async (productID: number, customerID: string) => {
+        addToCart(productID, 1);
         fetchCart(customerID);
         removeFromWishlist(customerID, productID);
-        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
-        setWishlist(wishlistUpdated);
-    };
+        setWishlist(wishlists.filter((item) => item.productID !== productID));
+    }, [addToCart, fetchCart, removeFromWishlist, setWishlist, wishlists]);
 
     // Fetch categories from the API when the component mounts 
     useEffect(() => {
-        fetch(`${baseUrl}/api/category`)
-            .then((res) => res.json())
-            .then((data) => {
-                setCategories(data);
-            });
+        const fetchCategoriesData = async () => { 
+            const categoriesData = await fetchCategories(); 
+            setCategories(categoriesData);
+        } 
+        fetchCategoriesData();
     }, []);
 
     return (
-        <div className="relative w-full h-fit font-sans shadow-lg">
-            <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
-                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority />
+        <nav className="relative w-full h-fit font-sans shadow-lg" aria-label="Main navigation">
+            <div className="absolute -bottom-6 left-0 w-full h-auto z-1" aria-hidden="true">
+                <Image src={vector02} width={1000} height={100} alt="" className="mb-4 w-full h-auto" priority />
             </div>
             <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:pt-4 md:pb-2">
-                <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
-                <NavigationMenu className="hidden md:block">
+                <Link href="/" aria-label={"Trang chủ"}>
+                    <Image src={darkLogo} alt={"Logo NFeam House"} width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" priority />
+                </Link>
+                <NavigationMenu className="hidden md:block" aria-label={"Menu"}>
                     <NavigationMenuList>
                         {/* Home */}
                         <NavigationMenuItem>
-                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navHomepage ? t.navHomepage : "Trang chủ"}
+                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-current="page">
+                                {"Trang chủ"}
                             </Link>
                         </NavigationMenuItem>
-
                         {/* Categories Dropdown */}
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="text-md font-semibold">{t?.navCategory ? t.navCategory : "Danh mục"}</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="text-md font-semibold" aria-haspopup="menu">
+                                {"Danh mục"}
+                            </NavigationMenuTrigger>
                             <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]" aria-label={ "Danh mục"}>
                                     {categories.map((category) => (
                                         <li key={category.categoryID}>
                                             <Link
-                                                href={`/${lang}/homepage/category/${category.categorySlug}`}
+                                                href={`/vi/homepage/category/${category.categorySlug}`}
                                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                aria-label={category.categoryName}
                                             >
                                                 <div className="text-sm font-medium leading-none">{category.categoryName}</div>
                                                 <p className="text-sm leading-snug text-muted-foreground line-clamp-1">
@@ -136,45 +137,37 @@ export default function Navigation() {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-
                         {/* News */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navNews ? t.navNews : "Tin tức"}
+                            <Link href={`/vi/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Tin tức"}>
+                                {"Tin tức"}
                             </Link>
                         </NavigationMenuItem>
-
                         {/* Contact */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navContact ? t.navContact : "Liên hệ"}
+                            <Link href={`/vi/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Liên hệ"}>
+                                {"Liên hệ"}
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>
                 <div className="items-center flex gap-x-4 w-full justify-center md:justify-end">
-                    {/* Language switcher allow changing between languages */}
-                    <LanguageSwitcher />
-                   
+                    {/* <LanguageSwitcher /> */}
                     <div className="flex items-center gap-x-2">
-                        {/* Search form for searching products */}
                         <SearchForm />
-
-                        {/* Wishlist and shopping cart icons */}
-                        {
-                            user && ( // If user is logged in, show wishlist and shopping cart icon
-                                <>
-                                    <ShoppingCart />
-                                    <WishlistDialog
-                                        wishlists={wishlists}
-                                        onRemoveItemOutWishlist={(productID, customerID) => handleRemoveItem(productID, customerID)}
-                                        onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
-                                        clearAll={() => { }}
-                                    />
-                                </>
-                            )
-                        }
-
+                        {user && (
+                            <>
+                                <ShoppingCart />
+                                <WishlistDialog
+                                    wishlists={wishlists}
+                                    onRemoveItemOutWishlist={handleRemoveItem}
+                                    onAddToCart={handleAddToCart}
+                                    clearAll={() => { }}
+                                />
+                            </>
+                        )}
                         {user ? (
                             <UserDrawer
                                 user={user}
@@ -184,18 +177,18 @@ export default function Navigation() {
                                     logout();
                                     setOpenSignUpForm(false);
                                     setOpenLoginForm(false);
-                                }} />
-                        ) : (<>
-                            <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
-                            <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
-                        </>
-
+                                }}
+                            />
+                        ) : (
+                            <>
+                                <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
+                                <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
+                            </>
                         )}
                     </div>
                     <MobileDrawer />
                 </div>
             </div>
-        </div>
-
+        </nav>
     );
 }

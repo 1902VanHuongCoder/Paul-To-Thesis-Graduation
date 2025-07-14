@@ -1,13 +1,7 @@
-- Create inventory transaction in these cases: 
-    + Importing products both manual and barcode scanner - completed 
-    + An order is created - completed
-    + Update product - completed 
+* Tasks to optimize performance and ensure to act as expected 
+1. Check TopHeader component ✅
+2. Check Hero component ✅
+3. Check Filter Kits Group ✅
+4. Check Footer component ✅
+4. Check Product list part 
 
-------------------------------------
-- Create chat feature
-    + Show the quantity of received messages (didn't seen) on chat icon at homepage, dashboard and at each conversation item (chat page)
-    + Allow admin to create new conversation and add members to 
-    + Some notes: 
-        . Add new property for conversation table (newest messages) 
-        . Add new property for conversation table (the number of received message) 
-        . 
