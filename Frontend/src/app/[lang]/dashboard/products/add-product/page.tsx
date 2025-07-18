@@ -63,6 +63,7 @@ type ProductFormValues = {
   barcode: string;
   boxBarcode: string;
   quantityPerBox?: number;
+  diseaseIDs: string[];
 };
 
 type Category = {
@@ -83,6 +84,11 @@ type Origin = {
 type Tag = {
   tagID: string;
   tagName: string;
+};
+
+type Disease = {
+  diseaseID: string;
+  diseaseName: string;
 };
 
 // Generate a EAN 13 valid barcode for a product 
@@ -120,12 +126,14 @@ export default function AddProductPage() {
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [diseases, setDiseases] = useState<Disease[]>([]);
   const [editorImages, setEditorImages] = useState<File[]>([]);
   const [, setProducts] = useState<ProductFormValues[]>([]);
   const [barcode, setBarcode] = useState("");
   const [barcodeImage, setBarcodeImage] = useState<string>("");
   const [boxBarcode, setBoxBarcode] = useState<{ boxBarcode: string, boxBarcodeImage: string }>({ boxBarcode: "", boxBarcodeImage: "" })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedDiseases, setSelectedDiseases] = useState<Disease[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // Fetch categories, origins, tags on mount
@@ -139,6 +147,9 @@ export default function AddProductPage() {
     fetch(`${baseUrl}/api/tag`)
       .then(res => res.json())
       .then(data => setTags(data || []));
+    fetch(`${baseUrl}/api/disease`)
+      .then(res => res.json())
+      .then(data => setDiseases(data || []));
   }, []);
 
   // Watch categoryID and fetch subcategories when it changes
@@ -591,6 +602,51 @@ export default function AddProductPage() {
               </Select>
             </FormControl>
           </FormItem>
+          {/* <FormItem className="col-span-2">
+            <FormLabel>Các vấn đề có thể xử lý</FormLabel>
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map(tag => (
+                  <button
+                    type="button"
+                    key={tag.tagID}
+                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
+                    onClick={() => {
+                      const newTags = selectedTags.filter(t => t.tagID !== tag.tagID);
+                      setSelectedTags(newTags);
+                      setValue("tagIDs", newTags.map(t => Number(t.tagID)));
+                    }}
+                  >
+                    {tag.tagName} ✕
+                  </button>
+                ))}
+              </div>
+            )}
+            <FormControl>
+              <Select
+                value=""
+                onValueChange={val => {
+                  const tag = tags.find(t => String(t.tagID) === String(val));
+                  if (tag && !selectedTags.some(t => t.tagID === tag.tagID)) {
+                    const newTags = [...selectedTags, tag];
+                    setSelectedTags(newTags);
+                    setValue("tagIDs", newTags.map(t => Number(t.tagID)));
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tags.map((tag) => (
+                    <SelectItem key={tag.tagID} value={String(tag.tagID)}>
+                      {tag.tagName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+          </FormItem> */}
           <FormItem className="flex items-center gap-2 col-span-2">
             <FormLabel>Hiển thị sản phẩm</FormLabel>
             <FormControl>
@@ -794,6 +850,51 @@ export default function AddProductPage() {
 `}</style>
           </div>
         </div>
+        <FormItem className="col-span-2">
+          <FormLabel>Chọn bệnh liên quan</FormLabel>
+          {selectedDiseases.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {selectedDiseases.map(disease => (
+                <button
+                  type="button"
+                  key={disease.diseaseID}
+                  className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs"
+                  onClick={() => {
+                    const newDiseases = selectedDiseases.filter(d => d.diseaseID !== disease.diseaseID);
+                    setSelectedDiseases(newDiseases);
+                    setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
+                  }}
+                >
+                  {disease.diseaseName} ✕
+                </button>
+              ))}
+            </div>
+          )}
+          <FormControl>
+            <Select
+              value=""
+              onValueChange={val => {
+                const disease = diseases.find(d => String(d.diseaseID) === String(val));
+                if (disease && !selectedDiseases.some(d => d.diseaseID === disease.diseaseID)) {
+                  const newDiseases = [...selectedDiseases, disease];
+                  setSelectedDiseases(newDiseases);
+                  setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn bệnh" />
+              </SelectTrigger>
+              <SelectContent>
+                {diseases.map((disease) => (
+                  <SelectItem key={disease.diseaseID} value={String(disease.diseaseID)}>
+                    {disease.diseaseName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormControl>
+        </FormItem>
         <div className="flex justify-end">
           <Button variant="default" type="submit" className="mt-4" onClick={handleSubmit(onSubmit)}>Thêm sản phẩm</Button>
         </div>

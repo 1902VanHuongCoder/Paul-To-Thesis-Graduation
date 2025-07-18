@@ -22,7 +22,8 @@ class Product extends Model {
   isShow: boolean = true;
   unit!: string;
   expiredAt: Date | null = null;
-  quantityPerBox!: number; // Assuming this is a field you want to keep, but not in the original code snippet
+  quantityPerBox!: number;
+  diseases!: number[]
 }
 
 Product.init(
@@ -116,6 +117,10 @@ Product.init(
       type: DataTypes.INTEGER,
       allowNull: true, // Allow null for products that do not have a quantity per box
       defaultValue: 0, // Default value for quantity per box
+    },
+    diseases: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER), // Assuming diseases is an array of integers
+      allowNull: true, // Allow null for products that do not have associated diseases
     },
   },
   {

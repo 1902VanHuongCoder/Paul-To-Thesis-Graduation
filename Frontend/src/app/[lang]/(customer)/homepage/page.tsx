@@ -96,6 +96,9 @@ const Homepage = () => {
 
     const handleCashFilter = useCallback((min: number, max: number) => {
         const filteredProducts = products.filter((product) => {
+            if (product.productPriceSale > 0) {
+                return product.productPriceSale >= min && product.productPriceSale <= max;
+            } 
             const price = product.productPrice;
             return price >= min && price <= max;
         });

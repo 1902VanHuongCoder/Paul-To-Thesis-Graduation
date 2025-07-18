@@ -108,15 +108,16 @@ export default function ProductDetails({
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Images */}
                 <div className="flex-shrink-0 border-1 border-primary/10 p-4">
-                        <Lens hovering={hovering} setHovering={setHovering}>
-                            <Image
-                                width={300}
-                                height={256}
-                                src={mainImage ? mainImage : NoImage}
-                                alt={productName}
-                                className="w-[400px] h-[400px] object-contain rounded shadow"
-                            />
-                        </Lens>
+                    <Lens hovering={hovering} setHovering={setHovering}>
+                        <Image
+                            width={300}
+                            height={256}
+                            src={mainImage ? mainImage : NoImage}
+                            alt={productName}
+                            className="w-[400px] h-[400px] object-contain rounded shadow"
+                            priority
+                        />
+                    </Lens>
                     <hr className="my-4" />
                     {/* Thumbnails */}
                     {images && images.length > 1 && (

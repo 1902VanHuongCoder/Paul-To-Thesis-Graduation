@@ -10,6 +10,7 @@ import {
   // Handshake,
   LayoutList,
   MessageSquareText,
+  Microscope,
   Package,
   Package2,
   // PieChart,
@@ -215,6 +216,21 @@ const data = {
         {
           title: "Tất cả phương thức giao hàng",
           url: "/vi/dashboard/delivery-method",
+        },
+      ],
+    },
+    {
+      title: "Bệnh lúa",
+      url: "#",
+      icon: Microscope ,
+      items: [
+        {
+          title: "Tất cả bệnh lúa",
+          url: "/vi/dashboard/diseases",
+        },
+        {
+          title: "Thêm bệnh lúa",
+          url: "/vi/dashboard/diseases/add-disease",
         },
       ],
     },

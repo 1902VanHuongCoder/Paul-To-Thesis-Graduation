@@ -36,6 +36,8 @@ const pathToLabel = (segment: string) => {
     case "admin-profile": return "Thông tin quản trị viên";
     case "admin-settings": return "Cài đặt quản trị viên";
     case "chat" : return "Trò chuyện";
+    case "diseases": return "Bệnh lúa";
+    case "add-disease": return "Thêm bệnh lúa";
     // Add more mappings as needed
     default: return segment.charAt(0).toUpperCase() + segment.slice(1);
   }

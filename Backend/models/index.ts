@@ -24,6 +24,7 @@ import Contact from "./Contact";
 import Conversation from "./Conversation";
 import ConversationParticipant from "./ConversationParticipant";
 import Message from "./Message";
+import Disease from "./Disease";
 
 // 1. User - ShippingAddress
 User.hasMany(ShippingAddress, {
@@ -163,6 +164,7 @@ InventoryTransaction.belongsTo(Product, {
   foreignKey: "productID",
   as: "product",
 });
+Disease.belongsTo(User, { foreignKey: 'userID', as: 'user' });
 
 export {
   User,
@@ -175,6 +177,7 @@ export {
   InventoryTransaction,
   Location,
   Order,
+  Disease,
   OrderProduct,
   CartItem,
   ShoppingCart,

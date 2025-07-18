@@ -1,5 +1,5 @@
 "use client";
-import {  Paperclip, Mic, CornerDownLeft } from "lucide-react";
+import { Paperclip, Mic, CornerDownLeft } from "lucide-react";
 import {
     ExpandableChat,
     ExpandableChatHeader,
@@ -116,7 +116,7 @@ export default function ChatBot() {
             return;
         }
         let admins: User[] = [];
-        
+
         try {
             // Get all admins from the backend to create group chat
             const res = await fetch(`${baseUrl}/api/users/role/adm`);
@@ -124,14 +124,14 @@ export default function ChatBot() {
                 throw new Error("Không thể lấy danh sách admin.");
             }
             admins = await res.json();
-         } catch (error) {
+        } catch (error) {
             console.error("Error initializing chat:", error);
         }
         // setIsOpen(true);
         setIsLoading(true);
         const conversationID = generateConversationID(user.userID, admins[0].userID, true);
         const participants = admins.map(admin => admin.userID);
-            const res = await fetch(`${baseUrl}/api/chat/create-conversation`, {
+        const res = await fetch(`${baseUrl}/api/chat/create-conversation`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -142,16 +142,15 @@ export default function ChatBot() {
                 isGroup: false,
             }),
         });
+        const data = await res.json();
         if (res.ok) {
-            const data = await res.json();
             setConversation(data.conversation);
             setJoinedConversationID(data.conversation?.conversationID);
-            // Join socket room
-            if (socketRef.current && data.conversation?.conversationID) {
-                socketRef.current.emit("join_room", data.conversation.conversationID);
-            }
         } else {
             console.log("Không thể tạo cuộc trò chuyện mới.");
+        }
+        if (socketRef.current && data.conversation?.conversationID) {
+            socketRef.current.emit("join_room", data.conversation.conversationID);
         }
         setIsLoading(false);
     };
@@ -193,7 +192,7 @@ export default function ChatBot() {
         setIsLoading(false);
     };
 
-    useEffect(() => { 
+    useEffect(() => {
         // Automatically open chat when component mounts
         handleOpenChat();
     }, [user]);
@@ -203,7 +202,7 @@ export default function ChatBot() {
                 // onClick={handleOpenChat}
                 size="lg"
                 position="bottom-right"
-                // icon={<Bot className="h-6 w-6" />}
+            // icon={<Bot className="h-6 w-6" />}
             // open={isOpen}
             // onOpenChange={setIsOpen}
             >

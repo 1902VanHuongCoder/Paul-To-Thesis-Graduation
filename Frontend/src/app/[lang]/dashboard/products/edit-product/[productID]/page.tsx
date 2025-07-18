@@ -51,6 +51,10 @@ type Tag = {
     tagID: number;
     tagName: string;
 };
+type Disease = {
+    diseaseID: number;
+    diseaseName: string;
+};
 
 type Product = {
     productID: number;
@@ -73,7 +77,9 @@ type Product = {
     unit: string;
     barcode: string;
     boxBarcode: string;
-    quantityPerBox ?: number;};
+    quantityPerBox ?: number;
+    diseaseIDs: number[];
+};
 
 type ProductFormValues = {
     productName: string;
@@ -91,6 +97,7 @@ type ProductFormValues = {
     barcode: string;
     boxBarcode: string;
     quantityPerBox ?: number;
+    diseaseIDs: number[];
 };
 
 export default function EditProductPage() {
@@ -105,6 +112,7 @@ export default function EditProductPage() {
     const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
     const [origins, setOrigins] = useState<Origin[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
+    const [diseases, setDiseases] = useState<Disease[]>([]);
     const [productImages, setProductImages] = useState<string[] | null>(null);
     const [oldProductImages, setOldProductImages] = useState<string[]>([]);
     const [editorImages, setEditorImages] = useState<File[]>([]);
@@ -113,6 +121,7 @@ export default function EditProductPage() {
     const [,setMessage] = useState("");
     const [editorLoaded, setEditorLoaded] = useState(false);
     const [productDescription, setProductDescription] = useState<string | null>(null);
+    const [selectedDiseases, setSelectedDiseases] = useState<Disease[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [dragActive, setDragActive] = useState(false);
 
@@ -155,6 +164,7 @@ export default function EditProductPage() {
         fetch(`${baseUrl}/api/subcategory`).then(res => res.json()).then(setSubcategories);
         fetch(`${baseUrl}/api/origin`).then(res => res.json()).then(setOrigins);
         fetch(`${baseUrl}/api/tag`).then(res => res.json()).then(setTags);
+        fetch(`${baseUrl}/api/disease`).then(res => res.json()).then(data => setDiseases(data || []));
     }, []);
 
     // Fetch product info
@@ -186,6 +196,14 @@ export default function EditProductPage() {
                 setEditorLoaded(true);
             });
     }, [productID, setValue]);
+
+    // Prefill selected diseases
+    useEffect(() => {
+        if (productDescription && Array.isArray(productDescription.diseaseIDs)) {
+            const initialDiseases = diseases.filter(d => productDescription.diseaseIDs.includes(d.diseaseID));
+            setSelectedDiseases(initialDiseases);
+        }
+    }, [diseases, productDescription]);
 
     // Fetch subcategories and attributes when category changes
     const selectedCategoryID = watch("categoryID");
@@ -332,6 +350,7 @@ export default function EditProductPage() {
                     barcode: data.barcode,
                     boxBarcode: data.boxBarcode,
                     performedBy: user.userID,
+                    diseaseIDs: selectedDiseases.map(d => d.diseaseID),
                 }),
             });
             if (res.ok) {
@@ -635,6 +654,49 @@ export default function EditProductPage() {
                                 </div>
                             ))}
                         </div>
+                    </FormItem>
+                    <FormItem className="col-span-2">
+                        <FormLabel className="text-gray-600">Bệnh liên quan</FormLabel>
+                        <FormControl>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {selectedDiseases.map(disease => (
+                                    <button
+                                        type="button"
+                                        key={disease.diseaseID}
+                                        className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs"
+                                        onClick={() => {
+                                            const newDiseases = selectedDiseases.filter(d => d.diseaseID !== disease.diseaseID);
+                                            setSelectedDiseases(newDiseases);
+                                            setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
+                                        }}
+                                    >
+                                        {disease.diseaseName} ✕
+                                    </button>
+                                ))}
+                            </div>
+                            <Select
+                                value=""
+                                onValueChange={val => {
+                                    const disease = diseases.find(d => String(d.diseaseID) === String(val));
+                                    if (disease && !selectedDiseases.some(d => d.diseaseID === disease.diseaseID)) {
+                                        const newDiseases = [...selectedDiseases, disease];
+                                        setSelectedDiseases(newDiseases);
+                                        setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
+                                    }
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn bệnh" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {diseases.map((disease) => (
+                                        <SelectItem key={disease.diseaseID} value={String(disease.diseaseID)}>
+                                            {disease.diseaseName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </FormControl>
                     </FormItem>
                     <div>
                         <label className="font-medium mb-1 block text-gray-600">Mô tả chi tiết sản phẩm</label>

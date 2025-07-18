@@ -89,15 +89,17 @@ export default function AdminLoginPage() {
           className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
         {errorMsg && <p className="text-red-600 text-sm text-center">{errorMsg}</p>}
-        <Button
-          type="submit"
-          variant="primary"
-          size="md"
-          className="w-full disabled:opacity-50"
-          disabled={loading}
-        >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            className="w-fit disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          </Button>
+          </div>
       </form>
     </div>
   );

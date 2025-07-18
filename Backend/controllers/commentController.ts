@@ -39,12 +39,12 @@ export const getCommentsByProductId = async (req: Request, res: Response): Promi
   try {
     const comments = await Comment.findAll({
       where: { productID },
-      order: [["commentAt", "DESC"]], // Sort by commentAt in descending order
-      include: [{ model: User, as: "user" }], // Include user details
+      order: [["commentAt", "DESC"]],
+      include: [{ model: User, as: "user" }],
     });
 
     if (comments.length === 0) {
-      res.status(404).json({ message: "No comments found for this product" });
+      res.status(201).json({ message: "No comments found for this product" });
       return;
     }
 

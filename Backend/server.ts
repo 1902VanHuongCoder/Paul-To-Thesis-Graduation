@@ -29,6 +29,7 @@ import contactRoutes from "./routes/contactRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import aboutRoutes from "./routes/aboutRoutes"; 
 import statisticRoutes from "./routes/statisticRoutes";
+import diseaseRoutes from "./routes/diseaseRoutes"; // Import disease routes
 
 import http from "http";
 import { Server } from "socket.io";
@@ -48,7 +49,7 @@ sequelize
   .then(() => {
     console.log("✅ Database connected successfully");
     // Sync all models with the database
-    // return sequelize.sync({ force: false });
+    return sequelize.sync({ force: false });
   })
   .then(() => {
     console.log("✅ Database & tables synced");
@@ -90,6 +91,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/chat", chatRoutes); 
 app.use("/api/about", aboutRoutes); 
 app.use("/api/statistic", statisticRoutes); 
+app.use("/api/disease", diseaseRoutes); // Disease routes
 
 // Create HTTP server and integrate Socket.IO
 export const server = http.createServer(app);

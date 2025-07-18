@@ -1,7 +1,4 @@
-* Tasks to optimize performance and ensure to act as expected 
-1. Check TopHeader component ✅
-2. Check Hero component ✅
-3. Check Filter Kits Group ✅
-4. Check Footer component ✅
-4. Check Product list part 
+* Errors have to fix
+1. Rating each product 
+
 

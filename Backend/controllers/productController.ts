@@ -86,6 +86,7 @@ export const createProduct = async (
     unit,
     isShow,
     expiredAt,
+    diseases,
   } = req.body;
 
   console.log("Request body:", req.body);
@@ -109,6 +110,7 @@ export const createProduct = async (
       rating: 5,
       unit,
       isShow,
+      diseases,
       expiredAt,
     });
 
@@ -161,6 +163,7 @@ export const updateProduct = async (
     isShow,
     expiredAt,
     performedBy,
+    diseases,
   } = req.body;
 
   try {
@@ -190,6 +193,7 @@ export const updateProduct = async (
       unit,
       isShow,
       expiredAt,
+      diseases
     });
 
     // If quantityAvailable changed, create an 'update' inventory transaction

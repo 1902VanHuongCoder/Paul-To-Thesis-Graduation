@@ -43,7 +43,15 @@ export const Footerdemo = () => {
             <div className="container px-4 py-12 w-full mx-auto">
                 <div className="flex flex-col gap-y-4 md:flex-row items-start md:items-center justify-between border-b-[1px] border-dashed border-white/40 pb-8">
                     <Link href="/" aria-label={"Trang chủ"}>
-                        <Image src={lightlogo} width={200} height={200} className="w-[200px] h-auto" alt={"NFeamHouse logo"} priority />
+                        <Image 
+                            src={lightlogo} 
+                            width={200} 
+                            height={200} 
+                            style={{ height: 'auto' }} 
+                            className="w-[200px] h-auto" 
+                            alt={"NFeamHouse logo"} 
+                            priority 
+                        />
                     </Link>
                     <p className="text-white text-xl font-mono uppercase" aria-live="polite">{"TRAO NIỀM TIN NHẬN TÀI LỘC"}</p>
                     <nav aria-label="Social media" className="flex items-center gap-4 justify-center rounded-full">
@@ -110,7 +118,7 @@ export const Footerdemo = () => {
                                         )}
                                     </div>
                                     <div className="text-sm">
-                                        <Link href={`/vi/news/${item.slug || item.newsID}`} className="hover:text-white/60 cursor-pointer uppercase text-[12px]" aria-label={item.title}>
+                                        <Link href={`/vi/homepage/news/${item.newsID}`} className="hover:text-white/60 cursor-pointer uppercase text-[12px]" aria-label={item.title}>
                                             {item.title}
                                         </Link>
                                         <p className="text-secondary" aria-label={formatDate(item.createdAt)}>{formatDate(item.createdAt)}</p>

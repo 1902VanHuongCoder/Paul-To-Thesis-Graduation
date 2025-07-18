@@ -75,9 +75,9 @@ function formatVND(value: number) {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [sort, setSort] = useState<string>("createdAt-desc");
+  const [month, setMonth] = useState<string>("");
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -109,14 +109,15 @@ export default function OrdersPage() {
   const filteredOrders = orders
     .filter(order => {
       if (status !== "all" && order.orderStatus !== status) return false;
-      if (search && !order.orderID.toLowerCase().includes(search.toLowerCase()) && !order.fullName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (month) {
+        const orderMonth = new Date(order.createdAt).toISOString().slice(0, 7); // 'YYYY-MM'
+        if (orderMonth !== month) return false;
+      }
       return true;
     })
     .sort((a, b) => {
       if (sort === "createdAt-desc") return b.createdAt.localeCompare(a.createdAt);
       if (sort === "createdAt-asc") return a.createdAt.localeCompare(b.createdAt);
-      if (sort === "totalPayment-desc") return (b.totalPayment || 0) - (a.totalPayment || 0);
-      if (sort === "totalPayment-asc") return (a.totalPayment || 0) - (b.totalPayment || 0);
       return 0;
     });
 
@@ -127,7 +128,17 @@ export default function OrdersPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, status, sort, pageSize]);
+  }, [status, sort, pageSize, month]);
+
+  // Status color mapping
+  const statusColor = {
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    accepted: 'bg-blue-100 text-blue-800 border-blue-300',
+    shipping: 'bg-purple-100 text-purple-800 border-purple-300',
+    completed: 'bg-green-100 text-green-800 border-green-300',
+    cancelled: 'bg-red-100 text-red-800 border-red-300',
+    default: 'bg-gray-100 text-gray-800 border-gray-300',
+  };
 
   return (
     <div className="w-full">
@@ -135,12 +146,12 @@ export default function OrdersPage() {
       <div className="flex flex-wrap items-end mb-6 gap-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="block font-medium mb-1">Tìm kiếm</label>
+            <label className="block font-medium mb-1">Tháng</label>
             <Input
-              placeholder="Mã đơn hoặc tên khách hàng"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-64"
+              type="month"
+              value={month}
+              onChange={e => setMonth(e.target.value)}
+              className="w-48"
             />
           </div>
           <div>
@@ -168,8 +179,6 @@ export default function OrdersPage() {
               <SelectContent>
                 <SelectItem value="createdAt-desc">Mới nhất</SelectItem>
                 <SelectItem value="createdAt-asc">Cũ nhất</SelectItem>
-                <SelectItem value="totalPayment-desc">Tổng tiền (cao-thấp)</SelectItem>
-                <SelectItem value="totalPayment-asc">Tổng tiền (thấp-cao)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -189,7 +198,6 @@ export default function OrdersPage() {
               </SelectContent>
             </Select>
           </div>
-          {/* <Button onClick={() => setAddOpen(true)} className="h-9">Thêm đơn hàng</Button> */}
         </div>
       </div>
       <Table>
@@ -216,8 +224,15 @@ export default function OrdersPage() {
               <TableCell className="max-w-[60px] truncate">{order.address}</TableCell>
               <TableCell>{order.paymentMethod === 'cash' ? 'Tiền mặt' : order.paymentMethod}</TableCell>
               <TableCell>
+                <div className={`inline-block px-2 py-1 rounded border text-xs font-semibold transition-colors duration-200 ${statusColor[order.orderStatus as keyof typeof statusColor] || statusColor.default}`}>
+                  {order.orderStatus === "pending" ? "Chờ xác nhận" :
+                    order.orderStatus === "accepted" ? "Đã xác nhận" :
+                      order.orderStatus === "shipping" ? "Đang giao" :
+                        order.orderStatus === "completed" ? "Hoàn thành" :
+                          order.orderStatus === "cancelled" ? "Đã hủy" : "Không xác định"}
+                </div>
                 <Select value={order.orderStatus} onValueChange={v => handleStatusChange(order.orderID, v)}>
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-28 mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -234,7 +249,6 @@ export default function OrdersPage() {
               <TableCell>{order.createdAt ? order.createdAt.slice(0, 10) : ""}</TableCell>
               <TableCell>
                 <Button variant="outline" size="sm" onClick={() => setViewOrder(order)}>Xem</Button>
-
               </TableCell>
             </TableRow>
           ))}
@@ -281,8 +295,15 @@ export default function OrdersPage() {
                 <div><span>Mã đơn hàng: </span> <span className="font-semibold">{viewOrder.orderID}</span></div>
                 <div><span>Ngày đặt: </span><span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleString()}</span></div>
               </div>
-              <div className="absolute right-5 top-5 flex items-center gap-x-2 bg-white z-100 px-4 py-2 shadow-sm rounded-md">
-                <span className="w-[10px] h-[10px] bg-green-500 rounded-full animate-ping"></span>
+              <div className={`absolute right-5 top-5 flex items-center gap-x-2 z-100 px-4 py-2 shadow-sm rounded-md border ${statusColor[viewOrder.orderStatus as keyof typeof statusColor] || statusColor.default}`}>
+                <span className={`w-[10px] h-[10px] rounded-full animate-ping ${
+                  viewOrder.orderStatus === 'pending' ? 'bg-yellow-500' :
+                  viewOrder.orderStatus === 'accepted' ? 'bg-blue-500' :
+                  viewOrder.orderStatus === 'shipping' ? 'bg-purple-500' :
+                  viewOrder.orderStatus === 'completed' ? 'bg-green-500' :
+                  viewOrder.orderStatus === 'cancelled' ? 'bg-red-500' :
+                  'bg-gray-400'
+                }`}></span>
                 <span className="font-semibold text-md">Trạng thái:</span> <span>
                   {viewOrder.orderStatus === "pending" ? "Đang xử lý" :
                     viewOrder.orderStatus === "accepted" ? "Đã xác nhận" :

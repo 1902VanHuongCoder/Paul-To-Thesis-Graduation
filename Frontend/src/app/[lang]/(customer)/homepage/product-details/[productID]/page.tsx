@@ -10,19 +10,12 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import TextAlign from '@tiptap/extension-text-align'
-import Heading from '@tiptap/extension-heading'
-import BulletList from '@tiptap/extension-bullet-list'
-import ListItem from '@tiptap/extension-list-item'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
-import Gapcursor from '@tiptap/extension-gapcursor'
 import { AddToCartPanel, Breadcrumb, Button, CommentItem, ContentLoading } from "@/components";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/section/carousel/carousel";
 import { useDictionary } from "@/contexts/dictonary-context";
@@ -128,19 +121,10 @@ export default function ProductDetailsPage() {
       Underline,
       Link,
       Image,
-      BulletList,
-      ListItem,
-      Paragraph,
-      Text,
       TaskList,
-      HorizontalRule,
       TaskItem.configure({ nested: true }),
-      Heading.configure({
-        levels: [1, 2, 3, 4, 5, 6],
-        HTMLAttributes: { class: 'text-gray-900 dark:text-white font-bold' },
-      }),
+      // Remove Heading, Gapcursor, HorizontalRule to avoid duplicate extension names (already included in StarterKit)
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Gapcursor,
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -148,8 +132,8 @@ export default function ProductDetailsPage() {
     ],
     content: '<p>Loading...</p>', // Initial content while loading
     editable: false,
-  }
-  );
+    immediatelyRender: false, // Fix SSR hydration warning
+  });
 
   // --- Replace IntersectionObserver with scroll-based logic for inView detection ---
   useEffect(() => {
@@ -241,14 +225,18 @@ export default function ProductDetailsPage() {
   };
 
   // Fetch comments for the product
-  const fetchComments = useCallback(async () => { // useCallback to memoize the function to avoid unnecessary re-creations
+  const fetchComments = useCallback(async () => {
     try {
       const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
       if (!res.ok) {
-        throw new Error("Failed to fetch comments");
+        setComments([]);
+        return;
       };
+      if(res.status === 201) {
+        setComments([]);
+        return;
+      }
       const data = await res.json();
-
       setComments(data.filter((c: ProductComment) => c.status === "active"));
     } catch (error) {
       setComments([]);
@@ -328,12 +316,12 @@ export default function ProductDetailsPage() {
 
                 onClick={() => setCurrentTab("description")}
                 data-currenttab={currentTab === "description" ? "description" : undefined}
-                data-isComments={currentTab === "comments" ? "comments" : undefined}
+                data-iscomments={currentTab === "comments" ? "comments" : undefined}
                 className="px-6 py-4 bg-gray-200 rounded-full data-[currenttab=description]:text-white data-[currenttab=description]:bg-primary data-[isComments=comments]:hover:cursor-pointer border-5 border-white">Chi tiết sản phẩm</button>
               <button
                 onClick={() => setCurrentTab("comments")}
                 data-currenttab={currentTab === "comments" ? "comments" : undefined}
-                data-isDiscription={currentTab === "description" ? "description" : undefined}
+                data-isdiscription={currentTab === "description" ? "description" : undefined}
                 className="px-6 py-4 bg-gray-200 rounded-full data-[currenttab=comments]:text-white data-[currenttab=comments]:bg-primary  data-[isDiscription=description]:hover:cursor-pointer border-5 border-white">Bình luận</button>
             </div>
             <div className="w-full h-full mt-[50px] px-6 ">
@@ -418,10 +406,10 @@ export default function ProductDetailsPage() {
 
           </div>
 
-          
+
         </div>
         <div className="w-full mt-12 border-t-1 border-primary/10 pt-8">
-            <div className="max-w-5xl mx-auto"> <h2 className="text-2xl font-semibold mb-4">Sản phẩm liên quan</h2>
+          <div className="max-w-5xl mx-auto"> <h2 className="text-2xl font-semibold mb-4">Sản phẩm liên quan</h2>
             {relativeProducts.length > 0 ? (
               <Carousel className="relative w-full">
                 <CarouselContent>
@@ -439,13 +427,13 @@ export default function ProductDetailsPage() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious variant="normal" className="flex justify-center items-center"/>
+                <CarouselPrevious variant="normal" className="flex justify-center items-center" />
                 <CarouselNext variant="normal" className="flex justify-center items-center" />
               </Carousel>
             ) : (
               <div className="w-full h-40 flex items-center justify-center text-gray-600">Không có sản phẩm liên quan</div>
             )}</div>
-          </div>
+        </div>
       </div>
       <motion.div
         initial={{ y: 120 }}
