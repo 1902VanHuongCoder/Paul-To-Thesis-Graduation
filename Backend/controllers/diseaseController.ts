@@ -66,3 +66,23 @@ export const deleteDisease = async (req: Request, res: Response): Promise<void> 
         res.status(400).json({ error: 'Failed to delete disease' });
     }
 };
+
+// Get disease by English name
+export const getDiseaseByEnName = async (req: Request, res: Response) : Promise<void> => {
+    const { diseaseEnName } = req.params;
+    console.log("Fetching disease by English name:", diseaseEnName);
+    if (!diseaseEnName) {
+        res.status(400).json({ error: 'Missing diseaseEnName query param' });
+        return;
+    }
+    try {
+        const disease = await Disease.findOne({ where: { diseaseEnName } });
+        if (!disease) {
+            res.status(404).json({ error: 'Disease not found' });
+            return;
+        }
+        res.json(disease);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch disease' });
+    }
+};

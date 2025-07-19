@@ -163,7 +163,7 @@ export const updateProduct = async (
     isShow,
     expiredAt,
     performedBy,
-    diseases,
+    diseaseIDs,
   } = req.body;
 
   try {
@@ -193,7 +193,7 @@ export const updateProduct = async (
       unit,
       isShow,
       expiredAt,
-      diseases
+      diseases: diseaseIDs,
     });
 
     // If quantityAvailable changed, create an 'update' inventory transaction

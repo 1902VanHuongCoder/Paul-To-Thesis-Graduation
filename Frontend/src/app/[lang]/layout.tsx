@@ -10,6 +10,7 @@ import { ShoppingCartProvider } from "@/contexts/shopping-cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { CheckoutProvider } from "@/contexts/checkout-context";
 import { UserProvider } from "@/contexts/user-context";
+import { DiagnoseProvider } from "@/contexts/diagnose-context";
 
 const nunito = Nunito_Sans({
     variable: "--font-nunito",
@@ -48,7 +49,9 @@ export default function LangLayout({
                             <ShoppingCartProvider>
                                 <WishlistProvider>
                                     <CheckoutProvider>
-                                        {children}
+                                        <DiagnoseProvider>
+                                            {children}
+                                        </DiagnoseProvider>
                                     </CheckoutProvider>
                                 </WishlistProvider>
                             </ShoppingCartProvider>

@@ -26,6 +26,7 @@ import LoginForm from "@/components/section/login-page/login-page";
 import { useUser } from "@/contexts/user-context";
 import UserDrawer from "../drawer/user-drawer";
 import { fetchCategories } from "@/lib/category-apis";
+import { Badge } from "../badge/badge";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -149,6 +150,13 @@ export default function Navigation() {
                             <Link href={`/vi/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
                                 aria-label={"Liên hệ"}>
                                 {"Liên hệ"}
+                            </Link>
+                        </NavigationMenuItem>
+                        <NavigationMenuItem>
+                            <Link href={`/vi/homepage/detect-rice-disease`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Chẩn đoán bệnh lúa"}>
+                                <Badge className="bg-red-500 text-white mr-2">New</Badge>
+                                <span>{"Chẩn đoán bệnh lúa"}</span>
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>

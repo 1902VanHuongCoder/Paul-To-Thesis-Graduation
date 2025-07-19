@@ -4,13 +4,17 @@ import {
   getDiseaseById,
   createDisease,
   updateDisease,
-  deleteDisease
+  deleteDisease,
+  getDiseaseByEnName
 } from '../controllers/diseaseController';
 
 const router = Router();
 
 // GET all diseases
 router.get('/', getAllDiseases);
+
+// GET disease by English name (private route)
+router.get('/private/by-en-name/:diseaseEnName', getDiseaseByEnName);
 
 // GET disease by ID
 router.get('/:id', getDiseaseById);

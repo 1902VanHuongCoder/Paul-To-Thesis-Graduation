@@ -657,23 +657,23 @@ export default function EditProductPage() {
                     </FormItem>
                     <FormItem className="col-span-2">
                         <FormLabel className="text-gray-600">Bệnh liên quan</FormLabel>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {selectedDiseases.map(disease => (
+                                <button
+                                    type="button"
+                                    key={disease.diseaseID}
+                                    className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs"
+                                    onClick={() => {
+                                        const newDiseases = selectedDiseases.filter(d => d.diseaseID !== disease.diseaseID);
+                                        setSelectedDiseases(newDiseases);
+                                        setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
+                                    }}
+                                >
+                                    {disease.diseaseName} ✕
+                                </button>
+                            ))}
+                        </div>
                         <FormControl>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {selectedDiseases.map(disease => (
-                                    <button
-                                        type="button"
-                                        key={disease.diseaseID}
-                                        className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs"
-                                        onClick={() => {
-                                            const newDiseases = selectedDiseases.filter(d => d.diseaseID !== disease.diseaseID);
-                                            setSelectedDiseases(newDiseases);
-                                            setValue("diseaseIDs", newDiseases.map(d => d.diseaseID));
-                                        }}
-                                    >
-                                        {disease.diseaseName} ✕
-                                    </button>
-                                ))}
-                            </div>
                             <Select
                                 value=""
                                 onValueChange={val => {
