@@ -5,6 +5,16 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { baseUrl } from "@/lib/base-url";
+import { PencilLine, Tag, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog/dialog";
+import toast from "react-hot-toast";
 
 type TagFormValues = {
   tagName: string;
@@ -19,10 +29,11 @@ type Tag = {
 
 export default function AddTagPage() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<TagFormValues>();
-  const [message, setMessage] = useState("");
   const [tags, setTags] = useState<Tag[]>([]);
   const [editID, setEditID] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingDeleteID, setPendingDeleteID] = useState<number | null>(null);
 
   // Fetch current tags
   const fetchTags = async () => {
@@ -38,33 +49,39 @@ export default function AddTagPage() {
   }, []);
 
   const onSubmit = async (data: TagFormValues) => {
-    setMessage("");
     const res = await fetch(`${baseUrl}/api/tag`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      setMessage("Tag added successfully!");
+      toast.success("Thẻ đã được thêm thành công!");
       reset();
       fetchTags();
     } else {
-      setMessage("Failed to add tag.");
+      toast.error("Thêm thẻ thất bại. Vui lòng thử lại.");
     }
   };
 
   // Delete tag
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this tag?")) return;
-    const res = await fetch(`${baseUrl}/api/tag/${id}`, {
+    setPendingDeleteID(id);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (pendingDeleteID == null) return;
+    const res = await fetch(`${baseUrl}/api/tag/${pendingDeleteID}`, {
       method: "DELETE",
     });
     if (res.ok) {
-      setMessage("Tag deleted.");
+      toast.success("Thẻ đã được xóa thành công!");
       fetchTags();
     } else {
-      setMessage("Failed to delete tag.");
+      toast.error("Xóa thẻ thất bại. Vui lòng thử lại.");
     }
+    setShowConfirm(false);
+    setPendingDeleteID(null);
   };
 
   // Start editing
@@ -81,33 +98,32 @@ export default function AddTagPage() {
       body: JSON.stringify({ tagName: editName }),
     });
     if (res.ok) {
-      setMessage("Tag updated.");
+      toast.success("Thẻ đã được cập nhật thành công!");
       setEditID(null);
       fetchTags();
     } else {
-      setMessage("Failed to update tag.");
+      toast.error("Cập nhật thẻ thất bại. Vui lòng thử lại.");
     }
   };
 
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Add New Tag</h1>
+    <div className="">
+      <h1 className="text-2xl font-bold mb-4">Thêm Thẻ Sản Phẩm</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Tag Name</label>
+          <label className="block mb-1 font-medium">Tên thẻ</label>
           <Input {...register("tagName", { required: true })} />
           {errors.tagName && (
-            <div className="text-red-500 text-sm mt-1">Tag name is required</div>
+            <div className="text-red-500 text-sm mt-1">Tên thẻ không được phép rỗng.</div>
           )}
         </div>
-        <Button type="submit" className="mt-4">Add Tag</Button>
-        {message && <div className="mt-2 text-green-600">{message}</div>}
+        <div className="flex justify-end"><Button type="submit" className="hover:cursor-pointer">Thêm thẻ</Button></div>
       </form>
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-2">Current Tags</h2>
-        <ul className="space-y-2">
+      <div className="">
+        <ul className="flex flex-wrap gap-x-4">
           {tags.map(tag => (
-            <li key={tag.tagID} className="flex items-center gap-2">
+            <li key={tag.tagID} className="flex items-center gap-2 border p-2 rounded bg-gray-50 shrink-0">
+              <Tag className="w-4 h-4 text-blue-500" />
               {editID === tag.tagID ? (
                 <>
                   <Input
@@ -115,20 +131,42 @@ export default function AddTagPage() {
                     onChange={e => setEditName(e.target.value)}
                     className="w-40"
                   />
-                  <Button size="sm" onClick={() => handleEditSave(tag.tagID)}>Save</Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditID(null)}>Cancel</Button>
+                  <Button size="icon" variant="default" onClick={() => handleEditSave(tag.tagID)} title="Save" className="hover:cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={() => setEditID(null)} title="Cancel" className="hover:bg-gray-200 hover:cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </Button>
                 </>
               ) : (
                 <>
                   <span>{tag.tagName}</span>
-                  <Button size="sm" variant="outline" onClick={() => startEdit(tag)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(tag.tagID)}>Delete</Button>
+                  <Button size="icon" variant="outline" onClick={() => startEdit(tag)} title="Edit" className="hover:bg-gray-200 hover:cursor-pointer">
+                    <PencilLine />
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={() => handleDelete(tag.tagID)} title="Delete" className="hover:bg-gray-200 hover:cursor-pointer">
+                    <Trash className="w-4 h-4 text-red-500" />
+                  </Button>
                 </>
               )}
             </li>
           ))}
         </ul>
       </div>
-    </main>
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa thẻ</DialogTitle>
+          </DialogHeader>
+          <div>Bạn có chắc chắn muốn xóa thẻ này không?</div>
+          <DialogFooter> 
+            <DialogClose asChild>
+              <Button variant="outline" className="hover:cursor-pointer">Hủy</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDelete} className="hover:cursor-pointer">Xóa</Button>         
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

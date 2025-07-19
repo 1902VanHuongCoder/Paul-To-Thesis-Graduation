@@ -11,9 +11,9 @@ import {
     CarouselItem,
 } from "./carousel";
 import Image from "next/image";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
+import clsx from "clsx";
+import { fetchOrigins } from "@/lib/origin-apis";
 
 interface Origin {
     originID: string;
@@ -22,26 +22,23 @@ interface Origin {
     className?: string;
 }
 
-
 const ParterCarousel = () => {
-    const { dictionary } = useDictionary(); 
-    const [origins, setOrigins] = useState<Origin[]>([]); 
+    // State variables 
+    const [origins, setOrigins] = useState<Origin[]>([]); // State to store the origins data
 
+    // Fetch origins data when the component mounts
     useEffect(() => {
-        const fetchOrigins = async () => {
-            try{
-                fetch(`${baseUrl}/api/origin`).then((res)=>res.json()).then((data)=> setOrigins(data));
-            }catch(error){
-                console.error("Error fetching origins:", error); 
-            }
+        const fetch = async () => {
+           const res = await fetchOrigins(); 
+           setOrigins(res);
         }
-        fetchOrigins();
+        fetch();
     },[])
     return (
-        <section className="py-20 w-full font-sans border-t-2 border-primary/10">
+        <section className="py-20 w-full font-sans border-t-1 border-primary/10">
             <div className="flex flex-col items-center text-center w-full px-6">
                 <h1 className="my-6 text-pretty text-2xl font-bold lg:text-4xl">    
-                    {dictionary?.partnerCarouselTitle || "Sự đồng hành của các thương hiệu uy tín"}
+                    {"Sự đồng hành của các thương hiệu uy tín"}
                 </h1>
             </div>
             <div className="pt-10 md:pt-16">
@@ -63,7 +60,7 @@ const ParterCarousel = () => {
                                                 height={100}
                                                 src={logo.originImage}
                                                 alt={logo.originName}
-                                                className={logo.className}
+                                                className={clsx(logo.className, 'w-auto h-auto')}
                                             />
                                         </div>
                                     </div>

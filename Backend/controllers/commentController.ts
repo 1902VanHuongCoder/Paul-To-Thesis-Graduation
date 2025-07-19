@@ -15,10 +15,10 @@ export const getAllComments = async (req: Request, res: Response): Promise<void>
 
 // GET a specific comment by ID
 export const getCommentById = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });
@@ -35,16 +35,16 @@ export const getCommentById = async (req: Request, res: Response): Promise<void>
 // GET comment by product ID
 export const getCommentsByProductId = async (req: Request, res: Response): Promise<void> => {
   const { productID } = req.params;
-
+  console.log("Fetching comments for productID:", productID);
   try {
     const comments = await Comment.findAll({
       where: { productID },
-      order: [["commentAt", "DESC"]], // Sort by commentAt in descending order
-      include: [{ model: User, as: "user" }], // Include user details
+      order: [["commentAt", "DESC"]],
+      include: [{ model: User, as: "user" }],
     });
 
     if (comments.length === 0) {
-      res.status(404).json({ message: "No comments found for this product" });
+      res.status(201).json({ message: "No comments found for this product" });
       return;
     }
 
@@ -79,11 +79,11 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
 
 // PUT (update) an existing comment by ID
 export const updateComment = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
   const { content, rating, status } = req.body;
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });
@@ -105,10 +105,11 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
 
 // DELETE a comment by ID
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const { commentID } = req.params;
 
+  console.log("Deleting comment with ID:", commentID);
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });

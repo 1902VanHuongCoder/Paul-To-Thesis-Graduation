@@ -9,6 +9,7 @@ import { baseUrl } from "@/lib/base-url";
 type SubCategoryFormValues = {
   subcategoryName: string;
   categoryID: string;
+  quantityPerBox: number; 
 };
 
 type Category = {
@@ -21,6 +22,7 @@ type SubCategory = {
   subcategoryName: string;
   categoryID: string;
   category?: Category;
+  quantityPerBox: number; 
 };
 
 export default function AddSubCategoryPage() {
@@ -31,6 +33,7 @@ export default function AddSubCategoryPage() {
   const [editID, setEditID] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editCategoryID, setEditCategoryID] = useState("");
+  const [editQuantityPerBox, setEditQuantityPerBox] = useState<number | "">("");
 
   // Fetch categories
   useEffect(() => {
@@ -88,6 +91,7 @@ export default function AddSubCategoryPage() {
     setEditID(sub.subcategoryID);
     setEditName(sub.subcategoryName);
     setEditCategoryID(sub.categoryID);
+    setEditQuantityPerBox(sub?.quantityPerBox || 0);
   };
 
   // Save edit
@@ -95,7 +99,7 @@ export default function AddSubCategoryPage() {
     const res = await fetch(`${baseUrl}/api/subcategory/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subcategoryName: editName, categoryID: editCategoryID }),
+      body: JSON.stringify({ subcategoryName: editName, categoryID: editCategoryID, quantityPerBox: editQuantityPerBox }),
     });
     if (res.ok) {
       setMessage("Subcategory updated.");
@@ -107,7 +111,7 @@ export default function AddSubCategoryPage() {
   };
 
   return (
-    <main className="max-w-md mx-auto p-6">
+    <main className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Add New Subcategory</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="mb-4">
@@ -127,6 +131,13 @@ export default function AddSubCategoryPage() {
           </select>
           {errors.categoryID && (
             <div className="text-red-500 text-sm mt-1">Category is required</div>
+          )}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Quantity per box</label>
+          <Input {...register("quantityPerBox", { required: true })} />
+          {errors.quantityPerBox && (
+            <div className="text-red-500 text-sm mt-1">Subcategory name is required</div>
           )}
         </div>
         <Button type="submit" className="mt-4">Add Subcategory</Button>
@@ -153,6 +164,13 @@ export default function AddSubCategoryPage() {
                     <option key={cat.categoryID} value={cat.categoryID}>{cat.categoryName}</option>
                   ))}
                 </select>
+                <Input
+                  type="number"
+                  value={editQuantityPerBox}
+                  onChange={e => setEditQuantityPerBox(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="w-32"
+                  placeholder="Quantity per box"
+                />
                 <Button size="sm" onClick={() => handleEditSave(sub.subcategoryID)}>Save</Button>
                 <Button size="sm" variant="outline" onClick={() => setEditID(null)}>Cancel</Button>
               </>
@@ -162,6 +180,7 @@ export default function AddSubCategoryPage() {
                 <span className="text-gray-500 text-sm">
                   {categories.find(cat => cat.categoryID === sub.categoryID)?.categoryName || ""}
                 </span>
+                <span className="text-gray-700 text-sm">Qty/Box: {sub?.quantityPerBox || 0}</span>
                 <Button size="sm" variant="outline" onClick={() => startEdit(sub)}>Edit</Button>
                 <Button size="sm" variant="destructive" onClick={() => handleDelete(sub.subcategoryID)}>Delete</Button>
               </>

@@ -14,7 +14,6 @@ import Image from "next/image";
 import formatDate from "@/lib/format-date";
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -29,6 +28,24 @@ import {
 import { useDictionary } from "@/contexts/dictonary-context";
 import { baseUrl } from "@/lib/base-url";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination/pagination";
 
 interface Product {
     productID: number;
@@ -61,7 +78,8 @@ export default function ProductsPage() {
     const [sortField, setSortField] = useState("");
     const [sortOrder, setSortOrder] = useState("asc");
     const [deletingId, setDeletingId] = useState<number | null>(null);
-    const router = useRouter();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage, setProductsPerPage] = useState(10);
 
     useEffect(() => {
         setLoading(true);
@@ -104,10 +122,13 @@ export default function ProductsPage() {
             return 0;
         });
 
-    // Navigate to edit product page using product ID 
-    const handleEditProduct = (productID: number) => {
-        router.push(`/${lang}/dashboard/products/edit-product/${productID}`);
-    };
+    // Pagination logic
+    const totalProducts = filteredProducts.length;
+    const totalPages = Math.ceil(totalProducts / productsPerPage);
+    const paginatedProducts = filteredProducts.slice(
+        (currentPage - 1) * productsPerPage,
+        currentPage * productsPerPage
+    );
 
     // Delete product and all related images
     const handleDeleteProduct = async (productID: number) => {
@@ -146,102 +167,136 @@ export default function ProductsPage() {
     };
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Product Management</h1>
+        <div className="">
+            <h1 className="text-2xl font-bold mb-4">Danh Sách Sản Phẩm Tại Cửa Hàng</h1>
             <div className="flex flex-wrap gap-4 mb-6 items-center">
-                <input
+                <Input
                     type="text"
-                    placeholder="Filter by product name..."
+                    placeholder="Lọc theo tên sản phẩm"
                     value={nameFilter}
                     onChange={e => setNameFilter(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
+                    className="w-56"
                 />
-                <select
-                    value={categoryFilter}
-                    onChange={e => setCategoryFilter(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
-                >
-                    <option value="">All categories</option>
-                    {categories.map(c => (
-                        <option key={c.categoryID} value={c.categoryID}>{c.categoryName}</option>
-                    ))}
-                </select>
-                <select
-                    value={originFilter}
-                    onChange={e => setOriginFilter(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
-                >
-                    <option value="">All origins</option>
-                    {origins.map(o => (
-                        <option key={o.originID} value={o.originID}>{o.originName}</option>
-                    ))}
-                </select>
-                <select
-                    value={ratingFilter}
-                    onChange={e => setRatingFilter(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
-                >
-                    <option value="">All ratings</option>
-                    <option value="5">5+</option>
-                    <option value="4">4+</option>
-                    <option value="3">3+</option>
-                    <option value="2">2+</option>
-                    <option value="1">1+</option>
-                </select>
-                <select
-                    value={sortField}
-                    onChange={e => setSortField(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
-                >
-                    <option value="">Sort by</option>
-                    <option value="productPrice">Price</option>
-                    <option value="quantityAvailable">Quantity</option>
-                </select>
-                <select
-                    value={sortOrder}
-                    onChange={e => setSortOrder(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm"
-                >
-                    <option value="asc">Asc</option>
-                    <option value="desc">Desc</option>
-                </select>
-                {/* <Button> */}
-                <Link href={`/${lang}/dashboard/products/add-product`} className="px-4 py-2 bg-primary text-white rounded">     
-                    Add Product
-                </Link>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-44" aria-label="Category">
+                        <SelectValue placeholder="Tất cả danh mục" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Tất cả danh mục</SelectLabel>
+                            <SelectItem value="df">Tất cả danh mục</SelectItem>
+                            {categories.map(c => (
+                                <SelectItem key={c.categoryID} value={String(c.categoryID)}>{c.categoryName}</SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+                <Select value={originFilter} onValueChange={setOriginFilter}>
+                    <SelectTrigger className="w-44" aria-label="Origin">
+                        <SelectValue placeholder="Tất cả nhà sản xuất" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Tất cả nhà sản xuất</SelectLabel>
+                            <SelectItem value="df">Tất cả nhà sản xuất</SelectItem>
+                            {origins.map(o => (
+                                <SelectItem key={o.originID} value={String(o.originID)}>{o.originName}</SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+                <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                    <SelectTrigger className="w-44" aria-label="Rating">
+                        <SelectValue placeholder="Tất cả thứ hạng" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Tất cả thứ hạng</SelectLabel>
+                            <SelectItem value="df">Tất cả thứ hạng</SelectItem>
+                            <SelectItem value="5">5+</SelectItem>
+                            <SelectItem value="4">4+</SelectItem>
+                            <SelectItem value="3">3+</SelectItem>
+                            <SelectItem value="2">2+</SelectItem>
+                            <SelectItem value="1">1+</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+                <Select value={sortField} onValueChange={setSortField}>
+                    <SelectTrigger className="w-44" aria-label="Sắp xếp">
+                        <SelectValue placeholder="Sắp xếp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Sắp xếp</SelectLabel>
+                            <SelectItem value="df">Mặc định</SelectItem>
+                            <SelectItem value="productPrice">Giá</SelectItem>
+                            <SelectItem value="quantityAvailable">Số lượng</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger className="w-24" aria-label="Sort order">
+                        <SelectValue placeholder="Thứ tự" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Order</SelectLabel>
+                            <SelectItem value="asc">Asc</SelectItem>
+                            <SelectItem value="desc">Desc</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+
+            </div>
+            <div className="flex flex-wrap gap-4 mb-4 items-center justify-between">
+                
+                <div className="flex items-center gap-2">
+                    <span className="text-sm">Số sản phẩm/trang:</span>
+                    <Select value={String(productsPerPage)} onValueChange={val => { setProductsPerPage(Number(val)); setCurrentPage(1); }}>
+                        <SelectTrigger className="w-20">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <Table className="w">
                 <TableCaption>{loading ? "Loading products..." : products.length === 0 ? "No products found." : null}</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead>ID</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Image</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Sale Price</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Origin</TableHead>
-                        <TableHead>Subcategory ID</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Updated At</TableHead>
-                        <TableHead>Created At</TableHead>
-                        <TableHead>Action</TableHead>
+                        <TableHead>Tên sản phẩm</TableHead>
+                        <TableHead className="text-center">Ảnh</TableHead>
+                        <TableHead>Giá</TableHead>
+                        <TableHead>Giá giảm</TableHead>
+                        <TableHead>Số lượng</TableHead>
+                        <TableHead>Danh mục</TableHead>
+                        <TableHead>NSX</TableHead>
+                        {/* <TableHead>Subcategory ID</TableHead> */}
+                        <TableHead>Xếp hạng</TableHead>
+                        <TableHead>Ngày sửa</TableHead>
+                        <TableHead>Ngày tạo</TableHead>
+                        <TableHead>Hành động</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredProducts.map((product) => (
+                    {paginatedProducts.map((product) => (
                         <TableRow key={product.productID}>
                             <TableCell>{product.productID}</TableCell>
-                            <TableCell className="truncate">{product.productName}</TableCell>
-                            <TableCell>
+                            <TableCell className="max-w-[120px] truncate">{product.productName}</TableCell>
+                            <TableCell className="flex justify-center items-center w-16 h-fit">
                                 {product.images && product.images.length > 0 ? (
                                     <Image
                                         width={64}
                                         height={64}
                                         src={product.images[0]}
                                         alt={product.productName}
-                                        className="w-16 h-16 object-cover rounded"
+                                        className="w-16 h-12 object-cover rounded"
                                     />
                                 ) : (
                                     <span className="text-gray-400">No image</span>
@@ -250,21 +305,21 @@ export default function ProductsPage() {
                             <TableCell>{product.productPrice !== null ? product.productPrice.toLocaleString() : "-"}</TableCell>
                             <TableCell>{product.productPriceSale !== null ? product.productPriceSale.toLocaleString() : "-"}</TableCell>
                             <TableCell>{product.quantityAvailable}</TableCell>
-                            <TableCell>{categories.find(c => c.categoryID === product.categoryID)?.categoryName || product.categoryID}</TableCell>
+                            <TableCell className="max-w-[100px] truncate">{categories.find(c => c.categoryID === product.categoryID)?.categoryName || product.categoryID}</TableCell>
                             <TableCell>{origins.find(o => o.originID === product.originID)?.originName || product.originID}</TableCell>
-                            <TableCell>{product.subcategoryID}</TableCell>
+                            {/* <TableCell >{product.subcategoryID}</TableCell> */}
                             <TableCell>{product.rating}</TableCell>
                             <TableCell>{formatDate(product.updatedAt)}</TableCell>
                             <TableCell>{formatDate(product.createdAt)}</TableCell>
                             <TableCell>
-                                <div className="flex gap-2">
-                                    <button
+                                <div className="flex gap-2 w-full justify-center">
+                                    <Link 
+                                        href={`/${lang}/dashboard/products/edit-product/${product.productID}`}
                                         className="p-1 rounded hover:bg-primary/10"
                                         title="Edit product"
-                                        onClick={() => handleEditProduct(product.productID)}
                                     >
                                         <Pencil className="w-4 h-4 text-blue-600" />
-                                    </button>
+                                    </Link>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <button
@@ -283,12 +338,12 @@ export default function ProductsPage() {
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Xác nhận xóa sản phẩm</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Bạn có chắc chắn muốn xóa sản phẩm "{product.productName}" không? Thao tác này không thể hoàn tác và sẽ xóa toàn bộ hình ảnh liên quan.
+                                                    Bạn có chắc chắn muốn xóa sản phẩm {product.productName} không? Thao tác này sẽ xóa thông tin sản phẩm và sẽ xóa toàn bộ hình ảnh liên quan.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                                <AlertDialogAction
+                                                <AlertDialogCancel className="cursor-pointer hover:bg-white hover:border-[2px] border-gray-300">Hủy</AlertDialogCancel>
+                                                <AlertDialogAction className="cursor-pointer bg-red-500 hover:bg-red-300"
                                                     onClick={() => handleDeleteProduct(product.productID)}
                                                     disabled={deletingId === product.productID}
                                                 >
@@ -303,8 +358,42 @@ export default function ProductsPage() {
                     ))}
                 </TableBody>
             </Table>
-            {/* </div> */}
-
+            <div className="mt-6 flex justify-between items-center">
+                <Pagination className="w-full  flex justify-start">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                href="#"
+                                onClick={e => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                                aria-disabled={currentPage === 1}
+                                tabIndex={currentPage === 1 ? -1 : 0}
+                            />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <PaginationItem key={page}>
+                                <PaginationLink
+                                    href="#"
+                                    isActive={page === currentPage}
+                                    onClick={e => { e.preventDefault(); setCurrentPage(page); }}
+                                >
+                                    {page}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                href="#"
+                                onClick={e => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1)); }}
+                                aria-disabled={currentPage === totalPages || totalPages === 0}
+                                tabIndex={currentPage === totalPages || totalPages === 0 ? -1 : 0}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+                <Link href={`/${lang}/dashboard/products/add-product`} className="px-4 py-2 bg-primary text-white rounded shrink-0">
+                    Thêm sản phẩm
+                </Link>
+            </div>
         </div>
     );
 }

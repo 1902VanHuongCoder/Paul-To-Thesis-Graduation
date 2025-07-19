@@ -19,6 +19,7 @@ export { default as DisplayModeSwitcher } from './ui/display-mode-switcher/displ
 export { default as ToTopButton } from './ui/button/to-top-button';
 export { default as CustomPagination } from './ui/pagination/custom-pagination';
 export { default as Breadcrumb } from './ui/breadcrumb/custome-breadcrum';
+export { default as DynamicBreadcrumb } from './ui/breadcrumb/dynamic-breadcrumb';
 export { default as AddToCartPanel } from './ui/add-to-cart-panel/add-to-cart-panel';
 export { default as WishlistDialog } from './ui/dialog/wishlist-dialog';
 export { default as ImageGallery } from './ui/image-gallery/image-gallery';
@@ -32,6 +33,10 @@ export { default as ChatBot } from './section/chatbot/chatbot';
 export { default as NewsItem } from './ui/news-item/news-item';
 export { default as TypewriterText } from './ui/typewriter-text/typewriter-text';
 export { default as UserDrawer } from './ui/drawer/user-drawer';
+export { default as Hero} from './ui/hero/hero';
+export { default as ContentLoading } from './ui/loading/content-loading';
+export { default as HeartButton } from './ui/button/heart-button';
+
 
 export { default as CartPage } from './section/cart-page/cart-page';
 export { default as WishlistPage } from './section/wishlist-page/wishlist-page';

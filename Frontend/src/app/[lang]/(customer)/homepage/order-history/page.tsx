@@ -7,7 +7,7 @@ import { baseUrl } from "@/lib/base-url";
 import formatVND from "@/lib/format-vnd";
 import Button from "@/components/ui/button/button-brand";
 import { useUser } from "@/contexts/user-context";
-import { Breadcrumb } from "@/components";
+import { Breadcrumb, ContentLoading } from "@/components";
 
 interface OrderProduct {
   productID: number;
@@ -25,18 +25,21 @@ interface Order {
 }
 
 const OrderHistory = () => {
-  const { dictionary: d, lang } = useDictionary();
-  const { user } = useUser();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Router
   const router = useRouter();
 
-  console.log(orders);
+  // Contexts 
+  const { dictionary: d, lang } = useDictionary();
 
+  // State variables
+  const { user } = useUser(); // Get user information from context
+  const [orders, setOrders] = useState<Order[]>([]); // State to hold orders
+  const [loading, setLoading] = useState(true); // State to manage loading state
+
+  // Fetch orders when component mounts or user changes
   useEffect(() => {
-    // You may want to get userID from auth context or cookie
     const fetchOrders = async () => {
-      if (!user) {
+      if (!user) { // If user is not logged in, set loading to false and return
         setLoading(false);
         return;
       }
@@ -56,11 +59,11 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-[60vh] px-6 py-10">
-      <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng" }]}/>
-      
-      <h1 className="text-2xl font-bold mb-6 mt-6 uppercase">{d?.orderHistoryTitle || "Lịch sử đơn hàng"}</h1>
+      <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: d?.orderHistoryTitle || "Lịch sử mua hàng" }]} />
+
+      <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">{d?.orderHistoryTitle || "Lịch sử mua hàng"}</h1>
       {loading ? (
-        <div>{d?.orderHistoryLoading || "Đang tải..."}</div>
+        <div><ContentLoading /></div>
       ) : orders.length === 0 ? (
         <div className="text-gray-500">{d?.orderHistoryEmpty || "Bạn chưa có đơn hàng nào."}</div>
       ) : (
@@ -81,7 +84,7 @@ const OrderHistory = () => {
                   <td className="p-3">{order.orderID}</td>
                   <td className="p-3">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td className="p-3">{formatVND(order.totalPayment)} VND</td>
-                  <td className="p-3">{order.status || d?.orderHistoryStatusPending || "Đang xử lý"}</td>
+                  <td className="p-3"><span>{order.status || d?.orderHistoryStatusPending || "Đang xử lý"}</span></td>
                   <td className="p-3">
                     <Button
                       variant="normal"
@@ -96,6 +99,7 @@ const OrderHistory = () => {
             </tbody>
           </table>
         </div>
+        
       )}
     </div>
   );

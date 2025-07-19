@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
 import { Input } from "@/components/ui/input";
 import { baseUrl } from "@/lib/base-url";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination/pagination";
+import Image from "next/image";
 
 interface NewsComment {
   commentID: number;
@@ -27,6 +29,9 @@ export default function NewsCommentsPage() {
   const [comments, setComments] = useState<NewsComment[]>([]);
   const [newsList, setNewsList] = useState<News[]>([]);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<string>("newest");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetch(`${baseUrl}/api/news-comment`)
@@ -37,71 +42,113 @@ export default function NewsCommentsPage() {
       .then((data: News[]) => setNewsList(data));
   }, []);
 
-  const filteredComments = comments.filter(comment => {
-    if (search && !comment.content.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filteredComments = comments
+    .filter(comment => {
+      if (search && !comment.content.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "newest") return b.createdAt.localeCompare(a.createdAt);
+      if (sort === "oldest") return a.createdAt.localeCompare(b.createdAt);
+      return 0;
+    });
+
+  const totalPages = Math.ceil(filteredComments.length / pageSize);
+  const paginatedComments = filteredComments.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => { setPage(1); }, [search, sort, pageSize]);
 
   const getNews = (newsID: number) => newsList.find(n => n.newsID === newsID);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">News Comments</h1>
-      <div className="flex gap-4 mb-6 items-end">
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Bình Luận Tin Tức</h1>
+      <div className="flex flex-wrap gap-4 mb-6 items-end">
         <div>
-          <label className="block font-medium mb-1">Search</label>
+          <label className="block font-medium mb-1">Tìm kiếm</label>
           <Input
-            placeholder="Search content"
+            placeholder="Tìm nội dung bình luận"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-64"
           />
         </div>
+        <div>
+          <label className="block font-medium mb-1">Sắp xếp</label>
+          <Select value={sort} onValueChange={setSort}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Sắp xếp" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Mới nhất</SelectItem>
+              <SelectItem value="oldest">Cũ nhất</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="block font-medium mb-1">Số bình luận/trang</label>
+          <Select value={String(pageSize)} onValueChange={v => setPageSize(Number(v))}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>User ID</TableHead>
-            <TableHead>News</TableHead>
-            <TableHead>Content</TableHead>
-            <TableHead>Likes</TableHead>
-            <TableHead>Dislikes</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Commented At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredComments.map(comment => {
-            const news = getNews(comment.newsID);
-            return (
-              <TableRow key={comment.commentID}>
-                <TableCell>{comment.commentID}</TableCell>
-                <TableCell>{comment.userID}</TableCell>
-                <TableCell>
-                  {news ? (
-                    <div className="flex items-center gap-2 max-w-[220px]">
-                      {news.titleImageUrl && (
-                        <img src={news.titleImageUrl} alt={news.title} className="w-10 h-10 object-cover rounded" />
-                      )}
-                      <span className="truncate block" title={news.title} style={{ maxWidth: 160 }}>
-                        {news.title.length > 30 ? news.title.slice(0, 30) + "..." : news.title}
-                      </span>
-                    </div>
-                  ) : (
-                    <span>News #{comment.newsID}</span>
-                  )}
-                </TableCell>
-                <TableCell>{comment.content}</TableCell>
-                <TableCell>{comment.likeCount}</TableCell>
-                <TableCell>{comment.dislikeCount}</TableCell>
-                <TableCell>{comment.status}</TableCell>
-                <TableCell>{comment.commentAt ? comment.commentAt.slice(0, 10) : ""}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      <ul className="space-y-6">
+        {paginatedComments.map(comment => {
+          const news = getNews(comment.newsID);
+          return (
+            <li key={comment.commentID} className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2">
+              <div className="flex items-center gap-3 mb-2">
+                {news && news.titleImageUrl && (
+                  <Image width={400} height={400} src={news.titleImageUrl} alt={news.title} className="w-12 h-12 object-cover rounded" />
+                )}
+                <div>
+                  <div className="font-semibold">{news ? news.title : `Tin tức #${comment.newsID}`}</div>
+                  <div className="text-xs text-gray-500">ID: {comment.commentID} | Người dùng: {comment.userID}</div>
+                </div>
+              </div>
+              <div className="text-base whitespace-pre-line break-words">{comment.content}</div>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-500 mt-2">
+                <span>Thích: {comment.likeCount}</span>
+                <span>Không thích: {comment.dislikeCount}</span>
+                <span>Bình luận lúc: {comment.commentAt ? comment.commentAt.slice(0, 16).replace('T', ' ') : ""}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <div>
+        <Pagination className="flex justify-start mt-8">
+          <PaginationContent>
+            <PaginationPrevious
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              aria-disabled={page === 1}
+            />
+            {Array.from({ length: totalPages }, (_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  isActive={page === i + 1}
+                  onClick={() => setPage(i + 1)}
+                  href="#"
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationNext
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              aria-disabled={page === totalPages}
+            />
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }

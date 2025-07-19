@@ -3,7 +3,8 @@ import sequelize from "../configs/mysql-database-connect";
 
 class InventoryTransaction extends Model {
   public transactionID!: number;
-  public inventoryID!: number;
+  // public inventoryID!: number;
+  public productID!: number;
   public quantityChange!: number;
   public transactionType!: string;
   public note?: string;
@@ -19,9 +20,17 @@ InventoryTransaction.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    inventoryID: {
+    // inventoryID: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: false,
+    // },
+    productID: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: "products", // Assuming the products table is named 'products'
+        key: "productID",
+      },
     },
     quantityChange: {
       type: DataTypes.INTEGER,

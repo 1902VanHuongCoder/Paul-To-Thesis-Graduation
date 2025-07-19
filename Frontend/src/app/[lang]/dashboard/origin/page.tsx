@@ -4,7 +4,12 @@ import { FormProvider, useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { baseUrl } from "@/lib/base-url";
-import { FormControl, FormItem, FormLabel } from "@/components/ui/form/form";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
+import { Label } from "@/components/ui/label/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog/dialog";
+import { Pencil, Trash } from "lucide-react";
+import Image from "next/image";
+import toast from "react-hot-toast";
 
 type OriginFormValues = {
   originName: string;
@@ -20,11 +25,12 @@ type Origin = {
 export default function AddOriginPage() {
   const methods = useForm<OriginFormValues>();
   const { register, handleSubmit, reset, formState: { errors } } = methods;
-  const [message, setMessage] = useState("");
   const [origins, setOrigins] = useState<Origin[]>([]);
   const [editID, setEditID] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editImage, setEditImage] = useState<File | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteID, setDeleteID] = useState<number>();
 
   // Fetch all origins
   const fetchOrigins = async () => {
@@ -40,9 +46,8 @@ export default function AddOriginPage() {
   }, []);
 
   const onSubmit = async (data: OriginFormValues) => {
-    setMessage("");
     if (!data.image || data.image.length === 0) {
-      setMessage("Please select an image.");
+      toast.error("Hãy chọn một ảnh nhà sản xuất"); 
       return;
     }
     // Upload image
@@ -57,7 +62,7 @@ export default function AddOriginPage() {
       const uploadData = await uploadRes.json();
       imageUrl = uploadData.url || uploadData.path || "";
     } catch {
-      setMessage("Image upload failed.");
+      toast.error("Tải ảnh lên thất bại.");
       return;
     }
 
@@ -72,25 +77,29 @@ export default function AddOriginPage() {
     });
 
     if (originRes.ok) {
-      setMessage("Origin added successfully!");
+      toast.success("Thêm xuất xứ thành công!");
       reset();
       fetchOrigins();
     } else {
-      setMessage("Failed to add origin.");
+      toast.error("Thêm xuất xứ thất bại. Vui lòng thử lại.");
     }
   };
 
   // Delete origin
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this origin?")) return;
+  const handleDelete = async (id: number | undefined) => {
+    if (!id) {
+      toast.error("Mã sản phẩm không tồn tại. Hãy thử lại.");
+      return;
+    }
     const res = await fetch(`${baseUrl}/api/origin/${id}`, {
       method: "DELETE",
     });
     if (res.ok) {
-      setMessage("Origin deleted.");
+      toast.success("Đã xóa xuất xứ thành công!");
+      setShowConfirm(false);
       fetchOrigins();
     } else {
-      setMessage("Failed to delete origin.");
+      toast.error("Xóa xuất xứ thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -116,7 +125,7 @@ export default function AddOriginPage() {
         const uploadData = await uploadRes.json();
         imageUrl = uploadData.url || uploadData.path || "";
       } catch {
-        setMessage("Image upload failed.");
+        toast.error("Tải ảnh lên thất bại.");
         return;
       }
     }
@@ -135,7 +144,7 @@ export default function AddOriginPage() {
         }
       }
     }catch( error){
-      setMessage("Failed to delete old image.");
+      toast.error("Xảy ra lỗi khi xóa ảnh cũ.");
       console.error("Error deleting old image:", error);
       return;
     }
@@ -149,7 +158,7 @@ export default function AddOriginPage() {
       }),
     });
     if (res.ok) {
-      setMessage("Origin updated.");
+      toast.success("Cập nhật nhà sản xuất thành công!");
       // Update the local orgins state
       setOrigins(origins.map(o => 
         o.originID === originID ? { ...o, originName: editName, originImage: imageUrl || o.originImage } : o
@@ -157,68 +166,92 @@ export default function AddOriginPage() {
       setEditID(null);
       fetchOrigins();
     } else {
-      setMessage("Failed to update origin.");
+      toast.error("Cập nhật nhà sản xuất thất bại. Vui lòng thử lại.");
     }
   };
 
   return (
-    <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Add New Origin</h1>
+    <main className="">
+      <h1 className="text-2xl font-bold mb-4">Thêm Nhà Sản Xuất</h1>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
-            <label className="block mb-1 font-medium">Origin Name</label>
-            <Input {...register("originName", { required: true })} />
+            <Label className="block mb-1 font-medium">Tên nhà sản xuất</Label>
+            <Input {...register("originName", { required: true })} placeholder="Nhập tên nhà sản xuất" />
             {errors.originName && (
-              <div className="text-red-500 text-sm mt-1">Origin name is required</div>
+              <div className="text-red-500 text-sm mt-1">Tên nhà sản xuât không được phép rỗng.</div>
             )}
           </div>
-          <FormItem>
-            <FormLabel>Images</FormLabel>
-            <FormControl>
-              <Input type="file" {...register("image", { required: true })} />
-            </FormControl>
+          <div className="mb-4">
+            <Label className="block mb-1 font-medium">Ảnh đại diện nhà sản xuất</Label>
+            <Input type="file" {...register("image", { required: true })} />
             {errors.image && (
-              <div className="text-red-500 text-sm mt-1">Image is required</div>
+              <div className="text-red-500 text-sm mt-1">Ảnh đại diện là sản xuất là bắt buộc.</div>
             )}
-          </FormItem>
-          <Button type="submit" className="mt-4">Add Origin</Button>
-          {message && <div className="mt-2 text-green-600">{message}</div>}
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" className="mt-4">Thêm nhà sản xuất</Button>
+          </div>
         </form>
       </FormProvider>
-
-      <h2 className="text-xl font-semibold mt-10 mb-2">Origin List</h2>
-      <div className="space-y-2">
-        {origins.map(origin => (
-          <div key={origin.originID} className="flex items-center gap-2 border-b py-2">
-            {editID === origin.originID ? (
-              <>
-                <Input
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  className="w-32"
-                />
-                <input
-                  type="file"
-                  onChange={e => setEditImage(e.target.files?.[0] || null)}
-                  className="w-40"
-                />
-                <Button size="sm" onClick={() => handleEditSave(origin.originID)}>Save</Button>
-                <Button size="sm" variant="outline" onClick={() => setEditID(null)}>Cancel</Button>
-              </>
-            ) : (
-              <>
-                <span className="font-medium">{origin.originName}</span>
-                {origin.originImage && (
-                  <img src={origin.originImage} alt={origin.originName} className="w-12 h-12 object-cover rounded" />
-                )}
-                <Button size="sm" variant="outline" onClick={() => startEdit(origin)}>Edit</Button>
-                <Button size="sm" variant="destructive" onClick={() => handleDelete(origin.originID)}>Delete</Button>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+      <hr className="my-6" />
+      <h2 className="text-xl font-semibold mb-2">Danh sách nhà sản xuất</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tên nhà sản xuất</TableHead>
+            <TableHead>Ảnh đại diện/Logo</TableHead>
+            <TableHead className="w-32">Hành động</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {origins.map(origin => (
+            <TableRow key={origin.originID}>
+              {editID === origin.originID ? (
+                <>
+                  <TableCell>
+                    <Input value={editName} onChange={e => setEditName(e.target.value)} className="w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Input type="file" onChange={e => setEditImage(e.target.files?.[0] || null)} className="w-full" />
+                  </TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" onClick={() => handleEditSave(origin.originID)} className="hover:cursor-pointer">Lưu</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditID(null)} className="hover:cursor-pointer hover:bg-gray-200">Hủy</Button>
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell className="font-medium">{origin.originName}</TableCell>
+                  <TableCell>
+                    {origin.originImage && (
+                      <Image width={400} height={400} src={origin.originImage} alt={origin.originName} className="w-12 h-12 object-cover rounded" />
+                    )}
+                  </TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(origin)} className="hover:cursor-pointer hover:bg-gray-200"><Pencil /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditID(null); setShowConfirm(true); setDeleteID(origin.originID); }} className="hover:cursor-pointer hover:bg-gray-200"><Trash className="text-red-500" /></Button>
+                  </TableCell>
+                </>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa xuất xứ</DialogTitle>
+          </DialogHeader>
+          <div>Bạn có chắc chắn muốn xóa xuất xứ này không?</div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="hover:cursor-pointer hover:bg-gray-200">Hủy</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={() => handleDelete(deleteID) } className="hover:cursor-pointer ">Xóa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

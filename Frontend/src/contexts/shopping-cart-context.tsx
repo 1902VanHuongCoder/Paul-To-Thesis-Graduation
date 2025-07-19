@@ -32,7 +32,7 @@ export interface Cart {
 interface ShoppingCartContextProps {
     cart: Cart;
     setCart: React.Dispatch<React.SetStateAction<Cart>>;
-    addToCart: (productID: number) => void;
+    addToCart: (productID: number, quantity: number) => void;
     removeFromCart: (productID: number, cartID: number) => void;
     clearCart: () => void;
     updateCart: (cartID: number, productID: number, quantity: number) => void;
@@ -68,12 +68,12 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
         }
     };
 
-    const addToCart = async (productID: number) => {
+    const addToCart = async (productID: number, quantity: number) => {
         try {
             const res = await fetch(`${baseUrl}/api/shopping-cart`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productID, customerID: user?.userID, quantity: 1 }),
+                body: JSON.stringify({ productID, customerID: user?.userID, quantity: quantity }),
             });
             if (!res.ok) throw new Error("Failed to add to cart");
             toast.success(d?.toastAddToCartSuccess || "Thêm vào giỏ hàng thành công");

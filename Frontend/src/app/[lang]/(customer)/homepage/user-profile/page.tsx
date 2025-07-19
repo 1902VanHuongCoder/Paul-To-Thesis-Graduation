@@ -18,10 +18,14 @@ interface ShippingAddress {
 }
 
 export default function UserProfilePage() {
-    const { user, logout } = useUser();
-    const [shippingAddresses, setShippingAddresses] = useState<ShippingAddress[]>([]);
-    const [loadingAddresses, setLoadingAddresses] = useState(true);
-    const [showAddForm, setShowAddForm] = useState(false);
+    // Contexts 
+    const { user, logout } = useUser(); // User context to get user info and logout function
+    const { dictionary: d } = useDictionary(); // Dictionary context to get dictionary items
+
+    // State variables
+    const [shippingAddresses, setShippingAddresses] = useState<ShippingAddress[]>([]); // List of shipping addresses
+    const [loadingAddresses, setLoadingAddresses] = useState(true); // Loading state for addresses
+    const [showAddForm, setShowAddForm] = useState(false); // Toggle for showing/hiding add address form
     const [form, setForm] = useState({
         province: "",
         district: "",
@@ -29,20 +33,22 @@ export default function UserProfilePage() {
         detailAddress: "",
         phone: "",
         isDefault: false,
-    });
+    }); // Form state for adding new address
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [provinces, setProvinces] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [districts, setDistricts] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
-    const [loadingForm, setLoadingForm] = useState(false);
-    const [formMsg, setFormMsg] = useState("");
-    const { dictionary: d } = useDictionary();
 
+    const [loadingForm, setLoadingForm] = useState(false); // Loading state for form submission
+    const [formMsg, setFormMsg] = useState(""); // Message to show after form submission
+
+    // Fetch user shipping addresses when component mounts or when showAddForm changes
     useEffect(() => {
         const fetchAddresses = async () => {
-
+            // Check if user is logged in
             if (!user?.userID) return;
             try {
                 const res = await fetch(`${baseUrl}/api/shipping-address/user/${user.userID}`);
@@ -61,10 +67,9 @@ export default function UserProfilePage() {
 
         };
         fetchAddresses();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.userID, showAddForm]);
 
-    // Address API for add form
+    // Address API for add address form
     useEffect(() => {
         if (showAddForm) {
             fetch("https://provinces.open-api.vn/api/?depth=1")
@@ -73,6 +78,7 @@ export default function UserProfilePage() {
         }
     }, [showAddForm]);
 
+    // Fetch districts and wards based on selected province and district
     useEffect(() => {
         if (!form.province) {
             setDistricts([]);
@@ -87,6 +93,7 @@ export default function UserProfilePage() {
         }
     }, [form.province, provinces]);
 
+    // Fetch wards based on selected district
     useEffect(() => {
         if (!form.district) {
             setWards([]);
@@ -100,6 +107,7 @@ export default function UserProfilePage() {
         }
     }, [form.district, districts]);
 
+    // Function to set a shopping address as default 
     const handleSetDefault = async (shippingAddressID: number) => {
         try {
             await fetch(`${baseUrl}/api/shipping-address/${user?.userID}/${shippingAddressID}`, {
@@ -107,16 +115,18 @@ export default function UserProfilePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ isDefault: true }),
             });
-            // Refetch addresses
+            
+            // After setting default, refetch addresses
             const res = await fetch(`${baseUrl}/api/shipping-address/user/${user?.userID}`);
             const data = await res.json();
-            setShippingAddresses(data);
+            setShippingAddresses(data); 
         } catch (error) {
             console.error("Error setting default address:", error);
             toast.error("Xay ra lỗi khi đặt địa chỉ làm mặc định.");
         }
     };
 
+    // Function to handle adding a new address
     const handleAddAddress = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoadingForm(true);
@@ -147,14 +157,15 @@ export default function UserProfilePage() {
                 phone: "",
                 isDefault: false,
             });
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            setFormMsg(err.message || "Có lỗi xảy ra.");
+        } catch (error) {
+            console.error("Error adding address:", error);
+            setFormMsg(error instanceof Error ? error.message : "Đã xảy ra lỗi khi thêm địa chỉ.");
         } finally {
             setLoadingForm(false);
         }
     };
 
+    // Function to handle deleting an address
     const handleDeleteAddress = async (shippingAddressID: number) => {
         if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
         try {
@@ -164,6 +175,7 @@ export default function UserProfilePage() {
             if (!res.ok) {
                 throw new Error("Xóa địa chỉ thất bại");
             }
+            
             // Refetch addresses
             setLoadingAddresses(true);
             const data = await fetch(`${baseUrl}/api/shipping-address/user/${user?.userID}`);
@@ -219,7 +231,7 @@ export default function UserProfilePage() {
                         </button>
                     </div>
                     {showAddForm && (
-                        <form onSubmit={handleAddAddress} className="space-y-3 my-7 border-[1px] border-gray-200 p-6 rounded-lg">
+                        <form onSubmit={handleAddAddress} className="space-y-3 my-7 border-[1px] border-gray-200 p-6 rounded-lg bg-white">
                             <div>
                                 <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
                                 <Select
@@ -339,7 +351,7 @@ export default function UserProfilePage() {
                             {shippingAddresses.map(addr => (
                                 <li
                                     key={addr.shippingAddressID}
-                                    className={`relative p-4 rounded flex flex-col justify-between items-start ${addr.isDefault ? "border-primary-hover border-[1px]" : "border-gray-200 border-[1px]"} hover:shadow-xl transition shadow-gray-100`}
+                                    className={`relative bg-white p-4 rounded flex flex-col justify-between items-start ${addr.isDefault ? "border-primary-hover border-[1px]" : "border-gray-200 border-[1px]"} hover:shadow-xl transition shadow-gray-100`}
                                 >
                                     <div className="w-full">
                                         <div className="font-medium">{addr.address}</div>

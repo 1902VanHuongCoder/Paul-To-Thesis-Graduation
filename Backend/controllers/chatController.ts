@@ -48,6 +48,12 @@ export const addNewMessage = async (
       content,
       createdAt: new Date(),
     });
+    // Update the newest message in the conversation
+    await Conversation.update(
+      { newestMessage: content },
+      { where: { conversationID } }
+    );
+    
     res.status(201).json({
       message: "Message sent successfully",
       data: newMessage,
@@ -67,53 +73,55 @@ export const createConversation = async (
     conversationName,
     participants,
     isGroup,
+    hostID,
+    conversationAvatar,
   } = req.body;
 
-  console.log({
+  let existingConversation;
+
+  console.log("Creating conversation with data:", {
     conversationID,
     conversationName,
     participants,
     isGroup,
+    conversationAvatar,
   });
 
-  let existingConversation;
+  // Conversation ID is created by concatenating two first participants's IDs, so if request conversationID is in two cases, it already existed
+  // const possibleIDs = [
+  //   `CON${participants[0]}${participants[1]}`,
+  //   `CON${participants[1]}${participants[0]}`,
+  // ];
 
-  if (!isGroup) {
-    // For 1-1 chat, check if conversationID matches either possible order
-    const possibleIDs = [
-      `CON${participants[0]}${participants[1]}`,
-      `CON${participants[1]}${participants[0]}`,
-    ];
-
-    console.log("Possible conversation IDs:", possibleIDs);
-    try {
-      existingConversation = await Conversation.findOne({
-        where: {
-          isGroup: false,
-          conversationID: { [Op.in]: possibleIDs },
-        },
-      });
-
-      if (existingConversation) {
-        console.log("Conversation already exists:", existingConversation);
-        res.status(200).json({
-          message: "Conversation already exists",
-          conversation: existingConversation,
-        });
-        return;
-      }
-    } catch (error) {
-      console.error("Error checking conversation existence:", error);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
+  try {
+    // Check if a conversation already exists with the possible IDs
+    existingConversation = await ConversationParticipant.findOne({
+      where: {
+        userID: participants[0],
+      },
+    });
+  } catch (error) {
+    console.error("Error checking conversation existence:", error);
+    res.status(500).json({ message: "Internal server error" });
+    return;
   }
-
-  if (!existingConversation) {
+  // Check if the conversation already exists
+  // If it existed, return the existing conversation
+  if (existingConversation) {
+    console.log("Conversation already exists:", existingConversation);
+    res.status(200).json({
+      message: "Conversation already exists",
+      conversation: existingConversation,
+    });
+    return;
+  } else {
     try {
       const newConversation = await Conversation.create({
         conversationID,
         conversationName,
+        conversationAvatar,
+        hostID: participants[0],
+        newestMessage: "",
         isGroup: isGroup,
       });
       await ConversationParticipant.bulkCreate(
@@ -133,6 +141,63 @@ export const createConversation = async (
       return;
     }
   }
+  // Else, create a new conversation
+
+  // if (!isGroup) {
+  //   // For 1-1 chat, check if conversationID matches either possible order
+  //   const possibleIDs = [
+  //     `CON${participants[0]}${participants[1]}`,
+  //     `CON${participants[1]}${participants[0]}`,
+  //   ];
+
+  //   console.log("Possible conversation IDs:", possibleIDs);
+  //   try {
+  //     existingConversation = await Conversation.findOne({
+  //       where: {
+  //         isGroup: false,
+  //         conversationID: { [Op.in]: possibleIDs },
+  //       },
+  //     });
+
+  //     if (existingConversation) {
+  //       console.log("Conversation already exists:", existingConversation);
+  //       res.status(200).json({
+  //         message: "Conversation already exists",
+  //         conversation: existingConversation,
+  //       });
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking conversation existence:", error);
+  //     res.status(500).json({ message: "Internal server error" });
+  //     return;
+  //   }
+  // }
+
+  // if (!existingConversation) {
+  //   try {
+  //     const newConversation = await Conversation.create({
+  //       conversationID,
+  //       conversationName,
+  //       isGroup: isGroup,
+  //     });
+  //     await ConversationParticipant.bulkCreate(
+  //       participants.map((userID: number) => ({
+  //         conversationID: newConversation.get("conversationID"),
+  //         userID,
+  //       }))
+  //     );
+
+  //     res.status(201).json({
+  //       message: "Conversation created successfully",
+  //       conversation: newConversation,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error creating conversation:", error);
+  //     res.status(500).json({ message: "Internal server error" });
+  //     return;
+  //   }
+  // }
 };
 
 // Add a member into a group conversation
@@ -176,9 +241,9 @@ export const addMemberIntoGroup = async (
     console.error("Error adding member to group:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
-// Get all conversations that user belongs to 
+// Get all conversations that user belongs to
 export const getConversationsUserBelongs = async (
   req: Request,
   res: Response
@@ -191,13 +256,22 @@ export const getConversationsUserBelongs = async (
   }
 
   try {
+   // Fetch conversations where the user is a paticipant 
+   // and count unread messages for each conversation
     const conversations = await ConversationParticipant.findAll({
       where: { userID },
       include: [
         {
           model: Conversation,
           as: "conversation",
-          include: [{ model: User, as: "participants" }],
+          include: [
+            {
+              model: Message,
+              as: "messages",
+              where: { isRead: false, senderID: { [Op.ne]: userID } },
+              required: false,
+            },
+          ],
         },
       ],
     });
@@ -205,6 +279,60 @@ export const getConversationsUserBelongs = async (
     res.status(200).json(conversations);
   } catch (error) {
     console.error("Error fetching conversations for user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all conversations and messages belongs to that conversation (use for admin dashboard)
+export const getAllConversationsAndMessages = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const conversations = await Conversation.findAll({
+      include: [
+        {
+          model: Message,
+          as: "messages",
+          include: [{ model: User, as: "sender" }],
+        },
+      ],
+    });
+
+    res.status(200).json(conversations);
+  } catch (error) {
+    console.error("Error fetching all conversations and messages:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const markMessagesAsRead = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { conversationID, userID } = req.body;
+
+  if (!conversationID || !userID) {
+    res.status(400).json({ message: "conversationID and userID are required" });
+    return;
+  }
+
+  try {
+    // Mark all unread messages in the conversation as read
+    await Message.update(
+      { isRead: true },
+      {
+        where: {
+          conversationID,
+          isRead: false,
+          senderID: { [Op.ne]: userID }, // Only mark messages not sent by the user
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Messages marked as read successfully" });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

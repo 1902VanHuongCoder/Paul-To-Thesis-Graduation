@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import IconButton from "@/components/ui/button/icon-button";
 import Button from "@/components/ui/button/button-brand";
-import { Heart } from "lucide-react";
+import { Binary, Building2, Layers, ListTodo, Tag } from "lucide-react";
 import Image from "next/image";
 import { Lens } from "@/components/ui/lens/lens";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
@@ -11,7 +10,8 @@ import { useWishlist } from "@/contexts/wishlist-context";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader } from "@/components/ui/dialog/dialog";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useUser } from "@/contexts/user-context";
-
+import { HeartButton } from "@/components";
+import NoImage from "@public/images/NoImage.jpg";
 interface Category {
     categoryID: number;
     categoryName: string;
@@ -61,30 +61,44 @@ export default function ProductDetails({
     Tags,
     images = [],
 }: ProductDetailsProps) {
-    const [hovering, setHovering] = useState(false);
-    const [mainImage, setMainImage] = useState(images[0] || "");
-    const [showContactDialog, setShowContactDialog] = useState(false);
-    const { user } = useUser();
-    const { addToCart } = useShoppingCart();
-    const { addToWishlist } = useWishlist();
+    // Contexts 
+    const { user } = useUser(); // Get user information from user context
+    const { addToCart } = useShoppingCart(); // Get addToCart function from shopping cart context to add products to the cart
+    const { addToWishlist } = useWishlist(); // Get addToWishlist function from wishlist context to add products to the wishlist
+
+    // State variables
+    const [hovering, setHovering] = useState(false); // State to track if the image is being hovered
+    const [mainImage, setMainImage] = useState(images[0] || ""); // State to track the main image being displayed
+    const [showContactDialog, setShowContactDialog] = useState(false); // State to control the visibility of the contact dialog
+    const [quantity, setQuantity] = useState(1);
+
+    // Handlers
+    const handleIncrease = () => setQuantity((prev) => prev + 1); // Increase quantity by 1
+    const handleDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1)); // Decrease quantity by 1, but not below 1
+
 
     const handleAddToCart = () => {
-        // If both price and discountPrice are empty/null/undefined
+        // If both price and discountPrice are empty/null/undefined, we will show a contact dialog
         if (!productPrice && !productPriceSale) {
             setShowContactDialog(true);
             return;
         }
-        addToCart(productID);
+
+        // Otherwise, we will add the product to the cart
+        addToCart(productID, quantity);
     }
     const handleAddToWishList = () => {
+        // If the user is not logged in, we will not allow them to add products to the wishlist
         if (!user) {
             return;
         }
+
+        // If both price and discountPrice are empty/null/undefined, we will show a contact dialog
         if (!productPrice && !productPriceSale) {
             setShowContactDialog(true);
             return;
         }
-        // Check if the product is already in the wishlist
+        // Otherwise, we will add the product to the wishlist
         addToWishlist(user.userID, productID);
     }
 
@@ -93,23 +107,17 @@ export default function ProductDetails({
             {/* Product Images and Main Info */}
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Images */}
-                <div className="flex-shrink-0">
-                    {images && images.length > 0 ? (
-                        <Lens hovering={hovering} setHovering={setHovering}>
-                            <Image
-                                width={300}
-                                height={256}
-                                src={mainImage}
-                                alt={productName}
-                                className="w-[400px] h-[400px] object-contain rounded shadow"
-                            />
-                        </Lens>
-
-                    ) : (
-                        <div className="w-64 h-64 bg-gray-100 flex items-center justify-center rounded">
-                            <span className="text-gray-400">Sản phẩm không có hình ảnh</span>
-                        </div>
-                    )}
+                <div className="flex-shrink-0 border-1 border-primary/10 p-4">
+                    <Lens hovering={hovering} setHovering={setHovering}>
+                        <Image
+                            width={300}
+                            height={256}
+                            src={mainImage ? mainImage : NoImage}
+                            alt={productName}
+                            className="w-[400px] h-[400px] object-contain rounded shadow"
+                            priority
+                        />
+                    </Lens>
                     <hr className="my-4" />
                     {/* Thumbnails */}
                     {images && images.length > 1 && (
@@ -130,9 +138,8 @@ export default function ProductDetails({
                 </div>
                 {/* Main Info */}
                 <div className="flex-1 space-y-4">
-                    <h1 className="text-4xl font-bold text-gray-800">{productName}</h1>
-                    <div className="flex items-start mt-2 gap-x-2">
-                        <span >Đánh giá:</span>
+                    <h1 className="text-4xl font-bold text-primary">{productName}</h1>
+                    <div className="mt-2 flex items-center gap-2">
                         <span className="flex items-center"> {Array.from({ length: 5 }, (_, index) => (
                             <span key={index} className={index < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
@@ -143,17 +150,16 @@ export default function ProductDetails({
                                 </svg>
                             </span>
                         ))}</span>
-                        <span className="text-gray-500 text-md">
+                        <span className="text-gray-500 text-md translate-y-0.5">
                             ({rating}/5 sao)
                         </span>
                     </div>
                     <div className="mt-2">
-                        <span>Giá sản phẩm: </span>
                         {
                             productPrice && productPriceSale ? (
-                                <span>
-                                    <span className="text-gray-500 line-through mr-2">{productPrice.toLocaleString()} VND</span>
-                                    <span className="text-green-700 font-bold text-xl">{productPriceSale.toLocaleString()} VND</span>
+                                <span className="space-x-2">
+                                    <span className="text-green-500 font-bold text-xl">{productPriceSale.toLocaleString()} VND</span>
+                                    <span className="text-gray-500 line-through mr-2 opacity-60">{productPrice.toLocaleString()} VND</span>
                                 </span>
                             ) : !productPriceSale && productPrice ? (
                                 <span className="text-green-700 font-bold text-xl">{productPrice.toLocaleString()} VND</span>
@@ -164,45 +170,64 @@ export default function ProductDetails({
                     </div>
 
                     <div className="flex flex-wrap gap-4 mt-4 flex-col">
-                        <p className="text-gray-700">
-                            <span>Mã sản phẩm:</span> <span className="font-bold">{sku}</span>
+                        <p>Thông tin sản phẩm: </p>
+                        <p className="text-gray-700 flex items-center gap-x-1">
+                            <span><Binary className="h-[20px] text-yellow-500" /></span><span>Mã sản phẩm</span> <span className="">{sku}</span>
                         </p>
-                        <p className="text-gray-700">
-                            <span>Danh mục: </span><span className="font-bold">{category?.categoryName}</span>
+                        <p className="text-gray-700 flex items-center gap-x-1">
+                            <span><ListTodo className="h-[20px] text-yellow-500" /></span><span>Danh mục</span><span className="">{category?.categoryName}</span>
                         </p>
-                        <p className="text-gray-700">
-                            <span>Nguồn gốc: </span> <span className="font-bold">{origin?.originName}</span>
+                        <p className="text-gray-700 flex items-center gap-x-1">
+                            <span><Building2 className="h-[20px] text-yellow-500" /></span><span>Nguồn gốc </span> <span className="">{origin?.originName}</span>
                         </p>
                         <div className="space-y-2">
-                            <p className="text-gray-700 flex items-center gap-2">
-                                <span>Có sẵn: <span className="font-bold">{quantityAvailable}</span> trong kho</span>
+                            <p className="text-gray-700 gap-2 flex items-center gap-x-1">
+                                <span><Layers className="h-[20px] text-yellow-500" /></span><span>Có sẵn <span className="">{quantityAvailable}</span> trong kho</span>
                             </p>
                         </div>
-                        <p className="text-gray-700">
+                        <p className="text-gray-700 flex items-center gap-x-1">
                             {(Tags && Tags.length > 0) ? Tags.map(tag => (
-                                <span key={tag.tagID} className="inline-block text-gray-700 px-2 py-1 rounded-full mr-2 mb-2 border-primary border-[2px] hover:bg-secondary hover:text-primary transition-colors cursor-pointer">
-                                    {tag.tagName}
+                                <span key={tag.tagID} className="flex items-center gap-x-1 border-1 border-primary/20 px-2 py-1 pr-3 rounded-full">
+                                    <span><Tag className="h-[15px]" /></span><span>{tag.tagName}</span>
                                 </span>
                             )) :
-                                <span>Không có thẻ nào</span>}
+                                <span>Không có thẻ liên quan đến sản phẩm</span>}
                         </p>
                     </div>
 
                     {/* Quantity Selector and Actions */}
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mt-4">
                         <div className="flex items-center gap-4">
+                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                <button
+                                    onClick={handleDecrease}
+                                    className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                    aria-label="Decrease quantity"
+                                >
+                                    -
+                                </button>
+                                <span className="px-4 py-2 text-gray-700">{quantity}</span>
+                                <button
+                                    onClick={handleIncrease}
+                                    className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                    aria-label="Increase quantity"
+                                >
+                                    +
+                                </button>
+                            </div>
                             <Button onClick={handleAddToCart} variant="primary" size="sm" className="flex items-center gap-2">
                                 Thêm vào giỏ hàng
                             </Button>
-                            <IconButton onClick={handleAddToWishList} icon={Heart} iconColor="#0D401C" className="border-[1px] border-solid border-primary hover:bg-secondary" />
+                            {/* <button onClick={handleAddToWishList} className="p-3 rounded-full border-1 border-primary/60 hover:bg-secondary hover:text-white hover:cursor-pointer"><Heart className="text-[#0D401C]" stroke="#0D401C"/></button> */}
+                            <HeartButton onClick={handleAddToWishList} />
                         </div>
                     </div>
                 </div>
             </div>
-            {/* Product Attributes and Description */}
+            {/* Product Attributes and Description
             <div className="mt-8">
                 <h2 className="text-xl font-semibold mb-2">Thông tin sản phẩm</h2>
-            </div>
+            </div> */}
             <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
                 <DialogContent className="font-sans">
                     <DialogHeader>

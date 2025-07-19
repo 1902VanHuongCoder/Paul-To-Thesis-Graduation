@@ -6,6 +6,8 @@ import SubCategory from "./Subcategory";
 
 class Product extends Model {
   productID: any;
+  barcode!: string; 
+  boxBarcode!: string;
   productPrice!: number;
   productPriceSale!: number;
   productName!: string;
@@ -20,6 +22,8 @@ class Product extends Model {
   isShow: boolean = true;
   unit!: string;
   expiredAt: Date | null = null;
+  quantityPerBox!: number;
+  diseases!: number[]
 }
 
 Product.init(
@@ -28,6 +32,16 @@ Product.init(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    barcode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true, // Ensure that each product has a unique barcode
+    },
+    boxBarcode: {
+      type: DataTypes.STRING,
+      allowNull: true, // Allow null for products that do not have a box barcode
+      unique: true, // Ensure that each product box has a unique barcode
     },
     productName: {
       type: DataTypes.STRING,
@@ -98,6 +112,15 @@ Product.init(
     unit: {
       type: DataTypes.STRING,
       allowNull: true, // Allow null for products that do not have a specific unit
+    },
+    quantityPerBox: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Allow null for products that do not have a quantity per box
+      defaultValue: 0, // Default value for quantity per box
+    },
+    diseases: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER), // Assuming diseases is an array of integers
+      allowNull: true, // Allow null for products that do not have associated diseases
     },
   },
   {

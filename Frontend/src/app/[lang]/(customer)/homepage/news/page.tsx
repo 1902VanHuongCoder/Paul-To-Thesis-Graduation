@@ -5,7 +5,7 @@ import NewsItem from "@/components/ui/news-item/news-item";
 import { useRouter } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
-import { Breadcrumb } from "@/components";
+import { Breadcrumb, ContentLoading } from "@/components";
 interface Author {
     username: string;
     userID: string;
@@ -19,7 +19,7 @@ interface Comment {
     content: string;
     commentAt: string;
     status: "active" | "deleted";
-    user_comments?: Author; // Optional, if you want to include user details
+    user_comments?: Author;
 }
 interface News {
     newsID: number;
@@ -41,10 +41,17 @@ interface News {
 }
 
 export default function NewsListPage() {
-    const [newsList, setNewsList] = useState<News[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Router
     const router = useRouter();
-    const { lang } = useDictionary();
+
+    // Contexts 
+    const { lang } = useDictionary(); // Language context to get the current language
+
+    // State variables
+    const [newsList, setNewsList] = useState<News[]>([]); // List of news items
+    const [loading, setLoading] = useState(true); // Loading state to show a loading message while fetching data
+    
+    // Fetch news data from the API when the component mounts
     useEffect(() => {
         const fetchNews = async () => {
             try {
@@ -54,7 +61,6 @@ export default function NewsListPage() {
                 console.log("Fetched news data:", data);
             } catch (error) {
                 console.error("Failed to fetch news:", error);
-                // handle error
             } finally {
                 setLoading(false);
             }
@@ -62,7 +68,7 @@ export default function NewsListPage() {
         fetchNews();
     }, []);
 
-    if (loading) return <div>Đang tải tin tức...</div>;
+    if (loading) return <ContentLoading />;
 
     return (
         <div className="py-10 px-6 space-y-8">
@@ -70,7 +76,7 @@ export default function NewsListPage() {
                 { label: "Trang chủ", href: "/" },
                 { label: "Tin tức" }
             ]} />
-            <h1 className="text-4xl font-bold mb-6 uppercase mt-6 text-center">Tin tức</h1>
+            <h1 className="text-2xl font-bold mb-6 uppercase mt-6 text-center">Tin tức</h1>
             {newsList.length === 0 && <div>Hiện tại chưa có bài đăng nào.</div>}
             {newsList.map((news) => (
                 <NewsItem

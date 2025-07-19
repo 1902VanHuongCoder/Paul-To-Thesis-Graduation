@@ -8,7 +8,9 @@ import {
   getUserByID,
   confirmPassword,
   forgotPassword,
-  checkRecoveryCode
+  checkRecoveryCode,
+  getUsersBasedOnRole,
+  deleteUser,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -23,9 +25,11 @@ router.post("/signin", localSignIn);
 // Google sign up/sign in
 router.post("/google", googleAuth);
 
-
 // Get all users
 router.get("/", getAllUsers);
+
+// Get all users based on their role
+router.get("/role/:role", getUsersBasedOnRole);
 
 // Get user info based on userID
 router.get("/:userID",getUserByID); 
@@ -41,5 +45,8 @@ router.post("/forgot-password", forgotPassword);
 
 // Handle checking password recovery code 
 router.post("/check-recovery-code", checkRecoveryCode);
+
+// Handle deleting user account 
+router.delete("/:userID", deleteUser);
 
 export default router;

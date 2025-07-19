@@ -10,6 +10,7 @@
   --color-primary-hover: #278d45;
   --color-secondary: #f8c32c;
   --color-brown: #52320a;
+  --add-to-cart-panel-shadow: 10px 30px 60px rgba(0, 0, 0, 0.3);
   --color-accent: #f8c32c;
   --color-neutral: #e4e4e4;
   --color-error: #ed1c24;
@@ -173,4 +174,22 @@
 }
 .tiptap-content tr:nth-child(even) td {
   @apply bg-gray-50;
+}
+
+.custom-scrollbar {
+  scrollbar-width: 5px; /* Firefox: width of the scrollbar */
+  scrollbar-color: #4caf50 #e0e0e0; /* Firefox: thumb color, track color */
+}
+
+/* Chrome, Edge, Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px; /* width of the scrollbar */
+  background: #e0e0e0; /* track color */
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4caf50; /* thumb color */
+  border-radius: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #388e3c; /* thumb color on hover */
 }

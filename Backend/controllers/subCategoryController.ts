@@ -58,8 +58,13 @@ export const createSubCategory = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { subcategoryID, createdAt, updatedAt, subcategoryName, categoryID } =
-    req.body;
+  const {
+    subcategoryID,
+    createdAt,
+    updatedAt,
+    subcategoryName,
+    categoryID,
+  } = req.body;
 
   try {
     const slug = generateSlug(subcategoryName);

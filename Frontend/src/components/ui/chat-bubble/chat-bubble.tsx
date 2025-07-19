@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar/avatar"
 
-import  MessageLoading  from "../loading/message-loading";
+// import  MessageLoading  from "../loading/message-loading";
 import { Button } from "../button/button";
 
 interface ChatBubbleProps {
@@ -56,7 +56,7 @@ export function ChatBubbleMessage({
         >
             {isLoading ? (
                 <div className="flex items-center space-x-2">
-                    <MessageLoading />
+                    {/* <MessageLoading /> */}
                 </div>
             ) : (
                 children

@@ -85,7 +85,7 @@ Order.init(
     orderStatus: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "pending", // Default status can be 'pending', 'completed', etc.
+      defaultValue: "pending", // Default status can be 'pending', '
     }
   },
   {

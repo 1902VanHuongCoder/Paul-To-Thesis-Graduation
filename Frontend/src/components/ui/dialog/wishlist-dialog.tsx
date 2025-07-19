@@ -31,7 +31,6 @@ export interface Product {
     updatedAt: string;
 }
 
-
 export interface WishlistItem {
     wishlistID: number;
     customerID: string;
@@ -51,10 +50,15 @@ export default function WishlistDialog({
     onRemoveItemOutWishlist,
     onAddToCart,
 }: WishlistDialogProps) {
-    const { dictionary: d, lang } = useDictionary();
-    const { user } = useUser();
-    const [open, setOpen] = React.useState(false);
+    // Router
     const router = useRouter();
+
+    // Contexts
+    const { dictionary: d, lang } = useDictionary(); // Dictionary context to get the text in different languages
+    const { user } = useUser(); // User context to get the current user information
+    
+    // State variables
+    const [open, setOpen] = React.useState(false);
     return (
         <Dialog open={open} onOpenChange={setOpen} modal={true}>
             {/* Trigger Button */}
@@ -70,8 +74,10 @@ export default function WishlistDialog({
             {/* Dialog Content */}
             <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans bg-white min-w-2xl">
                 {/* Header */}
-                <div className="relative bg-primary text-white flex flex-col justify-start items-start px-6 py-4 -translate-y-1">
-                    <DialogTitle>{d?.wishlistDialogTitle || "Danh sách yêu thích"} ({wishlists.length})</DialogTitle>
+                <div className="relative bg-primary text-white flex flex-col justify-start items-start px-6 py-6 -translate-y-1">
+                    <DialogTitle>{d?.wishlistDialogTitle || "Danh sách yêu thích"} ({wishlists.length < 10 ? 
+                        `0${wishlists.length}` : wishlists.length    
+                })</DialogTitle>
                     <DialogDescription className="text-sm text-white hidden">
                         {d?.wishlistDialogDescription || "Bạn có thể thêm chúng vào giỏ hàng hoặc xóa khỏi danh sách này."}
                     </DialogDescription>
@@ -81,11 +87,11 @@ export default function WishlistDialog({
                 </div>
 
                 {/* Body */}
-                <div className="p-6 space-y-4 max-h-[400px] overflow-y-auto ">
-                    {wishlists.length > 0 ? wishlists.map((item) => (
+                <div className="px-6 py-4 space-y-4 max-h-[400px] overflow-y-auto">
+                    {wishlists.length > 0 ? wishlists.map((item, index) => (
                         <div
                             key={item.wishlistID}
-                            className="flex flex-col md:flex-row gap-y-5 items-start md:items-center justify-between border-b pb-4"
+                            className={`flex flex-col md:flex-row gap-y-5 items-start md:items-center justify-between ${wishlists.length - 1 !== index && 'border-b'} pb-4`}
                         >
                             {/* Product Thumbnail */}
                             <div className="flex items-center gap-4">
@@ -129,11 +135,12 @@ export default function WishlistDialog({
                 {/* Footer */}
                 <DialogFooter className="flex !justify-between items-center px-6 py-4 w-full ">
                     <button
+                        disabled={wishlists.length === 0}
                         onClick={() => {
                             router.push(`/${lang}/homepage/wishlists`);
                             setOpen(false);
                         }}
-                        className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer"
+                        className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {d?.wishlistDialogOpenWishlistPageLink || "MỞ TRANG DANH SÁCH YÊU THÍCH"}
                     </button>

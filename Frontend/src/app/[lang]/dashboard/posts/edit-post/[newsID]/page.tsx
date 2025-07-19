@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { baseUrl } from "@/lib/base-url";
+import { useForm, FormProvider } from "react-hook-form";
+import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
 import { Input } from "@/components/ui/input/input";
-import Button from "@/components/ui/button/button-brand";
 import generateSlug from "@/lib/generateSlug";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -26,7 +27,12 @@ import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import NextImage from "next/image";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select/select"; import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, List, ListOrdered, ListChecks, Code2, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Minus, Table as TableIcon, Columns2, Rows2, Trash2, Merge, Split, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, SquareStack, } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/tabs';
+import { Quote as QuoteIcon } from 'lucide-react';
+import clsx from "clsx";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button/button";
 type News = {
     newsID: number;
     title: string;
@@ -59,9 +65,6 @@ export default function EditNewsPage() {
     const [editorImageUrls, setEditorImageUrls] = useState<string[]>([]);
     const [editorImages, setEditorImages] = useState<File[]>([]);
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
-    const [showTagDropdown, setShowTagDropdown] = useState(false);
     const [content, setContent] = useState("");
 
     const [oldImages, setOldImages] = useState<string[]>([]);
@@ -88,7 +91,7 @@ export default function EditNewsPage() {
         if (imageUrl) {
             setEditorImageUrls(prev => (prev ?? []).filter((_, idx) => idx !== index));
         }
-      }
+    }
 
     // TipTap editor
     const editor = useEditor({
@@ -130,7 +133,7 @@ export default function EditNewsPage() {
                     handleUpdateDescriptionImage(idx);
                 }
             });
-          }
+        }
     });
 
     // Fetch tag options
@@ -173,10 +176,27 @@ export default function EditNewsPage() {
         }
     };
 
+    const methods = useForm({
+        defaultValues: {
+            title: title,
+            subtitle: subtitle,
+            slug: slug,
+            tagIDs: tags,
+            isPublished: isPublished,
+        },
+    });
+    const { register, setValue, watch, formState: { errors } } = methods;
+
+    useEffect(() => {
+        setValue("title", title);
+        setValue("subtitle", subtitle);
+        setValue("slug", slug);
+        setValue("tagIDs", tags);
+        setValue("isPublished", isPublished);
+    }, [title, subtitle, slug, tags, isPublished, setValue]);
+
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg("");
-        setSuccessMsg("");
         setLoading(true);
 
         try {
@@ -217,13 +237,13 @@ export default function EditNewsPage() {
 
             const newImages = editorImages.length > 0 ? [...editorImageUrls, ...uploadedUrls.slice(titleImage ? 1 : 0)] : editorImageUrls;
 
-            const oldImageUrlsInEditor = oldImages.filter((url) => !newImages.includes(url)); 
+            const oldImageUrlsInEditor = oldImages.filter((url) => !newImages.includes(url));
 
-            if(titleImage){
+            if (titleImage) {
                 oldImageUrlsInEditor.push(oldTitleImageUrl);
             }
 
-            if(newTitleImageUrl !== oldTitleImageUrl) { 
+            if (newTitleImageUrl !== oldTitleImageUrl) {
                 console.log("You have changed the title image URL. Deleting old title image URL:", oldTitleImageUrl);
             }
 
@@ -236,8 +256,6 @@ export default function EditNewsPage() {
                     body: JSON.stringify({ urls: oldImageUrlsInEditor }),
                 });
             }
-
-
 
             const res = await fetch(`${baseUrl}/api/news/${newsID}`, {
                 method: "PUT",
@@ -254,15 +272,15 @@ export default function EditNewsPage() {
                 }),
             });
             if (!res.ok) {
-                const data = await res.json();
-                setErrorMsg(data.message || data.error || "Cập nhật bài viết thất bại.");
+                // const data = await res.json();
+                toast.success("Cập nhật bài viết thất bại. Vui lòng thử lại.");
             } else {
-                setSuccessMsg("Cập nhật bài viết thành công!");
+                toast.success("Cập nhật bài viết thành công!");
                 router.refresh?.();
             }
         } catch (err) {
             console.error("Error updating news:", err);
-            setErrorMsg("Có lỗi xảy ra khi cập nhật bài viết.");
+            toast.error("Đã xảy ra lỗi khi cập nhật bài viết. Vui lòng thử lại.");
         } finally {
             setLoading(false);
         }
@@ -281,245 +299,254 @@ export default function EditNewsPage() {
     if (!editor) return null;
 
     return (
-        <div className="max-w-2xl mx-auto py-8">
-            <h1 className="text-2xl font-bold mb-6">Chỉnh sửa bài viết</h1>
+        <FormProvider {...methods}>
             <form onSubmit={handleUpdate}>
-                <div>
-                    <label className="font-medium">Tiêu đề *</label>
-                    <Input
-                        type="text"
-                        value={title}
-                        onChange={e => {
-                            const slug = generateSlug(e.target.value);
-                            setSlug(slug);
-                            setTitle(e.target.value);
-                        }}
-                        required
-                        className="mt-1"
-                    />
-                </div>
-                <div>
-                    <label className="font-medium">Phụ đề</label>
-                    <Input
-                        type="text"
-                        value={subtitle}
-                        onChange={e => setSubtitle(e.target.value)}
-                        className="mt-1"
-                    />
-                </div>
-                <div>
-                    <label className="font-medium">Slug (SEO)</label>
-                    <Input
-                        type="text"
-                        value={`https://example.com/news/${slug}`}
-                        onChange={e => setSlug(e.target.value)}
-                        className="mt-1"
-                    />
-                </div>
-                <div className="relative">
-                    <button
-                        type="button"
-                        className="w-full border rounded px-3 py-2 text-left"
-                        onClick={() => setShowTagDropdown((v) => !v)}
-                    >
-                        {tags.length === 0
-                            ? "Chọn tag"
-                            : tags
-                                .map((id) => tagOptions.find((t) => t.newsTagID === id)?.tagName)
-                                .filter(Boolean)
-                                .join(", ")}
-                    </button>
-                    {showTagDropdown && (
-                        <div className="absolute z-10 bg-white border rounded w-full mt-1 max-h-60 overflow-y-auto shadow">
-                            {tagOptions.length > 0 ? (
-                                tagOptions.map((tag) => (
-                                    <label
-                                        key={tag.newsTagID}
-                                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                <div className="">
+                    <h1 className="text-2xl font-bold mb-6">Chỉnh Sửa Bài Viết</h1>
+                    <div className="space-y-4">
+                        <FormItem>
+                            <FormLabel>Tiêu đề *</FormLabel>
+                            <FormControl>
+                                <Input {...register("title", { required: "Tiêu đề là bắt buộc" })} maxLength={150} />
+                            </FormControl>
+                            {errors.title && <FormMessage>{errors.title.message}</FormMessage>}
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Phụ đề</FormLabel>
+                            <FormControl>
+                                <Input {...register("subtitle")} maxLength={150} />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Slug (SEO)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    value={'https://example.com/news/' + generateSlug(title)}
+                                    {...register("slug")} />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Tag</FormLabel>
+                            <FormControl>
+                                <>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(watch("tagIDs") || []).map((id: number) => {
+                                            const tag = tagOptions.find(t => t.newsTagID === id);
+                                            if (!tag) return null;
+                                            return (
+                                                <span key={id} className="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">
+                                                    {tag.tagName}
+                                                    <button
+                                                        type="button"
+                                                        className="ml-1 text-blue-500 hover:text-red-500"
+                                                        onClick={() => {
+                                                            const updated = (watch("tagIDs") || []).filter((tid: number) => tid !== id);
+                                                            setValue("tagIDs", updated);
+                                                            setTags(updated);
+                                                        }}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                    <Select
+                                        value=""
+                                        onValueChange={val => {
+                                            const tag = tagOptions.find(t => String(t.newsTagID) === String(val));
+                                            const current = watch("tagIDs") || [];
+                                            if (tag && !current.includes(tag.newsTagID)) {
+                                                setValue("tagIDs", [...current, tag.newsTagID]);
+                                                setTags([...current, tag.newsTagID]);
+                                            }
+                                        }}
                                     >
-                                        <input
-                                            type="checkbox"
-                                            checked={tags.includes(tag.newsTagID)}
-                                            onChange={() => {
-                                                const tagID = tag.newsTagID;
-                                                setTags((prev) =>
-                                                    prev.includes(tagID)
-                                                        ? prev.filter((id) => id !== tagID)
-                                                        : [...prev, tagID]
-                                                );
-                                            }}
-                                        />
-                                        {tag.tagName}
-                                    </label>
-                                ))
-                            ) : (
-                                <div className="px-3 py-2 text-gray-400">Không có tag nào</div>
-                            )}
-                        </div>
-                    )}
-                </div>
-                <div>
-                    <label className="font-medium">Ảnh tiêu đề</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleTitleImageChange}
-                        className="block mt-1"
-                    />
-                    {titleImageUrl && (
-                        <NextImage width={200} height={200} src={titleImageUrl} alt="Title" className="mt-2 max-h-40 rounded" />
-                    )}
-                </div>
-                <div>
-                    <label className="font-medium mb-1 block">Nội dung bài viết *</label>
-                    <div>
-                        <div className="flex gap-2 mb-2 flex-wrap">
-                            <button onClick={() => editor.chain().focus().toggleBold().run()}>Bold</button>
-                            <button onClick={() => editor.chain().focus().toggleItalic().run()}>Italic</button>
-                            <button onClick={() => editor.chain().focus().toggleUnderline().run()}>Underline</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}>H4</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}>H5</button>
-                            <button onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}>H6</button>
-                            <button
-                                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                                className={editor.isActive('bulletList') ? 'is-active' : ''}
-                            >
-                                Toggle bullet list
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().splitListItem('listItem').run()}
-                                disabled={!editor.can().splitListItem('listItem')}
-                            >
-                                Split list item
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-                                disabled={!editor.can().sinkListItem('listItem')}
-                            >
-                                Sink list item
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-                                disabled={!editor.can().liftListItem('listItem')}
-                            >
-                                Lift list item
-                            </button>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Chọn tag" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {tagOptions.map((tag) => (
+                                                <SelectItem key={tag.newsTagID} value={String(tag.newsTagID)}>
+                                                    {tag.tagName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
 
-                            <div> Hello </div>
-                            <button
-                                onClick={() => editor.chain().focus().toggleTaskList().run()}
-                                className={editor.isActive('taskList') ? 'is-active' : ''}
-                            >
-                                Toggle task list
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().splitListItem('taskItem').run()}
-                                disabled={!editor.can().splitListItem('taskItem')}
-                            >
-                                Split list item
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().sinkListItem('taskItem').run()}
-                                disabled={!editor.can().sinkListItem('taskItem')}
-                            >
-                                Sink list item
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().liftListItem('taskItem').run()}
-                                disabled={!editor.can().liftListItem('taskItem')}
-                            >
-                                Lift list item
-                            </button>
-
-                            <button onClick={() => editor.chain().focus().setTextAlign('left').run()}>Left</button>
-                            <button onClick={() => editor.chain().focus().setTextAlign('center').run()}>Center</button>
-                            <button onClick={() => editor.chain().focus().setTextAlign('right').run()}>Right</button>
-                            <button onClick={() => {
-                                const url = prompt('Enter URL')
-                                if (url) editor.chain().focus().setLink({ href: url }).run()
-                            }}>Link</button>
-                            <button onClick={() => editor.chain().focus().toggleOrderedList().run()}>Ordered List</button>
-                            <button onClick={() => editor.chain().focus().toggleBlockquote().run()}>Blockquote</button>
-                            <button onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</button>
-
-                            <label>
-                                Image
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        // Store the file in a state array for later upload
-                                        setEditorImages(prev => [...prev, file]);
-                                        // Optionally show a preview in the editor using a local URL
-                                        const url = URL.createObjectURL(file);
-                                        editor.chain().focus().setImage({ src: url }).run();
+                                </>
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Ảnh tiêu đề</FormLabel>
+                            <FormControl>
+                                <div
+                                    className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                                    onDragOver={e => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                     }}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith("image/"));
+                                        if (file) {
+                                            setTitleImage(file);
+                                            const reader = new FileReader();
+                                            reader.onload = () => setTitleImageUrl(reader.result as string);
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                    onClick={() => {
+                                        document.getElementById("title-image-input")?.click();
+                                    }}
+                                >
+                                    <input
+                                        id="title-image-input"
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: "none" }}
+                                        onChange={handleTitleImageChange}
+                                    />
+                                    <div className="text-gray-500">Kéo và thả ảnh vào đây hoặc bấm để chọn ảnh</div>
+                                    {titleImageUrl && (
+                                        <div className="flex justify-center mt-4">
+                                            <NextImage width={200} height={200} src={titleImageUrl} alt="Title" className="max-h-40 rounded" />
+                                        </div>
+                                    )}
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                        <div>
+                            <label className="font-medium mb-1 block">Nội dung bài viết *</label>
+                            <div className="border rounded-lg bg-white dark:bg-gray-800">
+                                <Tabs defaultValue="text" className="mb-2 border-b p-4">
+                                    <TabsList className="flex gap-2 px-1 mb-4">
+                                        <TabsTrigger value="text">Văn bản</TabsTrigger>
+                                        <TabsTrigger value="heading">Tiêu đề</TabsTrigger>
+                                        <TabsTrigger value="list">Danh sách</TabsTrigger>
+                                        <TabsTrigger value="table">Bảng</TabsTrigger>
+                                        <TabsTrigger value="align">Căn lề</TabsTrigger>
+                                        <TabsTrigger value="insert">Chèn</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="text">
+                                        <div className="flex gap-4 flex-wrap">
+                                            <button type="button" title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={clsx(editor.isActive('bold') ? 'is-active' : '', 'flex items-center gap-x-1')}><Bold size={16} /><span>In đậm</span></button>
+                                            <button type="button" title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={clsx(editor.isActive('italic') ? 'is-active' : '', 'flex items-center gap-x-1')}><Italic size={16} /> <span>In nghiêng</span></button>
+                                            <button type="button" title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={clsx(editor.isActive('underline') ? 'is-active' : '', 'flex items-center gap-x-1')}><UnderlineIcon size={16} /><span>Gạch chân</span></button>
+                                            <button type="button" title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={clsx(editor.isActive('blockquote') ? 'is-active' : '', 'flex items-center gap-x-1')}><QuoteIcon size={16} /><span>Trích</span></button>
+                                            <button type="button" title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={clsx(editor.isActive('codeBlock') ? 'is-active' : '', 'flex items-center gap-x-1')}><Code2 size={16} /><span>Khối code</span></button>
+                                            <button type="button" title="Link" onClick={() => { const url = prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={clsx(editor.isActive('link') ? 'is-active' : '', 'flex items-center gap-x-1')}><LinkIcon size={16} /><span>Liên kết</span></button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="heading">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <button type="button" title="H1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}><Heading1 size={18} /></button>
+                                            <button type="button" title="H2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}><Heading2 size={18} /></button>
+                                            <button type="button" title="H3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}><Heading3 size={18} /></button>
+                                            <button type="button" title="H4" onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={editor.isActive('heading', { level: 4 }) ? 'is-active' : ''}><Heading4 size={18} /></button>
+                                            <button type="button" title="H5" onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()} className={editor.isActive('heading', { level: 5 }) ? 'is-active' : ''}><Heading5 size={18} /></button>
+                                            <button type="button" title="H6" onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()} className={editor.isActive('heading', { level: 6 }) ? 'is-active' : ''}><Heading6 size={18} /></button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="list">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <button type="button" title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}><List size={18} /><span></span></button>
+                                            <button type="button" title="Ordered List" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={editor.isActive('orderedList') ? 'is-active' : ''}><ListOrdered size={18} /></button>
+                                            <button type="button" title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={editor.isActive('taskList') ? 'is-active' : ''}><ListChecks size={18} /></button>
+                                            <button type="button" title="Split List Item" onClick={() => editor.chain().focus().splitListItem('listItem').run()} disabled={!editor.can().splitListItem('listItem')}><Split size={16} /></button>
+                                            <button type="button" title="Sink List Item" onClick={() => editor.chain().focus().sinkListItem('listItem').run()} disabled={!editor.can().sinkListItem('listItem')}><ArrowRight size={16} /></button>
+                                            <button type="button" title="Lift List Item" onClick={() => editor.chain().focus().liftListItem('listItem').run()} disabled={!editor.can().liftListItem('listItem')}><ArrowLeft size={16} /></button>
+                                            <button type="button" title="Split Task Item" onClick={() => editor.chain().focus().splitListItem('taskItem').run()} disabled={!editor.can().splitListItem('taskItem')}><Split size={16} /></button>
+                                            <button type="button" title="Sink Task Item" onClick={() => editor.chain().focus().sinkListItem('taskItem').run()} disabled={!editor.can().sinkListItem('taskItem')}><ArrowRight size={16} /></button>
+                                            <button type="button" title="Lift Task Item" onClick={() => editor.chain().focus().liftListItem('taskItem').run()} disabled={!editor.can().liftListItem('taskItem')}><ArrowLeft size={16} /></button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="table">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <button type="button" title="Insert Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon size={16} /></button>
+                                            <button type="button" title="Add Column Before" onClick={() => editor.chain().focus().addColumnBefore().run()}><Columns2 size={16} /></button>
+                                            <button type="button" title="Add Column After" onClick={() => editor.chain().focus().addColumnAfter().run()}><Columns2 size={16} /></button>
+                                            <button type="button" title="Delete Column" onClick={() => editor.chain().focus().deleteColumn().run()}><Trash2 size={16} /></button>
+                                            <button type="button" title="Add Row Before" onClick={() => editor.chain().focus().addRowBefore().run()}><Rows2 size={16} /></button>
+                                            <button type="button" title="Add Row After" onClick={() => editor.chain().focus().addRowAfter().run()}><Rows2 size={16} /></button>
+                                            <button type="button" title="Delete Row" onClick={() => editor.chain().focus().deleteRow().run()}><Trash2 size={16} /></button>
+                                            <button type="button" title="Delete Table" onClick={() => editor.chain().focus().deleteTable().run()}><Trash2 size={16} /></button>
+                                            <button type="button" title="Merge Cells" onClick={() => editor.chain().focus().mergeCells().run()}><Merge size={16} /></button>
+                                            <button type="button" title="Split Cell" onClick={() => editor.chain().focus().splitCell().run()}><Split size={16} /></button>
+                                            <button type="button" title="Toggle Header Column" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>1</button>
+                                            <button type="button" title="Toggle Header Row" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>2</button>
+                                            <button type="button" title="Toggle Header Cell" onClick={() => editor.chain().focus().toggleHeaderCell().run()}><SquareStack size={16} /></button>
+                                            <button type="button" title="Merge or Split" onClick={() => editor.chain().focus().mergeOrSplit().run()}><Merge size={16} /></button>
+                                            <button type="button" title="Set Cell Attribute" onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}><Columns2 size={16} /></button>
+                                            <button type="button" title="Fix Tables" onClick={() => editor.chain().focus().fixTables().run()}><TableIcon size={16} /></button>
+                                            <button type="button" title="Go to Next Cell" onClick={() => editor.chain().focus().goToNextCell().run()}><ArrowDown size={16} /></button>
+                                            <button type="button" title="Go to Previous Cell" onClick={() => editor.chain().focus().goToPreviousCell().run()}><ArrowUp size={16} /></button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="align">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <button type="button" title="Align Left" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}><AlignLeft size={16} /></button>
+                                            <button type="button" title="Align Center" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}><AlignCenter size={16} /></button>
+                                            <button type="button" title="Align Right" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}><AlignRight size={16} /></button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="insert">
+                                        <div className="flex gap-2 flex-wrap">
+                                            <label title="Image">
+                                                <ImageIcon size={16} />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    style={{ display: 'none' }}
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setEditorImages(prev => [...prev, file]);
+                                                        const url = URL.createObjectURL(file);
+                                                        editor.chain().focus().setImage({ src: url }).run();
+                                                    }}
+                                                />
+                                            </label>
+                                            <button type="button" title="Horizontal Rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}><Minus size={16} /></button>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                                <EditorContent
+                                    editor={editor}
+                                    className="tiptap-content min-h-[300px] p-3 focus:outline-none rounded-br-md rounded-bl-md focus:border-none"
+                                // style={{ minHeight: 300, height: 400 }}
                                 />
-                            </label>
+                            </div>
+                            <style jsx global>{`
+  .tiptap-content:focus, .tiptap-content:focus-visible,
+  .tiptap-content *:focus, .tiptap-content *:focus-visible {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
 
-                            <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-                                Set horizontal rule
-                            </button>
-                            <button
-                                onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-                                }
-                            >
-                                Insert table
-                            </button>
-                            <button onClick={() => editor.chain().focus().addColumnBefore().run()}>
-                                Add column before
-                            </button>
-                            <button onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column after</button>
-                            <button onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</button>
-                            <button onClick={() => editor.chain().focus().addRowBefore().run()}>Add row before</button>
-                            <button onClick={() => editor.chain().focus().addRowAfter().run()}>Add row after</button>
-                            <button onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</button>
-                            <button onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</button>
-                            <button onClick={() => editor.chain().focus().mergeCells().run()}>Merge cells</button>
-                            <button onClick={() => editor.chain().focus().splitCell().run()}>Split cell</button>
-                            <button onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>
-                                Toggle header column
-                            </button>
-                            <button onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
-                                Toggle header row
-                            </button>
-                            <button onClick={() => editor.chain().focus().toggleHeaderCell().run()}>
-                                Toggle header cell
-                            </button>
-                            <button onClick={() => editor.chain().focus().mergeOrSplit().run()}>Merge or split</button>
-                            <button onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}>
-                                Set cell attribute
-                            </button>
-                            <button onClick={() => editor.chain().focus().fixTables().run()}>Fix tables</button>
-                            <button onClick={() => editor.chain().focus().goToNextCell().run()}>Go to next cell</button>
-                            <button onClick={() => editor.chain().focus().goToPreviousCell().run()}>
-                                Go to previous cell
-                            </button>
+  .is-active {
+    background-color: #e9e9e9; /* Light blue background */
+    color: #000; /* Blue text color */
+    border-color: #2563eb; /* Blue border color */
+    padding: 0.2rem 0.5rem;
+    border-radius: calc(var(--radius) /* 0.25rem = 4px */ - 2px);
+    }
+`}</style>
                         </div>
-                        <EditorContent editor={editor} className="tiptap-content" />
+                        <div className="flex items-center gap-2 mt-2">
+                            <input type="checkbox" checked={watch("isPublished")} onChange={e => setValue("isPublished", e.target.checked)} id="isPublished" />
+                            <label htmlFor="isPublished">Công khai bài viết</label>
+                        </div>
+                       <div className="flex justify-end mt-4">
+                            <Button type="submit" disabled={loading} className="cursor-pointer">
+                                {loading ? "Đang lưu..." : "Cập nhật bài viết"}
+                            </Button>
+                       </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 mt-2">
-                    <input
-                        type="checkbox"
-                        checked={isPublished}
-                        onChange={e => setIsPublished(e.target.checked)}
-                        id="isPublished"
-                    />
-                    <label htmlFor="isPublished">Công khai bài viết</label>
-                </div>
-                {errorMsg && <div className="text-red-600">{errorMsg}</div>}
-                {successMsg && <div className="text-green-600">{successMsg}</div>}
-                <Button type="submit" disabled={loading}>
-                    {loading ? "Đang lưu..." : "Cập nhật bài viết"}
-                </Button>
             </form>
-        </div>
+        </FormProvider>
     );
 }

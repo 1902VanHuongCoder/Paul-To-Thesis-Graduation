@@ -9,7 +9,9 @@ import {
   Discount,
   Delivery,
 } from "../models";
+import InventoryTransaction from "../models/InventoryTransaction";
 import { Transaction } from "sequelize";
+import { io } from "../server";
 
 // GET all orders
 export const getAllOrders = async (
@@ -164,6 +166,23 @@ export const createOrder = async (
         }
       }
 
+      // 5. For each cart item, create an 'export' inventory transaction and update product quantity
+      for (const item of cartItems) {
+        // Create export transaction
+        await InventoryTransaction.create({
+          productID: item.productID,
+          quantityChange: -item.quantity,
+          transactionType: "export",
+          note: `Đơn hàng ${newOrder.orderID}`,
+          performedBy: fullName || "system",
+        }, { transaction: t });
+        // Update product quantity
+        await Product.increment(
+          { quantityAvailable: -item.quantity },
+          { where: { productID: item.productID }, transaction: t }
+        );
+      }
+
       await CartItem.destroy({
         where: { cartID },
         transaction: t,
@@ -175,6 +194,13 @@ export const createOrder = async (
       });
 
       await t?.commit();
+
+      // Emit order notification to all admins, this allow them to know that a new order has been created 
+      io.emit("order-notification", {
+        userName : newOrder.fullName,
+        createdAt: newOrder.createdAt,
+      });
+      
       res.status(201).json(newOrder);
     }
   } catch (error) {
@@ -204,6 +230,8 @@ export const updateOrder = async (
     products,
     orderStatus,
   } = req.body;
+
+  console.log(req.body);
 
   const t = await Order.sequelize?.transaction();
 

@@ -25,7 +25,11 @@ export default function CustomBreadcrumb({ items }: CustomBreadcrumbProps) {
             ) : (
               <BreadcrumbPage>{item.label}</BreadcrumbPage>
             )}
-            {index < items.length - 1 && <BreadcrumbSeparator />}
+            {index < items.length - 1 && (
+              <span aria-hidden="true" className="mx-2">
+                <BreadcrumbSeparator />
+              </span>
+            )}
           </BreadcrumbItem>
         ))}
       </BreadcrumbList>

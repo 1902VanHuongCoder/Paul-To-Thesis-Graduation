@@ -18,15 +18,15 @@ import SearchForm from "../search-form/search-form";
 import ShoppingCart from "../shopping-cart/shopping-cart";
 import WishlistDialog from "../dialog/wishlist-dialog";
 import MobileDrawer from "../drawer/mobile-drawer";
-import LanguageSwitcher from "../language-switcher/language-switcher";
-import { baseUrl } from "@/lib/base-url";
-import { useDictionary } from "@/contexts/dictonary-context";
+// import LanguageSwitcher from "../language-switcher/language-switcher";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import SignUpForm from "@/components/section/signup-page/signup-page";
 import LoginForm from "@/components/section/login-page/login-page";
 import { useUser } from "@/contexts/user-context";
 import UserDrawer from "../drawer/user-drawer";
+import { fetchCategories } from "@/lib/category-apis";
+import { Badge } from "../badge/badge";
 
 const ListItem = React.forwardRef<
     HTMLAnchorElement,
@@ -62,70 +62,74 @@ interface Category {
 }
 
 export default function Navigation() {
-    const { user, logout } = useUser();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const { lang, dictionary: t } = useDictionary();
-    const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
-    const { addToCart, fetchCart } = useShoppingCart();
-    const [openSignUpForm, setOpenSignUpForm] = useState(false);
-    const [openLoginForm, setOpenLoginForm] = useState(false);
-    const [openUserDrawer, setOpenUserDrawer] = useState(false);
+    // Contexts
+    const { user, logout } = useUser(); // User context to manage user state
+    const { addToCart, fetchCart } = useShoppingCart(); // Shopping cart context to manage cart operations
+    const { wishlists, removeFromWishlist, setWishlist } = useWishlist(); // Wishlist context to manage wishlist operations
+
+    // State variables
+    const [categories, setCategories] = useState<Category[]>([]); // List of categories fetched from the API 
+    const [openSignUpForm, setOpenSignUpForm] = useState(false); // State to control the visibility of the sign-up form
+    const [openLoginForm, setOpenLoginForm] = useState(false); // State to control the visibility of the login form
+    const [openUserDrawer, setOpenUserDrawer] = useState(false); // State to control the visibility of the user drawer (user profile, settings, etc.)
 
 
-    // Example handlers
-    const handleRemoveItem = (productID: number, customerID: string) => {
+    // Memoized handlers for performance
+    const handleRemoveItem = React.useCallback((productID: number, customerID: string) => {
         removeFromWishlist(customerID, productID);
-        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
-        setWishlist(wishlistUpdated);
-    };
+        setWishlist(wishlists.filter((item) => item.productID !== productID));
+    }, [removeFromWishlist, setWishlist, wishlists]);
 
-    const handleAddToCart = async (productID: number, customerID: string) => {
-        addToCart(productID);
+    const handleAddToCart = React.useCallback(async (productID: number, customerID: string) => {
+        addToCart(productID, 1);
         fetchCart(customerID);
         removeFromWishlist(customerID, productID);
-        const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
-        setWishlist(wishlistUpdated);
-    };
+        setWishlist(wishlists.filter((item) => item.productID !== productID));
+    }, [addToCart, fetchCart, removeFromWishlist, setWishlist, wishlists]);
 
-
+    // Fetch categories from the API when the component mounts 
     useEffect(() => {
-        fetch(`${baseUrl}/api/category`)
-            .then((res) => res.json())
-            .then((data) => {
-                setCategories(data);
-            }
-            )
+        const fetchCategoriesData = async () => { 
+            const categoriesData = await fetchCategories(); 
+            setCategories(categoriesData);
+        } 
+        fetchCategoriesData();
     }, []);
 
     return (
-        <div className="relative w-full h-fit bg-white font-sans shadow-lg">
-            <div className="absolute -bottom-6 left-0 w-full h-auto z-1">
-                <Image src={vector02} alt="Logo" className="mb-4 w-full h-auto" priority />
+        <nav className="relative w-full h-fit font-sans shadow-lg" aria-label="Main navigation">
+            <div className="absolute -bottom-6 left-0 w-full h-auto z-1" aria-hidden="true">
+                <Image src={vector02} width={1000} height={100} alt="" className="mb-4 w-full h-auto" priority />
             </div>
-            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:py-4">
-                <Image src={darkLogo} alt="Logo" width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" />
-                <NavigationMenu className="hidden md:block">
+            <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:pt-4 md:pb-2">
+                <Link href="/" aria-label={"Trang chủ"}>
+                    <Image src={darkLogo} alt={"Logo NFeam House"} width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" priority />
+                </Link>
+                <NavigationMenu className="hidden md:block" aria-label={"Menu"}>
                     <NavigationMenuList>
                         {/* Home */}
                         <NavigationMenuItem>
-                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navHomepage ? t.navHomepage : "Trang chủ"}
+                            <Link href="/" className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-current="page">
+                                {"Trang chủ"}
                             </Link>
                         </NavigationMenuItem>
-
                         {/* Categories Dropdown */}
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className="text-md font-semibold">{t?.navCategory ? t.navCategory : "Danh mục"}</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="text-md font-semibold" aria-haspopup="menu">
+                                {"Danh mục"}
+                            </NavigationMenuTrigger>
                             <NavigationMenuContent>
-                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]" aria-label={ "Danh mục"}>
                                     {categories.map((category) => (
                                         <li key={category.categoryID}>
                                             <Link
-                                                href={`/${lang}/homepage/category/${category.categorySlug}`}
+                                                href={`/vi/homepage/category/${category.categorySlug}`}
                                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                aria-label={category.categoryName}
                                             >
                                                 <div className="text-sm font-medium leading-none">{category.categoryName}</div>
-                                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                <p className="text-sm leading-snug text-muted-foreground line-clamp-1">
                                                     {category.categoryDescription}
                                                 </p>
                                             </Link>
@@ -134,40 +138,44 @@ export default function Navigation() {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-
                         {/* News */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navNews ? t.navNews : "Tin tức"}
+                            <Link href={`/vi/homepage/news`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Tin tức"}>
+                                {"Tin tức"}
                             </Link>
                         </NavigationMenuItem>
-
                         {/* Contact */}
                         <NavigationMenuItem>
-                            <Link href={`/${lang}/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}>
-                                {t?.navContact ? t.navContact : "Liên hệ"}
+                            <Link href={`/vi/homepage/contact`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Liên hệ"}>
+                                {"Liên hệ"}
+                            </Link>
+                        </NavigationMenuItem>
+                        <NavigationMenuItem>
+                            <Link href={`/vi/homepage/detect-rice-disease`} className={cn(navigationMenuTriggerStyle(), "text-md font-semibold")}
+                                aria-label={"Chẩn đoán bệnh lúa"}>
+                                <Badge className="bg-red-500 text-white mr-2">New</Badge>
+                                <span>{"Chẩn đoán bệnh lúa"}</span>
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>
                 <div className="items-center flex gap-x-4 w-full justify-center md:justify-end">
-                    <LanguageSwitcher />
+                    {/* <LanguageSwitcher /> */}
                     <div className="flex items-center gap-x-2">
                         <SearchForm />
-                        {
-                            user && (
-                                <>
-                                    <ShoppingCart />
-                                    <WishlistDialog
-                                        wishlists={wishlists}
-                                        onRemoveItemOutWishlist={(productID, customerID) => handleRemoveItem(productID, customerID)}
-                                        onAddToCart={(productID, customerID) => handleAddToCart(productID, customerID)}
-                                        clearAll={() => { }}
-                                    />
-                                </>
-                            )
-                        }
-
+                        {user && (
+                            <>
+                                <ShoppingCart />
+                                <WishlistDialog
+                                    wishlists={wishlists}
+                                    onRemoveItemOutWishlist={handleRemoveItem}
+                                    onAddToCart={handleAddToCart}
+                                    clearAll={() => { }}
+                                />
+                            </>
+                        )}
                         {user ? (
                             <UserDrawer
                                 user={user}
@@ -177,18 +185,18 @@ export default function Navigation() {
                                     logout();
                                     setOpenSignUpForm(false);
                                     setOpenLoginForm(false);
-                                }} />
-                        ) : (<>
-                            <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
-                            <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
-                        </>
-
+                                }}
+                            />
+                        ) : (
+                            <>
+                                <LoginForm open={openLoginForm} setOpen={setOpenLoginForm} setOpenSignUpForm={setOpenSignUpForm} />
+                                <SignUpForm open={openSignUpForm} setOpen={setOpenSignUpForm} setOpenLoginForm={setOpenLoginForm} />
+                            </>
                         )}
                     </div>
                     <MobileDrawer />
                 </div>
             </div>
-        </div>
-
+        </nav>
     );
 }
