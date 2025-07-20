@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 
 type DeliveryFormValues = {
   name: string;

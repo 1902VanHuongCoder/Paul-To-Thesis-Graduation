@@ -4,8 +4,8 @@ import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } 
 import { Badge } from "@/components/ui/badge/badge"
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
 import { DashboardBarChart } from "@/components/ui/chart/dashboard-bar-chart"
-import formatVND from '@/lib/format-vnd'
-import { baseUrl } from '@/lib/base-url'
+import formatVND from '@/lib/others/format-vnd'
+import { baseUrl } from '@/lib/others/base-url'
 import { UserGrowthLineChart } from '@/components/ui/chart/user-growth-line-chart';
 import { NewsCommentRatingPieChart } from '@/components/ui/chart/dashboard-pie-chart';
 import DashboardCategoryPieChart from '@/components/ui/chart/dashboard-category-pie-chart';

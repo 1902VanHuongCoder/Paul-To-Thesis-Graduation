@@ -1,5 +1,5 @@
 "use client";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useState, useEffect } from "react";
 
 interface Location {

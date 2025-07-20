@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Input } from "@/components/ui/input/input";
 // import Button from "@/components/ui/button/button-brand";
 import { useForm } from "react-hook-form";

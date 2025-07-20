@@ -2,15 +2,15 @@
 import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Hero, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton } from "@/components";
 import { Funnel } from "lucide-react";
 import React, { useEffect, useCallback } from "react";
-import { baseUrl } from "@/lib/base-url";
 import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
-import removeDuplicates from "@/lib/remove-duplicate";
+import removeDuplicates from "@/lib/others/remove-duplicate";
 import Head from "next/head";
 import { fetchProducts } from "@/lib/product-apis";
 import { fetchCategories } from "@/lib/category-apis";
-import { fetchTags } from "@/lib/product-tag-apis";
+import { fetchProductsByTag, fetchTags } from "@/lib/product-tag-apis";
 import { increaseNoAccess } from "@/lib/statistic-apis";
+
 interface Category {
     categoryDescription: string,
     categoryID: number,
@@ -69,7 +69,7 @@ const Homepage = () => {
         },
         {
             value: "asc",
-            label:  "Giá tăng dần",
+            label: "Giá tăng dần",
         },
         {
             value: "desc",
@@ -87,7 +87,6 @@ const Homepage = () => {
         return productsAfterFilter.slice(start, start + displayModeProps.resultsPerPage);
     }, [productsAfterFilter, currentPage, displayModeProps.resultsPerPage]);
 
-    // Memoize filter handlers for performance
     const handleCategoryFilter = useCallback((categoryID: number) => {
         const filteredProducts = products.filter((product) => product.categoryID === categoryID);
         setProductsAfterFilter(filteredProducts);
@@ -98,7 +97,7 @@ const Homepage = () => {
         const filteredProducts = products.filter((product) => {
             if (product.productPriceSale > 0) {
                 return product.productPriceSale >= min && product.productPriceSale <= max;
-            } 
+            }
             const price = product.productPrice;
             return price >= min && price <= max;
         });
@@ -111,19 +110,11 @@ const Homepage = () => {
         const uniqueArr = removeDuplicates(listOfTagIDTemp);
         setListOfTagID(uniqueArr);
         const fetchProductIDContainTagID = async () => {
-            try {
-                const response = await fetch(`${baseUrl}/api/product-tag`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    }, body: JSON.stringify({ tagIDs: uniqueArr })
-                });
-                const data = await response.json();
-                const filteredProducts = products.filter((product) => data.productIDs.includes(product.productID));
-                setProductsAfterFilter(filteredProducts);
-            } catch (error) {
-                console.error("Error fetching product's IDs contain belong to tagID:", error);
-            }
+            const [response] = await Promise.all([
+                fetchProductsByTag(uniqueArr)
+            ]);
+            const filteredProducts = products.filter((product) => response.productIDs.includes(product.productID));
+            setProductsAfterFilter(filteredProducts);
         }
         fetchProductIDContainTagID();
     }, [listOfTagID, products]);
@@ -169,19 +160,15 @@ const Homepage = () => {
     useEffect(() => {
         const fetchAll = async () => {
             setLoading(true);
-            try {
-                const [categoriesData, tagsData, productsData] = await Promise.all([
-                    fetchCategories(),
-                    fetchTags(),
-                    fetchProducts(),
-                ]);
-                setCategories(categoriesData);
-                setTags(tagsData);
-                setProducts(productsData);
-                setProductsAfterFilter(productsData);
-            } catch (error) {
-                console.error(error);
-            }
+            const [categoriesData, tagsData, productsData] = await Promise.all([
+                fetchCategories(),
+                fetchTags(),
+                fetchProducts(),
+            ]);
+            setCategories(categoriesData);
+            setTags(tagsData);
+            setProducts(productsData);
+            setProductsAfterFilter(productsData);
             setLoading(false);
         };
         fetchAll();
@@ -195,7 +182,7 @@ const Homepage = () => {
         <>
             <Head>
                 <title>{"NFeam House - Trang chủ"}</title>
-                <meta name="description" content={ "NFeam House - Nền tảng nông nghiệp thông minh, cung cấp giải pháp quản lý, tư vấn, và kết nối cho nhà nông hiện đại."} />
+                <meta name="description" content={"NFeam House - Nền tảng nông nghiệp thông minh, cung cấp giải pháp quản lý, tư vấn, và kết nối cho nhà nông hiện đại."} />
             </Head>
             <main className="relative mx-auto" aria-label="Nội dung chính trang chủ">
                 {/* Hero */}

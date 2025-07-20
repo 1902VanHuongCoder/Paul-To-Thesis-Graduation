@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Input } from "@/components/ui/input/input";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -39,7 +39,7 @@ import clsx from "clsx";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { Button } from "@/components/ui/button/button";
 import toast from "react-hot-toast";
-import generateSlug from "@/lib/generateSlug";
+import generateSlug from "@/lib/others/generateSlug";
 
 
 export default function AddNewsPage() {

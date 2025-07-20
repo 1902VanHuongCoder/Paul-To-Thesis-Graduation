@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input/input";
 import Button from "@/components/ui/button/button-brand";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useUser } from "@/contexts/user-context";
 
 export default function AdminLoginPage() {

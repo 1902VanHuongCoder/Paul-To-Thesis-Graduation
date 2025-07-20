@@ -15,7 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { baseUrl } from "@/lib/base-url"
+import { baseUrl } from "@/lib/others/base-url"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select"
 
 interface Order {

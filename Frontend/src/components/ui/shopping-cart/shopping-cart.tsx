@@ -4,7 +4,7 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, Drawer
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { useDictionary } from "@/contexts/dictonary-context";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";

@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -27,7 +27,7 @@ import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import NextImage from "next/image";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 
 type Category = {
   categoryID: number;

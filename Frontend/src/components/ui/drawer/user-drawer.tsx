@@ -2,11 +2,9 @@
 import Link from "next/link";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger, DrawerDescription } from "./drawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { BookUser, HousePlus, LogOut, ReceiptText, Settings, X } from "lucide-react";
 
 export default function UserDrawer({ user, open, setOpen, logout }: { user: { userID: string, username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
-    const { lang } = useDictionary();
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
             <DrawerTrigger asChild>
@@ -40,10 +38,10 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: { us
                             {user.email && <div className="text-gray-500">{user.email}</div>}
                         </div>
                     </div>
-                    <Link href={`/${lang}/homepage/user-profile`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><BookUser /></span><span>Xem chi tiết</span></Link>
-                    <Link href={`/${lang}/homepage/order-history`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><ReceiptText /></span><span>Lịch sử mua hàng</span></Link>
-                    <Link href={`/${lang}/homepage/add-shipping-address`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><HousePlus /></span><span>Thêm địa chỉ giao hàng</span></Link>
-                    <Link href={`/${lang}/homepage/update-user-profile?userID=${user.userID}`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><Settings /></span><span>Cài đặt tài khoản</span></Link>
+                    <Link href={`/vi/homepage/user-profile`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><BookUser /></span><span>Xem chi tiết</span></Link>
+                    <Link href={`/vi/homepage/order-history`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><ReceiptText /></span><span>Lịch sử mua hàng</span></Link>
+                    <Link href={`/vi/homepage/add-shipping-address`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><HousePlus /></span><span>Thêm địa chỉ giao hàng</span></Link>
+                    <Link href={`/vi/homepage/update-user-profile?userID=${user.userID}`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><Settings /></span><span>Cài đặt tài khoản</span></Link>
                 </div>
                 <div className="flex justify-end p-4 border-t border-gray-200">
                     {/* Add more user actions/info here */}

@@ -1,4 +1,4 @@
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 
 export async function increaseNoAccess() {
   const res = await fetch(`${baseUrl}/api/statistic/increment`, {

@@ -1,4 +1,4 @@
-import { baseUrl } from "../base-url";
+import { baseUrl } from "../others/base-url";
 
 export async function fetchOrigins() {
     const res = await fetch(`${baseUrl}/api/origin`);

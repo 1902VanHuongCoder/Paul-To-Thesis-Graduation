@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button/button";
 import Image from "next/image";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 
 // Dynamically import the barcode scanner to avoid SSR issues
 const BarcodeScannerComponent = dynamic(

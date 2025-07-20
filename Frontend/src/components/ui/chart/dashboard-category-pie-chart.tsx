@@ -4,7 +4,7 @@ import * as React from "react"
 import { Pie, PieChart, Cell, Label } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { baseUrl } from "@/lib/base-url"
+import { baseUrl } from "@/lib/others/base-url"
 
 const COLORS = [
 	"#4F8A8B",

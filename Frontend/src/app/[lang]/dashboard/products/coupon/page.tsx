@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form/form";
 import { PencilLine, Trash, CheckCircle, XCircle } from "lucide-react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import {
   Table,
   TableHeader,
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination/pagination";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import toast from "react-hot-toast";
 

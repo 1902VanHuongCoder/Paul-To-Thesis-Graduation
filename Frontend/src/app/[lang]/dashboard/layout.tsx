@@ -7,7 +7,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { baseUrl } from "@/lib/base-url"
+import { baseUrl } from "@/lib/others/base-url"
 import { MessageCircle } from "lucide-react"
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react"

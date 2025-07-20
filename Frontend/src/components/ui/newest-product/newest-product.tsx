@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import NextImage from "next/image";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { Image } from "lucide-react";
 import Link from "next/link";
 

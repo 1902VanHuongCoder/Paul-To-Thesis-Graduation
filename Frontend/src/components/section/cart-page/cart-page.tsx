@@ -6,9 +6,9 @@ import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useDictionary } from "@/contexts/dictonary-context";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import toast from "react-hot-toast";
 import { useCheckout } from "@/contexts/checkout-context";
 import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";

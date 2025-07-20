@@ -4,7 +4,7 @@ import Image from "next/image"
 import lightlogo from "@public/images/light+logo.png";
 import grazzvector from "@public/vectors/Grazz+vector.png";
 import Link from "next/link";
-import formatDate from "@/lib/format-date";
+import formatDate from "@/lib/others/format-date";
 import { fetchNews } from "@/lib/news-apis";
 
 type News = {
@@ -21,7 +21,7 @@ type News = {
 };
 
 
-export const Footerdemo = () => {
+export const Footer = () => {
     // Contexts
 
     const [news, setNews] = React.useState<News[]>([]);
@@ -42,13 +42,12 @@ export const Footerdemo = () => {
             </div>
             <div className="container px-4 py-12 w-full mx-auto">
                 <div className="flex flex-col gap-y-4 md:flex-row items-start md:items-center justify-between border-b-[1px] border-dashed border-white/40 pb-8">
-                    <Link href="/" aria-label={"Trang chủ"}>
+                    <Link href="/" aria-label={"Trang chủ"} className="w-[200px] h-auto">
                         <Image 
                             src={lightlogo} 
                             width={200} 
                             height={200} 
-                            style={{ height: 'auto' }} 
-                            className="w-[200px] h-auto" 
+                            className="w-full h-full object-cover" 
                             alt={"NFeamHouse logo"} 
                             priority 
                         />
@@ -146,4 +145,4 @@ export const Footerdemo = () => {
     );
 };
 
-export default Footerdemo 
+export default Footer

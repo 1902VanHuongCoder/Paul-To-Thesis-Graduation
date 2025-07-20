@@ -11,7 +11,7 @@ import {
     TableCaption,
 } from "@/components/ui/table/table";
 import Image from "next/image";
-import formatDate from "@/lib/format-date";
+import formatDate from "@/lib/others/format-date";
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import {
@@ -26,7 +26,7 @@ import {
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { useDictionary } from "@/contexts/dictonary-context";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {

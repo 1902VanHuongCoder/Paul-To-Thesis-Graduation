@@ -4,20 +4,24 @@ import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
 import Image from "next/image";
-import { baseUrl } from "@/lib/base-url";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { useCheckout } from "@/contexts/checkout-context";
 import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form/form";
-import { provinceCoordinate } from "@/lib/vietnam-province-coordinate";
 import PayPalButton from "@/components/ui/button/paypal-button";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
 import TermsAndPrivacyDialog from "../terms-and-privacy-policy/terms-and-privacy-policy";
+import { fetchDistrictList, fetchProvinceList, fetchWardList } from "@/lib/address-apis";
+import { generateVNPayPaymentUrl } from "@/lib/payment-apis";
+import { checkPromotionCode } from "@/lib/discount-apis";
+import { createNewOrder } from "@/lib/order-apis";
+import { fetchDeliveryMethods } from "@/lib/delivery-apis";
+import { calculateShippingCost } from "@/lib/others/calculate-shipping-cost";
+import { addNewShippingAddress, getShippingAddressesByUserID } from "@/lib/shipping-address-apis";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -84,7 +88,6 @@ export default function CheckoutPage() {
     // Contexts 
     const { cart, setCart } = useShoppingCart();
     const { user } = useUser();
-    const { dictionary: d, lang } = useDictionary();
     const { checkoutData, setCheckoutData } = useCheckout();
 
     // State variables
@@ -126,7 +129,7 @@ export default function CheckoutPage() {
 
     const [selectedProvince, setSelectedProvince] = useState({ selectedProvince: "", code: 1 }); // For selected province and its code
     const [selectedDistrict, setSelectedDistrict] = useState(""); // for selected district
-    const [distance, setDistance] = useState<number | null>(null); // For distance calculation between origin and destination for shipping cost
+    const [deliveryCost, setDeliveryCost] = useState(0); // For delivery cost calculation
 
     // Shipping address state
     const [addresses, setAddresses] = useState<ShippingAddress[]>([]); // List of user addresses
@@ -136,10 +139,12 @@ export default function CheckoutPage() {
     // Fetch provinces on mount
     useEffect(() => {
         const fetchProvinces = async () => {
-            const res = await fetch("https://provinces.open-api.vn/api/?depth=1");
-            const data = await res.json();
-            setProvinces(data);
-            console.log(data, "Provinces data fetched");
+            try {
+                const data = await fetchProvinceList();
+                setProvinces(data || []);
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+            }
         };
         fetchProvinces();
     }, []);
@@ -152,10 +157,13 @@ export default function CheckoutPage() {
             return;
         }
         const fetchDistricts = async () => {
-            const res = await fetch(`https://provinces.open-api.vn/api/p/${provinces.find(p => p.name === selectedProvince.selectedProvince)?.code}?depth=2`);
-            const data = await res.json();
-            setDistricts(data.districts || []);
-            setWards([]);
+            try {
+                const data = await fetchDistrictList(String(selectedProvince.code));
+                setDistricts(data || []);
+                setWards([]);
+            } catch (error) {
+                console.error("Error fetching districts:", error);
+            }
         };
         fetchDistricts();
     }, [selectedProvince, provinces]);
@@ -167,8 +175,7 @@ export default function CheckoutPage() {
             return;
         }
         const fetchWards = async () => {
-            const res = await fetch(`https://provinces.open-api.vn/api/d/${districts.find(d => d.name === selectedDistrict)?.code}?depth=2`);
-            const data = await res.json();
+            const data = await fetchWardList(selectedDistrict);
             setWards(data.wards || []);
         };
         fetchWards();
@@ -183,22 +190,18 @@ export default function CheckoutPage() {
         language: string;
     }) => {
         try {
-            const response = await fetch(`${baseUrl}/api/create-payment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ orderID, amount, orderDescription, bankCode, language, orderType: "other" }),
-            });
-
-            const data = await response.json();
-            if (data.url) {
-                // Redirect to VNPay payment URL
-                window.location.href = data.url;
-            } else {
-                alert(data.message || "Failed to create payment");
-            }
+            const data = await generateVNPayPaymentUrl(
+                orderID,
+                amount,
+                orderDescription,
+                bankCode,
+                language,
+                "other",
+            );
+            window.location.href = data;
         } catch (error) {
             console.error("Error creating payment:", error);
-            alert("An error occurred. Please try again.");
+            toast.error("Đã có lỗi xảy ra trong quá trình tạo thanh toán với VNPay. Hãy thử lại!");
         }
     }
 
@@ -208,35 +211,29 @@ export default function CheckoutPage() {
             toast.error("Vui lòng nhập mã giảm giá.");
             return;
         }
+
         try {
             const discountID = promoCode.code;
-            const res = await fetch(`${baseUrl}/api/discount/${discountID}`);
-            if (!res.ok) {
-                throw new Error("Failed to fetch promo codes");
-            }
-            const data = await res.json();
-            const discount = data.discount || data; // Get discount data from response
+            const data = await checkPromotionCode(discountID);
             const now = new Date();
-            const expireDate = new Date(discount.expireDate); // Convert expireDate to Date object to check if promo code is expired 
+            const expireDate = new Date(data.expireDate);
 
             if (
-                discount.isActive === false ||
+                data.isActive === false ||
                 expireDate < now ||
-                (discount.usageLimit && discount.usedCount >= discount.usageLimit)
+                (data.usageLimit && data.usedCount >= data.usageLimit)
             ) {
                 toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
                 return;
-            } else if (discount.minOrderValue && totalPayment < discount.minOrderValue) {
+            } else if (data.minOrderValue && totalPayment < data.minOrderValue) {
                 toast.error(
                     `Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(
-                        discount.minOrderValue
+                        data.minOrderValue
                     )} VND.`
                 );
                 return;
             } else {
                 const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
-                console.log("Discount Value:", formatVND(discountValue));
-                toast.success("Áp dụng mã giảm giá thành công!");
                 setCheckoutData({
                     ...checkoutData,
                     discount: {
@@ -244,6 +241,7 @@ export default function CheckoutPage() {
                         discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
                     }
                 })
+                toast.success("Áp dụng mã giảm giá thành công!");
                 setPromoCode({
                     code: "",
                     discount: 0,
@@ -257,7 +255,6 @@ export default function CheckoutPage() {
 
     // Function to handle form submission
     const onSubmit = async (data: CheckoutFormValues) => {
-        alert("Submit form"); 
         if (!user) {
             toast.error("Bạn cần đăng nhập để đặt hàng.");
             return;
@@ -270,15 +267,17 @@ export default function CheckoutPage() {
         const productQuantity = cart.products.reduce((total, product) => {
             return total + product.CartItem.quantity;
         }, 0);
+
         const orderID = `OR${1}0${productQuantity}0${(new Date()).getDate()}${(new Date()).getMonth() + 1}${(new Date()).getFullYear()}0${Math.floor(Math.random() * 10000)}`;
-        const orderDescription = `${d?.orderDescription || "Thanh toán đơn hàng"} ${data.fullName} ${d?.orderDescriptionOnWord || "trên"} ${new Date().toLocaleDateString()}`;
+        const orderDescription = `${"Thanh toán đơn hàng"} ${data.fullName} ${"trên"} ${new Date().toLocaleDateString()}`;
         const bankCode = "NCB"; // Default bank code, can be changed based on user selection
-        const language = lang; // Default language, can be changed based on user selection
+        const language = 'vi'; // Default language, can be changed based on user selection
         const address = addresses.find(addr => addr.shippingAddressID === selectedAddressID)?.address;
+
         const orderDataSendToServer = {
             ...checkoutData,
             orderID: orderID,
-            userID: user?.userID,
+            userID: user.userID,
             fullName: data.fullName,
             totalPayment: totalPayment,
             totalQuantity: productQuantity,
@@ -289,10 +288,10 @@ export default function CheckoutPage() {
             deliveryID: delivery.selectMethod.deliveryID || 0,
             cartID: cart.cartID,
             deliveryCost: deliveryCost || 0,
-            status: "pending", // Default status, can be changed based on business logic
+            status: "pending",
         };
-        console.log("Order Data to Send:", orderDataSendToServer);
         setCheckoutData(orderDataSendToServer);
+
         if (paymentMethod === "vn-pay") {
             localStorage.setItem("checkoutData", JSON.stringify(orderDataSendToServer));
             payWithVnPay({
@@ -305,41 +304,27 @@ export default function CheckoutPage() {
         } else if (paymentMethod === "paypal") {
             setShowPaypal(true);
         } else if (paymentMethod === "cash") {
-            await fetch(`${baseUrl}/api/order`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(orderDataSendToServer)
-            }).then((res) => {
-                if (!res.ok) {
-                    toast.error(d?.checkoutOrderError || "Đặt hàng thất bại, vui lòng thử lại sau!");
-                    throw new Error("Failed to place order");
-                } else {
-                    toast.success(d?.checkoutOrderSuccess || "Đặt hàng thành công!");
-                    // Reset cart and checkout data
-                    setCart({
-                        cartID: 0,
-                        totalQuantity: 0,
-                        products: []
-                    });
-                    router.push(`/${lang}/homepage/checkout/cash-return`); // Redirect to order success page
-
-                }
-            })
+            try {
+                await createNewOrder(orderDataSendToServer);
+                setCart({
+                    cartID: 0,
+                    totalQuantity: 0,
+                    products: []
+                });
+                toast.success("Đặt hàng thành công!");
+                router.push(`/vi/homepage/checkout/cash-return`);
+            } catch (error) {
+                console.error("Error creating order:", error);
+                toast.error("Đặt hàng thất bại, vui lòng thử lại sau!");
+            }
         }
     };
 
-
     // Fetch delivery methods on mount
     useEffect(() => {
-        const fetchDeliveryMethods = async () => {
+        const fetchDeliveries = async () => {
             try {
-                const response = await fetch(`${baseUrl}/api/delivery`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch delivery methods");
-                }
-                const data = await response.json();
+                const data = await fetchDeliveryMethods();
                 setDelivery({
                     allMethods: data,
                     selectMethod: data.find((method: DeliveryMethod) => method.isDefault) || {}
@@ -348,62 +333,23 @@ export default function CheckoutPage() {
                 console.error("Error fetching delivery methods:", error);
             }
         }
-        fetchDeliveryMethods();
+        fetchDeliveries();
     }, [])
 
     // Calculate shipping cost based on distance between origin and destination
     useEffect(() => {
-        const calculateShippingCost = async () => {
-            const origin = provinceCoordinate.find((item) => item.code === 92);
-            const destination = provinceCoordinate.find((item) => item.code === selectedProvince.code);
-            console.log([
-                [origin?.lng, origin?.lat],
-                [destination?.lng, destination?.lat]
-            ])
-            if (!origin || !destination) {
-                console.error("Origin or destination not found");
-                return;
-            } else {
-                await fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': process.env.NEXT_PUBLIC_ORS_API_KEY || ''
-                    },
-                    body: JSON.stringify({
-                        coordinates: [
-                            [origin?.lng, origin?.lat],
-                            [destination?.lng, destination?.lat]
-                        ],
-                        profile: 'driving-car'
-                    })
-                }).then((res) => res.json()).then((data) => setDistance(data.features[0].properties.summary.distance / 1000)).catch((error) => {
-                    console.error("Error fetching distance:", error);
-                });
-            }
+        const shippingCost = async () => {
+            const shippingCost = await calculateShippingCost(selectedProvince);
+            setDeliveryCost(shippingCost ?? 0);
         }
         if (selectedProvince) {
-            calculateShippingCost();
+            shippingCost();
         }
     }, [selectedProvince]);
 
-    // Calculate delivery cost based on distance
-    const deliveryCost = useMemo(() => {
-        if (distance && distance < 10) { // If distance is less than 10 km, the delivery cost is free
-            return 0;
-        } else if (distance && distance > 10 && distance < 50) { // If the distance is between 10 and 50 km, the delivery cost is 30,000 VND
-            return 30000;
-        } else if (distance && distance > 50 && distance < 100) { // If the distance is between 50 and 100 km, the delivery cost is 50,000 VND
-            return 50000;
-        } else if (distance && distance > 100) { // If the distance is more than 100 km, the delivery cost is 70,000 VND
-            return 70000;
-        }
-        return 0;
-    }, [distance]);
 
     // Calculate total payment including products, discounts, delivery method, and delivery cost
-    const totalPayment = useMemo(() => { // Use useMemo because this calculation can be expensive and we want to avoid recalculating it on every render
-
+    const totalPayment = useMemo(() => { // Use useMemo because this calculation can be expensive and we want to avoid recalculating it on every render 
         // Calculate total price of products in the cart 
         const totalPrice = cart.products.reduce((total, product) => {
             return total + (product.CartItem.price * product.CartItem.quantity);
@@ -411,14 +357,14 @@ export default function CheckoutPage() {
         const discount = checkoutData?.discount?.discountValue || 0; // Get discount value from checkout data or default to 0 
         const deliveryMethod = delivery.selectMethod.basePrice || 0; // Get delivery method base price or default to 0
         return totalPrice + (discount + deliveryMethod + deliveryCost); // Return total payment including products, discounts, delivery method, and delivery cost
-    }, [cart.products, delivery.selectMethod.basePrice, deliveryCost, checkoutData?.discount?.discountValue]);
+    }, [cart.products, delivery.selectMethod.basePrice, checkoutData?.discount?.discountValue, deliveryCost]);
 
     // Fetch user addresses on mount
     useEffect(() => {
         if (!user) return;
-        fetch(`${baseUrl}/api/shipping-address/user/${user.userID}`)
-            .then(res => res.json())
-            .then(data => {
+        const fetchAddresses = async () => {
+            try {
+                const data: ShippingAddress[] = await getShippingAddressesByUserID(user.userID);
                 setAddresses(data || []);
                 if (data && data.length > 0) {
                     const defaultAddr = data.find((a: ShippingAddress) => a.isDefault) || data[0];
@@ -427,17 +373,22 @@ export default function CheckoutPage() {
                     const [detailAddress, ward, district, province] = (defaultAddr.address || '').split(',').map((s: string) => s.trim());
                     methods.reset({
                         fullName: user.username,
-                        phone: defaultAddr.phone || '',
-                        province: province || '',
-                        district: district || '',
-                        ward: ward || '',
-                        detailAddress: detailAddress || '',
+                        phone: defaultAddr.phone,
+                        province: province,
+                        district: district,
+                        ward: ward,
+                        detailAddress: detailAddress,
                         note: '',
                     });
-                    setSelectedProvince({ selectedProvince: province || '', code: provinces.find(p => p.name === province)?.code || '' });
-                    setSelectedDistrict(district || '');
+                    setSelectedProvince({ selectedProvince: province, code: provinces.find(p => p.name === province)?.code || '' });
+                    setSelectedDistrict(district);
                 }
-            });
+            } catch (error) {
+                console.error("Error fetching addresses:", error);
+                return [];
+            }
+        }
+        fetchAddresses();
     }, [user, methods, provinces]);
 
     // When user selects an address, auto-fill the form
@@ -447,38 +398,41 @@ export default function CheckoutPage() {
         if (addr) {
             const [detailAddress, ward, district, province] = (addr.address || '').split(',').map(s => s.trim());
             methods.reset({
-                fullName: user?.username || '',
-                phone: addr.phone || '',
-                province: province || '',
-                district: district || '',
-                ward: ward || '',
-                detailAddress: detailAddress || '',
+                fullName: user?.username,
+                phone: addr.phone,
+                province: province,
+                district: district,
+                ward: ward,
+                detailAddress: detailAddress,
                 note: '',
             });
-            setSelectedProvince({ selectedProvince: province || '', code: provinces.find(p => p.name === province)?.code || '' });
-            setSelectedDistrict(district || '');
+            setSelectedProvince({ selectedProvince: province, code: provinces.find(p => p.name === province)?.code || '' });
+            setSelectedDistrict(district);
         }
     }, [selectedAddressID, addresses, user, methods, provinces]);
 
     // Add new address handler
     const handleAddAddress = async (address: { province: string; district: string; ward: string; detailAddress: string; phone: string; isDefault: boolean; }) => {
         const fullAddress = `${address.detailAddress}, ${address.ward}, ${address.district}, ${address.province}`;
+
         if (!user) {
             toast.error("Bạn cần đăng nhập để thêm địa chỉ.");
             return;
         }
-        const res = await fetch(`${baseUrl}/api/shipping-address`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...address, userID: user.userID, address: fullAddress })
-        });
-        if (res.ok) {
-            const newAddress = await res.json();
+
+        try {
+            const newAddress = await addNewShippingAddress({
+                userID: user.userID,
+                address: fullAddress,
+                phone: address.phone,
+                isDefault: address.isDefault,
+            });
             setAddresses(prev => [...prev, newAddress]);
             setOpenAddAddress(false);
             setSelectedAddressID(newAddress.shippingAddressID);
             toast.success("Thêm địa chỉ thành công!");
-        } else {
+        } catch (error) {
+            console.error("Error adding shipping address:", error);
             toast.error("Thêm địa chỉ thất bại!");
         }
     };
@@ -493,13 +447,13 @@ export default function CheckoutPage() {
                     <div className="mt-6 flex items-center mb-4">
                         <input
                             type="text"
-                            placeholder={d?.shoppingCartPagePromoCodeInput || "Nhập mã giảm giá"}
+                            placeholder={"Nhập mã giảm giá"}
                             value={promoCode.code}
                             onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-tl-full rounded-bl-full focus:outline-none focus:ring-1 focus:ring-primary/10"
                         />
                         <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="shrink-0 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full py-3.5 bg-primary text-white transition-all">
-                            {d?.shoppingCartPageApplyCoupon || "Áp dụng mã giảm giá"}
+                            {"Áp dụng mã giảm giá"}
                         </Button>
                     </div>
                 )}
@@ -509,26 +463,26 @@ export default function CheckoutPage() {
                         onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
                         <FormItem>
                             <FormLabel className="pl-1">{
-                                d?.checkoutPageFullName || "Tên người dùng"
+                                "Tên người dùng"
                             } <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <input
-                                    {...methods.register("fullName", { required: d?.checkoutPageFullNameRequired || "Vui lòng nhập tên người dùng" })}
+                                    {...methods.register("fullName", { required: "Vui lòng nhập tên người dùng" })}
                                     className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-                                    placeholder={d?.checkoutPageFullName || "Tên người dùng"}
+                                    placeholder={"Tên người dùng"}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                         <FormItem>
                             <FormLabel className="pl-1">
-                                {d?.checkoutPagePhone || "Số điện thoại"}
+                                {"Số điện thoại"}
                                 <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <input
-                                    {...methods.register("phone", { required: d?.checkoutPagePhoneRequired || "Vui lòng nhập số điện thoại" })}
+                                    {...methods.register("phone", { required: "Vui lòng nhập số điện thoại" })}
                                     className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-                                    placeholder={d?.checkoutPagePhone || "Số điện thoại"}
+                                    placeholder={"Số điện thoại"}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -659,7 +613,7 @@ export default function CheckoutPage() {
                                         </SelectContent>
                                     </Select>
                                     <button type="button" className="border-gray-300 border-1 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full px-4 shrink-0 py-3 bg-gray-200 text-black hover:bg-white hover:text-primary transition-all hover:cursor-pointer" onClick={() => setOpenAddAddress(true)}>
-                                         Thêm địa chỉ
+                                        Thêm địa chỉ
                                     </button>
                                 </div>
                             </div>
@@ -667,13 +621,13 @@ export default function CheckoutPage() {
 
                         <FormItem>
                             <FormLabel className="pl-1">{
-                                d?.checkoutPageNote || "Lưu ý"
+                                "Lưu ý"
                             }</FormLabel>
                             <FormControl>
                                 <textarea
                                     {...methods.register("note")}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    placeholder={d?.checkoutPageNotePlaceholder || "Ghi chú cho đơn hàng của bạn"}
+                                    placeholder={"Ghi chú cho đơn hàng của bạn"}
                                     rows={3}
                                 />
                             </FormControl>
@@ -688,7 +642,7 @@ export default function CheckoutPage() {
                 <Image src={carttotalshaptop} alt="Cart Top Shape" className="absolute -top-2 left-0 w-full h-auto" />
                 <Image src={carttotalshapbot} alt="Cart Bottom Shape" className="absolute -bottom-2 left-0 w-full h-auto" />
                 <h2 className="text-xl font-bold text-gray-800 mb-4 border-b-[1px] border-solid border-black/10 pb-4">{
-                    d?.checkoutPageOrderSummary || "Tóm tắt đơn hàng"
+                    "Tóm tắt đơn hàng"
                 }</h2>
                 <div className="space-y-4">
                     {/* Product List */}
@@ -706,7 +660,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span>
-                            {d?.checkoutDiscount || "Giảm giá"}
+                            {"Giảm giá"}
                         </span>
                         {/* <span>- {checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0} VND</span> */}
                         <span>- {promoCode.discount !== 0 ?
@@ -718,18 +672,18 @@ export default function CheckoutPage() {
                     <div className=" text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span className="flex flex-col">
                             <span className="flex items-center justify-between w-full">
-                                {d?.checkoutShippingCost || "Phí vận chuyển"}
+                                {"Phí vận chuyển"}
                                 <span>{formatVND(deliveryCost)} VND</span>
                             </span>
                             <span className="text-sm">({
-                                d?.checkoutShippingCostDescription || "Tính theo khoảng cách từ kho đến địa chỉ giao hàng"
+                                "Tính theo khoảng cách từ kho đến địa chỉ giao hàng"
                             })</span>
                         </span>
 
                     </div>
                     <div className="flex justify-between text-gray-700 border-b-[1px] border-solid border-black/10 pb-4 flex-col gap-y-4">
                         <span className="text-gray-700">{
-                            d?.checkoutDeliveryMethod || "Phương thức giao hàng"
+                            "Phương thức giao hàng"
                         }</span>
                         <div className="flex flex-col gap-2">
                             {delivery.allMethods.map(method => (
@@ -751,7 +705,7 @@ export default function CheckoutPage() {
                     {/* Payment Methods */}
                     <div className="flex flex-col gap-4 mt-4">
                         <span className="text-gray-700">
-                            {d?.checkoutPaymentMethod || "Phương thức thanh toán"}
+                            {"Phương thức thanh toán"}
                         </span>
                         <div className="space-y-2">
                             <label className="flex items-center gap-2">
@@ -785,13 +739,13 @@ export default function CheckoutPage() {
                                     checked={paymentMethod === "cash"}
                                     onChange={() => setPaymentMethod("cash")}
                                 />
-                                {d?.checkoutPaymentMethodCash || "Thanh toán khi nhận hàng"}
+                                {"Thanh toán khi nhận hàng"}
                             </label>
                         </div>
                     </div>
                     <div className="flex justify-between text-gray-800 font-bold border-t-[1px] border-solid border-black/10 pt-4">
                         <span>
-                            {d?.checkoutTotalPayment || "Tổng thanh toán"}
+                            {"Tổng thanh toán"}
                         </span>
                         <span>{formatVND(totalPayment)} VND</span>
                     </div>
@@ -819,7 +773,7 @@ export default function CheckoutPage() {
                                     size="md"
                                     className="mt-4"
                                 >
-                                    {d?.checkoutPlaceOrder || "Đặt hàng"}
+                                    {"Đặt hàng"}
                                 </Button>
                             )
                         ) : (
@@ -830,7 +784,7 @@ export default function CheckoutPage() {
                                 size="md"
                                 className="mt-4"
                             >
-                                {d?.checkoutPlaceOrder || "Đặt hàng"}
+                                {"Đặt hàng"}
                             </Button>
                         )}
                     </div>
@@ -883,9 +837,8 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
     useEffect(() => {
         if (provinces.length === 0) {
             const fetchProvinces = async () => {
-                const res = await fetch("https://provinces.open-api.vn/api/?depth=1");
-                const data = await res.json();
-                setProvinces(data);
+              const data = await fetchProvinceList();
+              setProvinces(data || []);
             };
             fetchProvinces();
         }
@@ -900,9 +853,8 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
         }
         const selected = provinces.find(p => p.name === form.province);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/p/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setDistricts(data.districts || []));
+            fetchDistrictList(selected.code);
+            setDistricts(selected.districts || []);
         }
     }, [form.province, provinces, setDistricts, setWards]);
 
@@ -914,9 +866,8 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
         }
         const selected = districts.find(d => d.name === form.district);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/d/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setWards(data.wards || []));
+            fetchWardList(selected.code);
+            setWards(selected.wards || []);
         }
     }, [form.district, districts, setWards]);
 
@@ -935,7 +886,7 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={provinces.length === 0}
                     >
-                        <SelectTrigger 
+                        <SelectTrigger
                             className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
 
                         >
@@ -956,10 +907,10 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={!form.province}
                     >
-                        <SelectTrigger 
+                        <SelectTrigger
                             className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
 
-                        disabled={!form.province}>
+                            disabled={!form.province}>
                             <SelectValue placeholder="Chọn quận/huyện" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -977,11 +928,11 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         required
                         disabled={!form.district}
                     >
-                        <SelectTrigger 
-                        
+                        <SelectTrigger
+
                             className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
 
-                        disabled={!form.district}>
+                            disabled={!form.district}>
                             <SelectValue placeholder="Chọn phường/xã" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -1013,7 +964,7 @@ function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wa
                         <input type="checkbox" name="isDefault" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} /> Đặt làm mặc định
                     </label>
                     <div className="flex gap-2 justify-end">
-                        <Button type="button" variant="normal"  size="sm" onClick={() => setOpenAddAddress(false)}>Hủy thêm</Button>
+                        <Button type="button" variant="normal" size="sm" onClick={() => setOpenAddAddress(false)}>Hủy thêm</Button>
                         <Button type="submit" variant="primary" size="sm" >Lưu</Button>
                     </div>
                 </form>

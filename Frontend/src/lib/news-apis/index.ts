@@ -1,4 +1,4 @@
-import { baseUrl } from "../base-url";
+import { baseUrl } from "../others/base-url";
 
 export async function fetchNews() {
   const res = await fetch(`${baseUrl}/api/news`);

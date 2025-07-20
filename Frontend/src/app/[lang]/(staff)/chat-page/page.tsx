@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 

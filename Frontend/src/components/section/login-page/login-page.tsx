@@ -14,16 +14,16 @@ import {
 import { Input } from "@/components/ui/input/input";
 import Button from "../../ui/button/button-brand";
 import { Eye, EyeOff, X } from "lucide-react";
-import { baseUrl } from "@/lib/base-url";
 import { useUser } from "@/contexts/user-context";
 import { useLoading } from "@/contexts/loading-context";
 import toast from "react-hot-toast";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "@/lib/firebase-config";
+import { auth } from "@/lib/others/firebase-config";
 import gglogo from "@public/images/gg+logo.png";
 import Image from "next/image";
 import PasswordForgetDialog from "../password-forget/password-forget";
 import CreateNewPassword from "../password-forget/create-newpass";
+import { googleRegister, login } from "@/lib/user-apis";
 
 export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     open: boolean;
@@ -51,32 +51,22 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
         }
         setLoading(true);
         try {
-            const res = await fetch(`${baseUrl}/api/users/signin`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || "Đăng nhập thất bại.");
-                return;
+            const data = await login(email, password);
+            const userData = {
+                userID: data.user.userID,
+                username: data.user.username,
+                email: data.user.email,
+                avatar: data.user.avatar,
+                token: data.token,
+            };
+            setUser(userData);
+            if (rememberMe) {
+                localStorage.setItem("user", JSON.stringify(userData));
             } else {
-                const userData = {
-                    userID: data.user.userID,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                };
-                setUser(userData);
-                if (rememberMe) {
-                    localStorage.setItem("user", JSON.stringify(userData));
-                } else {
-                    localStorage.removeItem("user");
-                }
-                toast.success("Đăng nhập thành công!");
-                setOpen(false);
+                localStorage.removeItem("user");
             }
+            toast.success("Đăng nhập thành công!");
+            setOpen(false);
         } catch (err) {
             setErrorMsg("Đăng nhập thất bại. Vui lòng thử lại sau");
             console.error("Login error:", err);
@@ -100,48 +90,31 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
             const day = String(now.getDate()).padStart(2, "0");
             const month = String(now.getMonth() + 1).padStart(2, "0");
             const year = String(now.getFullYear());
-            const userID = `USR${day}${month}${year}P`;
-
-            // Send info to backend
-            const res = await fetch(`${baseUrl}/api/users/google`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID,
-                    username,
-                    email,
-                    avatar,
-                    providerID,
-                }),
+            // generate 4 random number
+            const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+            const userID = `USR${day}${month}${year}${randomNumber}P`;
+            const data = await googleRegister({
+                userID,
+                username,
+                email,
+                avatar,
+                providerID,
             });
-
-
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
-            } else {
-                setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
-                setUser({
-                    userID: data.user.userID,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                });
-                localStorage.setItem("user", JSON.stringify({
-                    userID: data.user.userID,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                }));
+            setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
+            const userData = {
+                userID: data.user.userID,
+                username: data.user.username,
+                email: data.user.email,
+                avatar: data.user.avatar,
+                token: data.token,
             }
+            setUser(userData);
+            localStorage.setItem("user", JSON.stringify(userData));
         } catch (error) {
             console.error("Google login error:", error);
             setErrorMsg("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
         }
     };
-
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

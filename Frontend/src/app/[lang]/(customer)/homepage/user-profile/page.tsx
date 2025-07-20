@@ -3,7 +3,7 @@
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Breadcrumb } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import toast from "react-hot-toast";

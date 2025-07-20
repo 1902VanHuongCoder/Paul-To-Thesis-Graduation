@@ -6,8 +6,8 @@ import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useDictionary } from "@/contexts/dictonary-context";
-import formatVND from "@/lib/format-vnd";
-import formatDate from "@/lib/format-date";
+import formatVND from "@/lib/others/format-vnd";
+import formatDate from "@/lib/others/format-date";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 
 export interface Product {

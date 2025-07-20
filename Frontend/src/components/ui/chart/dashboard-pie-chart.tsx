@@ -17,7 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { baseUrl } from "@/lib/base-url"
+import { baseUrl } from "@/lib/others/base-url"
 
 const chartConfig = {
   count: {

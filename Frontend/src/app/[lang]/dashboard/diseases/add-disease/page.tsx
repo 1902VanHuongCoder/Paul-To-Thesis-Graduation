@@ -40,7 +40,7 @@ import {
     SquareStack,
     TrashIcon
 } from "lucide-react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useUser } from "@/contexts/user-context";
 import toast from "react-hot-toast";
 

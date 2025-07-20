@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
-import formatVND from "@/lib/format-vnd";
+import { baseUrl } from "@/lib/others/base-url";
+import formatVND from "@/lib/others/format-vnd";
 import Button from "@/components/ui/button/button-brand";
 import { useUser } from "@/contexts/user-context";
 import { Breadcrumb, ContentLoading } from "@/components";

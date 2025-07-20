@@ -1,15 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/base-url";
 import { Breadcrumb } from "@/components";
 import Button from "@/components/ui/button/button-brand";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
 import toast from "react-hot-toast";
+import { fetchDistrictList, fetchProvinceList, fetchWardList } from "@/lib/address-apis";
+import { addNewShippingAddress } from "@/lib/shipping-address-apis";
 
 export default function AddShippingAddressPage() {
     // Contexts 
-    const { user } = useUser(); // Get user information from context
+    const { user } = useUser();
     const [form, setForm] = useState({
         province: "",
         district: "",
@@ -19,20 +20,25 @@ export default function AddShippingAddressPage() {
         isDefault: false,
     });
 
-    // State variables
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [provinces, setProvinces] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [districts, setDistricts] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false); // Loading state for form submission 
+    const [loading, setLoading] = useState(false);
 
     // Fetch provinces
     useEffect(() => {
-        fetch("https://provinces.open-api.vn/api/?depth=1")
-            .then(res => res.json())
-            .then(data => setProvinces(data));
+        const fetchProvinces = async () => {
+            try {
+                const data = await fetchProvinceList();
+                setProvinces(data);
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+            }
+        };
+        fetchProvinces();
     }, []);
 
     // Fetch districts when province changes
@@ -44,9 +50,15 @@ export default function AddShippingAddressPage() {
         }
         const selected = provinces.find(p => p.name === form.province);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/p/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setDistricts(data.districts || []));
+           const fetchDistricts = async () => {
+                try {
+                    const data = await fetchDistrictList(selected.code);
+                    setDistricts(data);
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
         }
     }, [form.province, provinces]);
 
@@ -58,9 +70,15 @@ export default function AddShippingAddressPage() {
         }
         const selected = districts.find(d => d.name === form.district);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/d/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setWards(data.wards || []));
+            const fetchWards = async () => {
+                try {
+                    const data = await fetchWardList(selected.code);
+                    setWards(data);
+                } catch (error) {
+                    console.error("Error fetching wards:", error);
+                }
+            };
+            fetchWards();
         }
     }, [form.district, districts]);
 
@@ -78,24 +96,20 @@ export default function AddShippingAddressPage() {
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user || !user.userID) {
+            toast.error("Bạn cần đăng nhập để thêm địa chỉ giao hàng.");
+            return;
+        }
         setLoading(true);
         try {
             const address = `${form.detailAddress}, ${form.ward}, ${form.district}, ${form.province}`;
-            const res = await fetch(`${baseUrl}/api/shipping-address`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID: user?.userID,
-                    address,
-                    phone: form.phone,
-                    isDefault: form.isDefault,
-                }),
+            await addNewShippingAddress({
+                userID: user.userID,
+                address,
+                phone: form.phone,
+                isDefault: form.isDefault,
             });
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || "Thêm địa chỉ thất bại");
-            }
-            toast.success("Thêm địa chỉ giao hàng thành công!");
+
             setForm({
                 province: "",
                 district: "",
@@ -104,6 +118,7 @@ export default function AddShippingAddressPage() {
                 phone: "",
                 isDefault: false,
             });
+            toast.success("Thêm địa chỉ giao hàng thành công!");
         } catch (err) {
             console.log(err);
         } finally {

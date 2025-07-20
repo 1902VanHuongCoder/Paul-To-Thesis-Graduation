@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
 import Card from "@/components/ui/card/card";
 import { Breadcrumb } from "@/components";
 import { Spinner } from "@/components/ui/spinner/spinner";
+import { fetchCategoryBySlug } from "@/lib/category-apis";
 
 interface Category {
   categoryID: number;
@@ -33,9 +33,7 @@ export default function CategoryProductListPage() {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await fetch(`${baseUrl}/api/category/slug/${categorySlug}`);
-        if (!res.ok) throw new Error("Không tìm thấy danh mục");
-        const data = await res.json();
+        const data = await fetchCategoryBySlug(categorySlug);
         setCategory(data);
       } catch (error) {
         setCategory(null);

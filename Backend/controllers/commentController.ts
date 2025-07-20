@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Comment from "../models/Comment";
 import { User } from "../models";
+import Product from "../models/Product";
 
 // GET all comments
 export const getAllComments = async (req: Request, res: Response): Promise<void> => {
@@ -69,6 +70,15 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
       rating,
       status,
     });
+
+    // Recalculate product rating after new comment
+    const allComments = await Comment.findAll({
+      where: { productID },
+      attributes: ["rating"],
+    });
+    const ratings = allComments.map((c: any) => c.rating).filter((r: number) => typeof r === "number");
+    const avgRating = ratings.length > 0 ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 5;
+    await Product.update({ rating: Math.round(avgRating) }, { where: { productID } });
 
     res.status(201).json(newComment);
   } catch (error) {

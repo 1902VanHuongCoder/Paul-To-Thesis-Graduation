@@ -26,8 +26,6 @@ const DiagnoseContext = createContext<DiagnoseContextType | undefined>(undefined
 
 export const DiagnoseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [result, setResult] = useState<DiseaseDetail[] | null>(null);
-    console.log("DiagnoseProvider initialized with result:", result);
-
   return (
     <DiagnoseContext.Provider value={{ result, setResult }}>
       {children}

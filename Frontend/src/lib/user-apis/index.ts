@@ -1,0 +1,99 @@
+import { baseUrl } from "../others/base-url";
+
+export const login = async (email: string, password: string) => {
+  const res = await fetch(`${baseUrl}/api/users/signin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Login failed");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const googleRegister = async (userData: {
+  userID: string;
+  username: string;
+  email: string;
+  avatar: string;
+  providerID: string;
+}) => {
+  const res = await fetch(`${baseUrl}/api/users/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!res.ok) {
+    throw new Error("Registration failed");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const register = async (
+  userData: {
+    userID: string;
+    username: string;
+    email: string;
+    password: string;
+    role: "cus";
+  },
+  address: string,
+  phone: string,
+  isDefault: boolean
+) => {
+  const res = await fetch(`${baseUrl}/api/users/signup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...userData,
+      shippingAddress: {
+        address,
+        phone,
+        isDefault,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Registration failed");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const googleLogin = async (userData: {
+  userID: string;
+  username: string;
+  email: string;
+  avatar: string;
+  providerID: string;
+}) => {
+  const res = await fetch(`${baseUrl}/api/users/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!res.ok) {
+    throw new Error("Google login failed");
+  }
+
+  const data = await res.json();
+  return data;
+}

@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
-import formatVND from "@/lib/format-vnd";
+import { baseUrl } from "@/lib/others/base-url";
+import formatVND from "@/lib/others/format-vnd";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
-import { Breadcrumb, ContentLoading } from "@/components";
+import { Breadcrumb, Button, ContentLoading } from "@/components";
 import { Stepper, StepperItem, StepperIndicator, StepperTitle, StepperSeparator } from "@/components/ui/stepper/stepper";
 import darkLogo from "@public/images/dark+logo.png";
 import { Clock, CheckCircle2, Truck, Star, XCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { useUser } from "@/contexts/user-context";
 
 export interface DeliveryMethod {
   deliveryID: number;
@@ -55,10 +57,49 @@ export default function OrderDetailPage() {
 
   // Contexts
   const { dictionary: d, lang } = useDictionary(); // Get dictionary and language from the context
-
+  const { user } = useUser();
   // State variables
   const [order, setOrder] = useState<Order | null>(null); // State to hold the order details
   const [loading, setLoading] = useState(true); // State to manage loading state
+  const [newRating, setNewRating] = useState(5); // New rating input (default 5 stars)
+  const [newComment, setNewComment] = useState(""); // New comment input
+  const [submitting, setSubmitting] = useState(false); // Submitting state for comment form
+  const commentInputRef = useRef<HTMLInputElement>(null); // Reference to comment input field
+
+  const handleCommentSubmit = async (e: React.FormEvent, productID: number) => {
+    e.preventDefault();
+    if (!newComment.trim() || !productID) return; // Prevent submission if comment is empty or productID is not available
+    setSubmitting(true);
+    try {
+      // Check if user is logged in
+      if (!user) {
+        toast.error("Bạn cần đăng nhập để bình luận.");
+        return;
+      }
+      const userID = user.userID
+      await fetch(`${baseUrl}/api/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userID,
+          productID: Number(productID),
+          content: newComment,
+          rating: newRating,
+          status: "active",
+        }),
+      });
+
+      // Refetch comments
+      await fetch(`${baseUrl}/api/comment/product/${productID}`);      
+      setNewComment("");
+      setNewRating(5);
+      commentInputRef.current?.focus();
+    } catch (err) {
+      console.error("Error submitting comment:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Fetch order details when coponent mounts or orderID changes
   useEffect(() => {
@@ -115,7 +156,7 @@ export default function OrderDetailPage() {
             order.orderStatus === "accepted" ? 1 :
               order.orderStatus === "shipping" ? 2 :
                 order.orderStatus === "completed" ? 3 : 0
-                  // order.orderStatus === "cancled" ? 4 : 0
+          // order.orderStatus === "cancled" ? 4 : 0
         } className="w-full flex justify-center gap-x-4">
           <StepperItem className="w-[200px] shrink-0" step={0} completed={order.orderStatus !== "pending"}>
             <div className="flex items-center gap-y-4 flex-col">
@@ -128,7 +169,7 @@ export default function OrderDetailPage() {
                     if (!confirm(d?.orderDetailCancelConfirm || "Bạn có chắc muốn hủy đơn hàng này?")) return;
                     try {
                       const res = await fetch(`${baseUrl}/api/order/${order.orderID}`, {
-                        
+
                         method: "PUT",
                         headers: {
                           "Content-Type": "application/json",
@@ -158,7 +199,7 @@ export default function OrderDetailPage() {
             <StepperSeparator className="h-2 w-12 md:w-16" />
           </StepperItem>
 
-          <StepperItem className="w-[200px] shrink-0" step={2} completed={order.orderStatus === "completed" }>
+          <StepperItem className="w-[200px] shrink-0" step={2} completed={order.orderStatus === "completed"}>
             <div className="flex items-center gap-y-4 flex-col">
 
               <StepperIndicator />
@@ -240,6 +281,56 @@ export default function OrderDetailPage() {
           <div className="space-x-2"><span className="font-normal">{d?.orderDetailDiscount || "Giảm giá"}:</span><span>{formatVND(order.discount || 0)} VND</span> </div>
           <div className="space-x-2 text-2xl"><span className="font-normal">{d?.orderDetailTotalPayment || "Tổng thanh toán"}:</span><span className="text-3xl text-primary">{formatVND(order.totalPayment)} VND</span> </div>
         </div>
+        { order.orderStatus === "completed" && ( 
+          <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
+            {/* Assuming you want to comment on the first product in the order */}
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                if (order.products.length > 0) {
+                  handleCommentSubmit(e, order.products[0].productID);
+                }
+              }}
+              className="flex flex-col gap-y-4"
+            >
+              <div className="flex items-start gap-2">
+                <span className="font-medium">Đánh giá:</span>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    type="button"
+                    key={star}
+                    className={star <= newRating ? "text-yellow-400" : "text-gray-300"}
+                    onClick={() => setNewRating(star)}
+                    aria-label={`Đánh giá ${star} sao`}
+                  >
+                    <Star className="h-[20px]" fill={star <= newRating ? "var(--color-yellow-400)" : "var(--color-gray-300)"} />
+                  </button>
+                ))}
+                <span className="ml-2 text-sm text-gray-500 translate-y-0.5">{newRating}/5 sao</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  ref={commentInputRef}
+                  type="text"
+                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                  placeholder="Viết bình luận về sản phẩm..."
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  disabled={submitting}
+                />
+                <Button
+                  type="submit"
+                  size="md"
+                  className="disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  variant="primary"
+                  disabled={submitting || !newComment.trim()}
+                >
+                  {submitting ? "Đang gửi..." : "Gửi bình luận"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

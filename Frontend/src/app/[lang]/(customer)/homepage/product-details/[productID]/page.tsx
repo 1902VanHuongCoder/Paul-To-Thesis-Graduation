@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductDetails from "@/components/section/product-details/product-details";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -16,10 +16,9 @@ import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
-import { AddToCartPanel, Breadcrumb, Button, CommentItem, ContentLoading } from "@/components";
+import { AddToCartPanel, Breadcrumb, CommentItem, ContentLoading } from "@/components";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/section/carousel/carousel";
 import { useDictionary } from "@/contexts/dictonary-context";
-import { Star } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/user-context";
 import { motion } from "framer-motion";
@@ -100,10 +99,6 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null); // Product details
   const [loading, setLoading] = useState(true); // Loading state 
   const [comments, setComments] = useState<ProductComment[]>([]); // Comments for the product
-  const [newComment, setNewComment] = useState(""); // New comment input
-  const [newRating, setNewRating] = useState(5); // New rating input (default 5 stars)
-  const [submitting, setSubmitting] = useState(false); // Submitting state for comment form
-  const commentInputRef = useRef<HTMLInputElement>(null); // Reference to comment input field
 
   const [currentTab, setCurrentTab] = useState("description"); // Current tab for product details (description, reviews, etc.)
   // --- Use a triggerRef after product info for AddToCartPanel visibility ---
@@ -146,45 +141,6 @@ export default function ProductDetailsPage() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // Handle comment submission
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || !productID) return; // Prevent submission if comment is empty or productID is not available
-    setSubmitting(true);
-    try {
-      // Check if user is logged in
-      if (!user) {
-        toast.error("Bạn cần đăng nhập để bình luận.");
-        return;
-      }
-      const userID = user.userID
-      await fetch(`${baseUrl}/api/comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userID,
-          productID: Number(productID),
-          content: newComment,
-          rating: newRating,
-          status: "active",
-        }),
-      });
-
-      // Refetch comments
-      const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
-      const data = await res.json();
-
-      setComments(data.filter((c: ProductComment) => c.status === "active")); // Only set to show active comments
-      setNewComment("");
-      setNewRating(5);
-      commentInputRef.current?.focus();
-    } catch (err) {
-      console.error("Error submitting comment:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   // Like/dislike handlers 
   const handleLike = async (commentID: number) => {
@@ -331,7 +287,7 @@ export default function ProductDetailsPage() {
                     {product?.description && <EditorContent editor={editor} className="tiptap-editor" />}
                   </div>
                 ) : (
-                  <div className="mt-12 flex flex-col justify-between ">
+                  <div className="mt-12 flex flex-col justify-between">
                     <div>
                       <h2 className="text-4xl font-semibold">Bình luận</h2>
                       <div className="space-y-6 py-6 mb-[150px]">
@@ -360,7 +316,7 @@ export default function ProductDetailsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
+                    {/* <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
                       <form onSubmit={handleCommentSubmit} className="flex flex-col gap-y-4">
                         <div className="flex items-start gap-2">
                           <span className="font-medium">Đánh giá:</span>
@@ -398,7 +354,7 @@ export default function ProductDetailsPage() {
                           </Button>
                         </div>
                       </form>
-                    </div>
+                    </div> */}
 
                   </div>)
               }

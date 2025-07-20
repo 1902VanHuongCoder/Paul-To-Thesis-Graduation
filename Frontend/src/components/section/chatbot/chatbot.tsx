@@ -9,7 +9,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { ChatInput } from "@/components/ui/input/chat-input";
 import { Button } from "../../ui/button/button";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useUser } from "@/contexts/user-context";
 import { io, Socket } from "socket.io-client";
 

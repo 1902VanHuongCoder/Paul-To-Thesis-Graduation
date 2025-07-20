@@ -4,7 +4,7 @@ import React from "react";
 import Image, { StaticImageData } from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 // import { baseUrl } from "@/configs/base-url";
 interface CommentItemProps {
     index: number;

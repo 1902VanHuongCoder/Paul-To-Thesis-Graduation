@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import {
   Table,
   TableBody,

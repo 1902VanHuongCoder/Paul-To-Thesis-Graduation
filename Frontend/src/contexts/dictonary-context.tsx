@@ -7,7 +7,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { loadDictionary } from "@/lib/load-dictionary";
+import { loadDictionary } from "@/lib/others/load-dictionary";
 
 // Type for dictionary entries
 export type DictionaryType = Record<string, string>;

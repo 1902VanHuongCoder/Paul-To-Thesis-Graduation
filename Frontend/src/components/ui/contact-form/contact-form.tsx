@@ -7,9 +7,9 @@ import riceflowericon from "@public/vectors/Rice+Flower+Icon.png";
 import Button from "../button/button-brand";
 import { Input } from "../input/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../select/select";
-import { baseUrl } from "@/lib/base-url";
 import { useUser } from "@/contexts/user-context";
 import TermsAndPrivacyDialog from "@/components/section/terms-and-privacy-policy/terms-and-privacy-policy";
+import { createNewContact } from "@/lib/contact-apis";
 
 interface ContactFormValues {
     name: string;
@@ -33,27 +33,20 @@ export default function ContactForm() {
 
     // Function to handle form submission
     const onSubmit = async (data: ContactFormValues) => {
+        if (!user || !user.userID) {
+            setErrorMsg("Bạn cần đăng nhập để gửi liên hệ.");
+            return;
+        }
         setSuccessMsg("");
         setErrorMsg("");
         setLoading(true);
         try {
-            const subject = data.subject;
-            const res = await fetch(`${baseUrl}/api/contact`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID: user?.userID,
-                    subject,
-                    message: data.message,
-                }),
+            await createNewContact({
+                userID: user.userID,
+                subject: data.subject,
+                message: data.message,
             });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.error || "Gửi liên hệ thất bại");
-            }
             setSuccessMsg("Gửi liên hệ thành công! Chúng tôi sẽ phản hồi qua email.");
-            
-            // Reset form fields after successful submission
             form.reset();
         } catch (err) {
             setErrorMsg(

@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { Breadcrumb } from "@/components";
 import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
-import { deleteOneImage, uploadAvatar } from "@/lib/upload-images";
+import { deleteOneImage, uploadAvatar } from "@/lib/others/upload-images";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 

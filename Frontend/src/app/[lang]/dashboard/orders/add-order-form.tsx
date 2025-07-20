@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select/select";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 
 export default function AddOrderForm({ open, onOpenChange, onOrderAdded }: { open: boolean; onOpenChange: (open: boolean) => void; onOrderAdded: () => void }) {
   const [form, setForm] = useState({

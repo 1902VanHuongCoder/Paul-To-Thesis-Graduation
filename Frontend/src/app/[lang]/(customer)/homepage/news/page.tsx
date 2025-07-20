@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import NewsItem from "@/components/ui/news-item/news-item";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { Breadcrumb, ContentLoading } from "@/components";
 interface Author {

@@ -15,7 +15,7 @@ import TableCell from '@tiptap/extension-table-cell';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog/dialog';
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Breadcrumb } from "@/components";
 import { CircleAlert, Eye } from "lucide-react";
 import NextLink from 'next/link';
@@ -279,35 +279,6 @@ export default function DetectRiceDiseaseDemo() {
           )}
           { 
             <div className="mt-6">
-              {/* <div className="flex items-center gap-4 mb-4">
-                <div className="bg-primary/10 px-4 py-2 rounded-lg text-primary font-bold text-lg shadow">
-                  <span>Disease: {result.class}</span>
-                </div>
-                <div className="bg-green-100 px-4 py-2 rounded-lg text-green-700 font-bold text-lg shadow">
-                  <span>Confidence: {(result.confidence * 100).toFixed(2)}%</span>
-                </div>
-              </div> */}
-              {/* {allProbs.length > 0 && (
-                <div className="mb-6">
-                  <div className="font-semibold mb-2 text-gray-700">All Predictions:</div>
-                  <table className="w-full text-sm border rounded-xl overflow-hidden shadow">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left px-3 py-2 font-semibold text-gray-600">Disease</th>
-                        <th className="text-left px-3 py-2 font-semibold text-gray-600">Confidence (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allProbs.map(([disease, prob]) => (
-                        <tr key={disease} className="hover:bg-primary/5">
-                          <td className="px-3 py-2">{disease}</td>
-                          <td className="px-3 py-2">{(prob * 100).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )} */}
               {/* Show fetched disease details */}
               {diseaseDetails.length > 0 && (
                 <div className="mt-6">

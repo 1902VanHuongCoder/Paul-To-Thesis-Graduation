@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select/select";
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableCaption } from "@/components/ui/table/table";
 import { Pagination } from "@/components/ui/pagination/pagination";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import Image from "next/image";
 
 interface Disease {

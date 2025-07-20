@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { useUser } from "@/contexts/user-context";
 
 type Category = {

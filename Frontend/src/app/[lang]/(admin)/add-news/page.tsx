@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import { Input } from "@/components/ui/input/input";
 import Button from "@/components/ui/button/button-brand";
-import generateSlug from "@/lib/generateSlug";
+import generateSlug from "@/lib/others/generateSlug";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
