@@ -1,5 +1,16 @@
 import { baseUrl } from "../others/base-url";
 
+export const getAllUsers = async () => {
+  const res = await fetch(`${baseUrl}/api/users`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
 export const login = async (email: string, password: string) => {
   const res = await fetch(`${baseUrl}/api/users/signin`, {
     method: "POST",
@@ -46,7 +57,7 @@ export const register = async (
     username: string;
     email: string;
     password: string;
-    role: "cus";
+    role: string;
   },
   address: string,
   phone: string,
@@ -147,3 +158,31 @@ export const updateUserProfile = async (
   const data = await res.json();
   return data;
 };
+
+
+export const updateUserProfileStatus = async (
+  userID: string,
+  isActive: boolean,
+) => {
+  const res = await fetch(`${baseUrl}/api/users/${userID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isActive: !isActive }),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to update user status");
+  }
+  return res.ok;
+}
+
+export const deleteAccount = async (userID: string) => {
+  const res = await fetch(`${baseUrl}/api/users/${userID}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete user");
+  }
+
+  return res.ok;
+}

@@ -25,3 +25,13 @@ export const createNewContact = async ({
 
   return response.json();
 };
+
+export const fetchAllContacts = async () => {
+  const response = await fetch(`/api/contact`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch contacts");
+  }
+
+  return response.json();
+};

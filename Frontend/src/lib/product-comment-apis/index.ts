@@ -1,4 +1,11 @@
 import { baseUrl } from "../others/base-url";
+export const fetchAllComments = async () => {
+  const response = await fetch(`${baseUrl}/api/comment`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch comments");
+  }
+  return response.json();
+}
 
 export const fetchComments = async (productID: number) => {
   const response = await fetch(`${baseUrl}/api/comment/product/${productID}`);
@@ -76,3 +83,4 @@ export const dislikeComment = async (commentID: number) => {
 
   return response.json();
 };
+
