@@ -5,7 +5,6 @@ import Image from "next/image";
 import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
 import { useWishlist } from "@/contexts/wishlist-context";
-import { useDictionary } from "@/contexts/dictonary-context";
 import formatVND from "@/lib/others/format-vnd";
 import formatDate from "@/lib/others/format-date";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
@@ -32,7 +31,6 @@ export interface WishlistItem {
 export default function WishlistPage() {
   const { wishlists, removeFromWishlist, setWishlist } = useWishlist();
   const { addToCart, fetchCart } = useShoppingCart();
-  const {dictionary:d} = useDictionary();
   
   // Example handlers
   const handleRemoveItem = (productID: number, customerID: string) => {
@@ -42,7 +40,7 @@ export default function WishlistPage() {
   };
 
   const handleAddToCart = async (productID: number, customerID: string) => {
-    addToCart(productID);
+    addToCart(productID, 1);
     fetchCart(customerID);
     removeFromWishlist(customerID, productID);
     const wishlistUpdated = wishlists.filter((item) => item.productID !== productID);
@@ -51,22 +49,22 @@ export default function WishlistPage() {
 
   return (
     <div className="w-full mt-7">
-      <h1 className="text-xl font-bold text-gray-800 mb-4 uppercase">{d?.wishlistPageTitle || "Danh sách yêu thích của bạn"}</h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-4 uppercase">{"Danh sách yêu thích của bạn"}</h1>
       <table className="w-full border-collapse">
         <thead className="border-b border-[rgba(0,0,0,.2)]">
           <tr className="text-center text-gray-600">
-            <th className="py-2">{d?.wishlistPageTableRemoveCol || "Xóa"}</th>
+            <th className="py-2">Xóa</th>
             <th className="py-2">
-              {d?.wishlistPageTableProductCol || "Sản phẩm"}
+              Sản phẩm
             </th>
             <th className="py-2">
-              {d?.wishlistPageTablePriceCol || "Giá"}
+              Giá
             </th>
             <th className="py-2">
-              {d?.wishlistPageTableDateCol || "Ngày thêm"}
+              Ngày thêm
             </th>
             <th className="py-2">
-              {d?.wishlistPageTableAddToCartCol || "Thêm vào giỏ hàng"}
+              Thêm vào giỏ hàng
             </th>
           </tr>
         </thead>
@@ -114,12 +112,12 @@ export default function WishlistPage() {
                   className="mx-auto"
                   
                 >
-                  {d?.wishlistDialogAddToCart || "Thêm vào giỏ hàng"}
+                  Thêm vào giỏ hàng
                 </Button>
               </td>
             </tr>
           )) : <tr className="w-full">
-              <td colSpan={5} className="text-start py-6">{d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</td>
+              <td colSpan={5} className="text-start py-6">Chưa có sản phẩm nào trong danh sách yêu thích</td>
             </tr>}
         </tbody>
       </table>

@@ -96,4 +96,54 @@ export const googleLogin = async (userData: {
 
   const data = await res.json();
   return data;
-}
+};
+
+export const getUserInfo = async (userID: string) => {
+  const res = await fetch(`${baseUrl}/api/users/${userID}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch user info");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const checkPassword = async (password: string, userID: string) => {
+  const res = await fetch(`${baseUrl}/api/users/confirm-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userID,
+      password,
+    }),
+  });
+  if (!res.ok) {
+    return false;
+  }
+  return true;
+};
+
+export const updateUserProfile = async (
+  username: string,
+  email: string,
+  avatar: string,
+  password: string | null,
+  userID: string
+) => {
+  const res = await fetch(`${baseUrl}/api/users/${userID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      email,
+      avatar,
+      password,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to update user profile");
+  }
+  const data = await res.json();
+  return data;
+};

@@ -32,3 +32,19 @@ export const createNewOrder = async (checkoutData: CheckoutData) => {
   }
   return response.json();
 };
+
+export const getOrderHistory = async (userID: string) => {
+  const response = await fetch(`${baseUrl}/api/order/history/${userID}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch order history");
+  }
+  return response.json();
+};
+
+export const getOrderDetails = async (orderID: string) => {
+  const response = await fetch(`${baseUrl}/api/order/${orderID}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch order details");
+  }
+  return response.json();
+};

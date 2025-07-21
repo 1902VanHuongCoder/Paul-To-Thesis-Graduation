@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductDetails from "@/components/section/product-details/product-details";
-import { baseUrl } from "@/lib/others/base-url";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -23,6 +22,8 @@ import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/user-context";
 import { motion } from "framer-motion";
 import Card from "@/components/ui/card/card";
+import { dislikeComment, fetchCommentByProductID, likeComment } from "@/lib/product-comment-apis";
+import { fetchProductById, fetchProducts } from "@/lib/product-apis";
 
 interface Category {
   categoryID: number;
@@ -125,7 +126,7 @@ export default function ProductDetailsPage() {
       TableHeader,
       TableCell,
     ],
-    content: '<p>Loading...</p>', // Initial content while loading
+    content: '<p>Đang tải...</p>', // Initial content while loading
     editable: false,
     immediatelyRender: false, // Fix SSR hydration warning
   });
@@ -149,17 +150,13 @@ export default function ProductDetailsPage() {
       return;
     }
     try {
-      await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "like" }),
-      });
+      await likeComment(commentID);
+      // Refetch comments
+      fetchComments();
     } catch (error) {
       console.error("Error liking comment:", error);
       toast.error("Lỗi khi thích bình luận.");
     }
-    // Refetch comments
-    fetchComments();
   };
 
   const handleDislike = async (commentID: number) => {
@@ -168,31 +165,24 @@ export default function ProductDetailsPage() {
       return;
     }
     try {
-      await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "dislike" }),
-      });
+      await dislikeComment(commentID);
+      // Refetch comments
+      fetchComments();
     } catch (error) {
       console.error("Error disliking comment:", error);
       toast.error("Lỗi khi không thích bình luận.");
     }
-    fetchComments();
   };
 
   // Fetch comments for the product
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
-      if (!res.ok) {
+      const data = await fetchCommentByProductID(Number(productID));
+
+      if (!Array.isArray(data)) {
         setComments([]);
-        return;
-      };
-      if(res.status === 201) {
-        setComments([]);
-        return;
       }
-      const data = await res.json();
+
       setComments(data.filter((c: ProductComment) => c.status === "active"));
     } catch (error) {
       setComments([]);
@@ -204,9 +194,11 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${baseUrl}/api/product/${productID}`);
-        if (!res.ok) throw new Error("Failed to fetch product");
-        const data = await res.json();
+        const data = await fetchProductById(productID);
+        if (!data) {
+          setProduct(null);
+          return;
+        }
         setProduct(data);
         editor?.commands.setContent(JSON.parse(data.description));
       } catch (error) {
@@ -225,12 +217,15 @@ export default function ProductDetailsPage() {
 
   // Fetch all products for relative carousel
   useEffect(() => {
-    fetch(`${baseUrl}/api/product`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchProducts();
         setAllProducts(data);
-      })
-      .catch(() => setAllProducts([]));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   // Filter products with the same subcategory, exclude current product

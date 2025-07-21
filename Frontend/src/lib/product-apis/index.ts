@@ -11,3 +11,9 @@ export async function fetchProductByName(productName: string) {
   if (!res.ok) throw new Error("Failed to fetch product");
   return res.json();
 }
+
+export async function fetchProductById(productId: string) {
+  const res = await fetch(`${baseUrl}/api/product/${productId}`);
+  if (!res.ok) throw new Error("Failed to fetch product");
+  return res.json();
+}

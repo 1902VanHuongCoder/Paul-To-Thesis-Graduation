@@ -20,7 +20,6 @@ type News = {
     updatedAt: string;
 };
 
-
 export const Footer = () => {
     // Contexts
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { baseUrl } from "@/lib/others/base-url";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { Breadcrumb, ContentLoading } from "@/components";
@@ -13,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react";
 import PasswordForgetDialog from "@/components/section/password-forget/password-forget";
 import CreateNewPassword from "@/components/section/password-forget/create-newpass";
 import toast from "react-hot-toast";
+import { checkPassword, getUserInfo, updateUserProfile } from "@/lib/user-apis";
 
 interface UserProfile {
     userID: string;
@@ -60,10 +60,9 @@ export default function UpdateUserProfilePage() {
     useEffect(() => {
         if (!userID) return;
         setLoading(true);
-        fetch(`${baseUrl}/api/users/${userID}`)
-            .then(res => res.json())
-            .then(data => {
-                console.log("Fetched user data:", data);
+        const fetchUser = async () => {
+            try {
+                const data = await getUserInfo(userID);
                 setUser(data);
                 setForm(f => ({
                     ...f,
@@ -72,9 +71,15 @@ export default function UpdateUserProfilePage() {
                     avatar: data.avatar || "",
                 }));
                 setAvatarPreview(data.avatar || "");
-            })
-            .catch(() => setErrorMsg("Không thể tải thông tin người dùng"))
-            .finally(() => setLoading(false));
+            } catch (error) {
+                console.error("Error fetching user info:", error);
+                setErrorMsg("Không thể tải thông tin người dùng, hãy thử lại sau.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUser();
     }, [userID]);
 
     // Handle input change
@@ -95,20 +100,10 @@ export default function UpdateUserProfilePage() {
     const confirmOldPassword = async (): Promise<boolean> => {
         setConfirmingPassword(true);
         try {
-            const res = await fetch(`${baseUrl}/api/users/confirm-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID,
-                    password: form.oldPassword,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
+            const isValid = await checkPassword(form.oldPassword, userID);
+            if (!isValid) {
                 setErrorMsg("Mật khẩu cũ không chính xác, vui lòng thử lại.");
                 return false;
-            } else {
-                console.log("Success message", data.message);
             }
             return true;
         } catch {
@@ -164,20 +159,16 @@ export default function UpdateUserProfilePage() {
 
         try {
             // Update user info
-            const res = await fetch(`${baseUrl}/api/users/${userID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: form.username,
-                    email: form.email,
-                    avatar: avatarUrl,
-                    password: form.newPassword || null,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || "Cập nhật thông tin người dùng thất bại, hãy thử lại!");
-                throw new Error(data.message || data.error || "Cập nhật thất bại");
+            const data = await updateUserProfile(
+                form.username,
+                form.email,
+                avatarUrl,
+                form.newPassword || null,
+                userID
+            );
+            if (!data) {
+                setErrorMsg("Cập nhật thông tin người dùng thất bại, hãy thử lại!");
+                throw new Error("Cập nhật thất bại");
             }
             toast.success("Cập nhật thông tin thành công!");
             setUser(data.user);

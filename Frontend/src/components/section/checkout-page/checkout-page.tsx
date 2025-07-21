@@ -495,7 +495,6 @@ export default function CheckoutPage() {
                                     <Select
                                         value={selectedAddressID ? String(selectedAddressID) : undefined}
                                         onValueChange={val => setSelectedAddressID(Number(val))}
-
                                     >
                                         <SelectTrigger className="w-full px-4 py-6 rounded-tl-full rounded-bl-full  border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
                                         >

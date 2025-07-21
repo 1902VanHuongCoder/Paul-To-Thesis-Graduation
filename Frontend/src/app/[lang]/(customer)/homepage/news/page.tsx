@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import NewsItem from "@/components/ui/news-item/news-item";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/lib/others/base-url";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { Breadcrumb, ContentLoading } from "@/components";
+import { fetchNews } from "@/lib/news-apis";
 interface Author {
     username: string;
     userID: string;
@@ -53,19 +53,17 @@ export default function NewsListPage() {
     
     // Fetch news data from the API when the component mounts
     useEffect(() => {
-        const fetchNews = async () => {
+        const fetchNewsData = async () => {
             try {
-                const res = await fetch(`${baseUrl}/api/news`);
-                const data = await res.json();
+                const data = await fetchNews();
                 setNewsList(data);
-                console.log("Fetched news data:", data);
             } catch (error) {
                 console.error("Failed to fetch news:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchNews();
+        fetchNewsData();
     }, []);
 
     if (loading) return <ContentLoading />;
