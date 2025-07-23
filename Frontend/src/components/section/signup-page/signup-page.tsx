@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import {
     Dialog,
-    DialogTrigger,
+    // DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogTitle,
@@ -181,11 +181,11 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
 
     return (
         <Dialog open={open} onOpenChange={setOpen} >
-            <DialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button variant="normal" size="sm" className="py-3">
+            {/* <DialogTrigger asChild onClick={() => setOpen(true)}> */}
+                {/* <Button variant="normal" size="sm" className="py-3">
                     Đăng ký
-                </Button>
-            </DialogTrigger>
+                </Button> */}
+            {/* </DialogTrigger> */}
             <DialogContent className="max-h-screen sm:max-w-6xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Đăng ký</DialogTitle>

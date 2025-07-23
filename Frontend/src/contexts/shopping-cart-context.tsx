@@ -83,16 +83,14 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     const updateCart = async (cartID: number, productID: number, quantity: number) => {
         if (!user) {
-            toast.error("Bạn cần đăng nhập để cập nhật giỏ hàng");
+            // toast.error("Bạn cần đăng nhập để cập nhật giỏ hàng");
             return;
         }
         try {
             const data = await updateShoppingCart(cartID, productID, quantity);
             fetchCart(user.userID);
-            toast.success("Cập nhật giỏ hàng thành công");
             return data;
         } catch (error) {
-            toast.error("Cập nhật giỏ hàng thất bại!");
             console.error("Update cart error:", error);
             throw error;
         }
@@ -100,13 +98,12 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     const removeFromCart = async (productID: number, cartID: number) => {
         if (!user) {
-            toast.error("Bạn cần đăng nhập để xoá sản phẩm khỏi giỏ hàng");
+            // toast.error("Bạn cần đăng nhập để xoá sản phẩm khỏi giỏ hàng");
             return;
         }
         try {
             const data = await removeProductFromShoppingCart(cartID, productID);
             fetchCart(user.userID);
-            toast.success("Xoá sản phẩm khỏi giỏ hàng thành công");
             return data;
         } catch (error) {
             console.error("Remove from cart error:", error);

@@ -19,13 +19,16 @@ export const login = async (email: string, password: string) => {
     },
     body: JSON.stringify({ email, password }),
   });
-
-  if (!res.ok) {
-    throw new Error("Login failed");
+  const responseData = await res.json();
+  if (res.status === 401) {
+    return { status: "error", message: responseData.message, data: null, token: null };
   }
-
-  const data = await res.json();
-  return data;
+  return {
+    data: responseData.user,
+    status: "success",
+    token: responseData.token,
+    message: "Login successful",
+  };
 };
 
 export const googleRegister = async (userData: {
@@ -159,10 +162,9 @@ export const updateUserProfile = async (
   return data;
 };
 
-
 export const updateUserProfileStatus = async (
   userID: string,
-  isActive: boolean,
+  isActive: boolean
 ) => {
   const res = await fetch(`${baseUrl}/api/users/${userID}`, {
     method: "PUT",
@@ -173,7 +175,7 @@ export const updateUserProfileStatus = async (
     throw new Error("Failed to update user status");
   }
   return res.ok;
-}
+};
 
 export const deleteAccount = async (userID: string) => {
   const res = await fetch(`${baseUrl}/api/users/${userID}`, {
@@ -185,4 +187,4 @@ export const deleteAccount = async (userID: string) => {
   }
 
   return res.ok;
-}
+};

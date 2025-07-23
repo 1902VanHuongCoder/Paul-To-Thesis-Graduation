@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       "www.congtyhai.com",
       "shadcnblocks.com",
       "res.cloudinary.com",
-      "lh3.googleusercontent.com"
+      "lh3.googleusercontent.com",
     ],
   },
   // next.config.ts
@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       // Only redirect if NOT starting with /vi or /en
     ];
   },
+  devIndicators: false,
 };
 
 export default nextConfig;

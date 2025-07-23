@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import {
     Dialog,
-    DialogTrigger,
+    // DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogTitle,
@@ -51,14 +51,19 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
         }
         setLoading(true);
         try {
-            const data = await login(email, password);
+            const { data, status, message, token } = await login(email, password);
+            if (status !== "success") {
+                setErrorMsg(message);
+                return;
+            }
             const userData = {
-                userID: data.user.userID,
-                username: data.user.username,
-                email: data.user.email,
-                avatar: data.user.avatar,
-                token: data.token,
+                userID: data.userID,
+                username: data.username,
+                email: data.email,
+                avatar: data.avatar,
+                token: token,
             };
+            console.log("Login successful:", userData);
             setUser(userData);
             if (rememberMe) {
                 localStorage.setItem("user", JSON.stringify(userData));
@@ -67,9 +72,8 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
             }
             toast.success("Đăng nhập thành công!");
             setOpen(false);
-        } catch (err) {
+        } catch {
             setErrorMsg("Đăng nhập thất bại. Vui lòng thử lại sau");
-            console.error("Login error:", err);
         } finally {
             setLoading(false);
         }
@@ -101,6 +105,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                 providerID,
             });
             setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
+            console.log("Google login successful:", data);
             const userData = {
                 userID: data.user.userID,
                 username: data.user.username,
@@ -119,11 +124,9 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             {/* Trigger Button */}
-            <DialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button variant="primary" size="sm">
-                    Đăng nhập
-                </Button>
-            </DialogTrigger>
+            {/* <DialogTrigger asChild onClick={() => setOpen(true)}>
+                
+            </DialogTrigger> */}
 
             {/* Modal Content */}
             <DialogContent className="py-8 px-8">

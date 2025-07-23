@@ -6,8 +6,8 @@ interface User {
     userID: string;
     username: string;
     email: string;
-    avatar?: string;
-    token?: string;
+    avatar: string;
+    token: string;
 }
 
 interface UserContextType {
@@ -20,11 +20,11 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-
+    console.log("UserProvider initialized with user:", user);
     const logout = () => {
         setUser(null);
         localStorage.removeItem("user");
-        toast.success("Logged out successfully");
+        toast.success("Đăng xuất thành công!");
     };
 
     useEffect(() => {

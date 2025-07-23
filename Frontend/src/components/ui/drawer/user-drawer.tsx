@@ -3,15 +3,30 @@ import Link from "next/link";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger, DrawerDescription } from "./drawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
 import { BookUser, HousePlus, LogOut, ReceiptText, Settings, X } from "lucide-react";
-
-export default function UserDrawer({ user, open, setOpen, logout }: { user: { userID: string, username: string; avatar?: string; email?: string }, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
+import Image from "next/image";
+type User = {
+    userID: string;
+    username: string;
+    email: string;
+    avatar: string;
+    token: string;
+};
+export default function UserDrawer({ user, open, setOpen, logout }: { user: User, open: boolean, setOpen: (b: boolean) => void, logout: () => void }) {
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
             <DrawerTrigger asChild>
                 <button className="p-1.5 rounded-full bg-transparent border-[1px] border-solid border-primary/50 cursor-pointer" aria-label="Open user drawer">
                     <Avatar>
                         {user.avatar ? (
-                            <AvatarImage src={user.avatar} alt={user.username} className="object-cover" />
+                            <div>
+                                <Image 
+                                    src={user.avatar}
+                                    alt={user.username}
+                                    width={50}
+                                    height={50}
+                                    className="object-cover rounded-full" 
+                                />
+                            </div>
                         ) : (
                             <AvatarFallback>
                                 {user.username?.[0]?.toUpperCase() || "U"}
