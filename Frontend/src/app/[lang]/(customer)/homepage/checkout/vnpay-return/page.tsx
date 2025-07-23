@@ -5,14 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { Breadcrumb, Button } from "@/components";
-import { useUser } from "@/contexts/user-context";
 import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
 import { createNewOrder } from "@/lib/order-apis";
 
 export default function VNPayReturnPage() {
-  const { fetchCart } = useShoppingCart();
-  const { user } = useUser(); // Assuming user is fetched from shopping cart context
+  const { setCart } = useShoppingCart();
   const router = useRouter();
   const params = useSearchParams();
   const responseCode = params.get("vnp_ResponseCode");
@@ -28,7 +26,7 @@ export default function VNPayReturnPage() {
     effectRan.current = true;
 
     const checkoutDataFromLocalStorage = localStorage.getItem("checkoutData");
-    if (checkoutDataFromLocalStorage && user) {
+    if (checkoutDataFromLocalStorage) {
       try {
         setCheckoutData(JSON.parse(checkoutDataFromLocalStorage));
       } catch (error) {
@@ -43,10 +41,14 @@ export default function VNPayReturnPage() {
 
     const createOrder = async () => {
       try {
-        await createNewOrder(checkoutData);
+        await createNewOrder(JSON.parse(checkoutDataFromLocalStorage));
         localStorage.removeItem("checkoutData");
         toast.success("Đặt hàng thành công!");
-        fetchCart(user.userID);
+        setCart({
+          cartID: 0,
+          totalQuantity: 0,
+          products: [],
+        });
       } catch (error) {
         console.error("Error creating order:", error);
         toast.error("Đặt hàng thất bại, vui lòng thử lại sau!");

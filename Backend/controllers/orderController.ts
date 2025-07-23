@@ -108,6 +108,8 @@ export const createOrder = async (
     status,
   } = req.body;
 
+  console.log(req.body);
+
   const discountValue = req.body.discount?.discountValue || 0;
   const t = await Order.sequelize?.transaction();
 

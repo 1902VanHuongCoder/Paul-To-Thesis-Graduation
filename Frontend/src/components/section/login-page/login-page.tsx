@@ -63,7 +63,6 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                 avatar: data.avatar,
                 token: token,
             };
-            console.log("Login successful:", userData);
             setUser(userData);
             if (rememberMe) {
                 localStorage.setItem("user", JSON.stringify(userData));

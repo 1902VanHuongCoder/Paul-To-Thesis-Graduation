@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { Breadcrumb, ContentLoading } from "@/components";
-import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
 import { deleteOneImage, uploadAvatar } from "@/lib/others/upload-images";
 import { Eye, EyeOff } from "lucide-react";
@@ -28,9 +27,6 @@ export default function UpdateUserProfilePage() {
     const param = useSearchParams();
     const userID = param.get("userID") || "";
 
-    // Contexts 
-    const { dictionary: d } = useDictionary(); // Dictionary for translations
-
     // State variables
     const [user, setUser] = useState<UserProfile | null>(null); // User profile data
     const [loading, setLoading] = useState(true); // Loading state for fetching user data
@@ -51,7 +47,6 @@ export default function UpdateUserProfilePage() {
     const [showNewPassword, setShowNewPassword] = useState(false); // Show/Hide new password
     const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Show/Hide confirm password
     const fileInputRef = useRef<HTMLInputElement>(null); // Reference to file input for avatar upload
-
     const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState(""); // Email for password reset confirmation code
     const [openForgetPassword, setOpenForgetPassword] = useState(false); // State to control the visibility of the password forget dialog
     const [openCreateNewPass, setOpenCreateNewPass] = useState(false); // State to control the visibility of the create new password dialog
@@ -191,17 +186,17 @@ export default function UpdateUserProfilePage() {
 
     return (
         <div className="px-6 py-10">
-            <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
+            <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
             <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Cập nhật hồ sơ người dùng</h1>
             <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
                     {/* Avatar */}
                     <div className="flex items-center gap-x-4">
-                        <div className="w-25 h-25 flex-shrink-0 bg-white rounded-full overflow-hidden">
+                        <div className="w-30 h-30 flex-shrink-0 bg-white rounded-full overflow-hidden">
                             {avatarPreview ? (<Image
                                 width={80}
                                 height={80}
-                                src={avatarPreview || "/avatar.png"}
+                                src={avatarPreview}
                                 alt="avatar"
                                 className="w-full h-full object-cover"
                             />) : (

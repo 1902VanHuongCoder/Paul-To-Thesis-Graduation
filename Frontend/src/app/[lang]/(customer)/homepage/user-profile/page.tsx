@@ -130,7 +130,13 @@ export default function UserProfilePage() {
                 shippingAddressID,
                 userID: user.userID,
             });
-            const data = await getShippingAddressesByUserID(user.userID);
+            const data = shippingAddresses.map(addr => {
+                if( addr.shippingAddressID === shippingAddressID) {
+                    return { ...addr, isDefault: true };
+                }else {
+                    return { ...addr, isDefault: false };
+                }
+            });            
             setShippingAddresses(data); 
         } catch (error) {
             console.error("Error setting default address:", error);

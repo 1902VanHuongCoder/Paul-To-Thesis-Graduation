@@ -4,9 +4,8 @@ export const generateVNPayPaymentUrl = async (
   orderID: string,
   amount: number,
   orderDescription: string,
+  bankCode: string,
   language: string,
-  orderType: string,
-  bankCode?: string
 ) => {
   const data = await fetch(`${baseUrl}/api/create-payment`, {
     method: "POST",
@@ -19,12 +18,12 @@ export const generateVNPayPaymentUrl = async (
       orderDescription,
       bankCode,
       language,
-      orderType,
+      orderType: "other"
     }),
   });
   if (!data.ok) {
     throw new Error("Failed to create payment");
   }
   const response = await data.json();
-  return response?.data?.paymentUrl || "";
+  return response;
 };

@@ -7,7 +7,6 @@ import { useCheckout } from "@/contexts/checkout-context";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
-import { useUser } from "@/contexts/user-context";
 import { XCircle } from "lucide-react";
 import Link from "next/link";
 import { createNewOrder } from "@/lib/order-apis";
@@ -15,9 +14,8 @@ import { createNewOrder } from "@/lib/order-apis";
 export default function PaypalReturnPage() {
   const params = useSearchParams();
   const orderID = params.get("orderID");
-  const { user } = useUser();
   const { checkoutData } = useCheckout();
-  const { fetchCart } = useShoppingCart();
+  const { setCart } = useShoppingCart();
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const effectRan = useRef(false);
 
@@ -25,7 +23,7 @@ export default function PaypalReturnPage() {
     if (effectRan.current) return;
     effectRan.current = true;
 
-    if (!checkoutData || !user) {
+    if (!checkoutData) {
       setStatus("fail");
       return;
     }
@@ -33,7 +31,11 @@ export default function PaypalReturnPage() {
     const createOrder = async () => {
       await createNewOrder(checkoutData);
       setStatus("success");
-      fetchCart(user.userID);
+      setCart({
+        cartID: 0,
+        totalQuantity: 0,
+        products: [],
+      });
     };
 
     if (orderID) {
@@ -42,7 +44,7 @@ export default function PaypalReturnPage() {
       setStatus("fail");
     }
 
-  }, [checkoutData, fetchCart, orderID, user]);
+  }, [checkoutData, orderID]);
 
   return (
     <div className="min-h-[60vh] py-10 px-6">

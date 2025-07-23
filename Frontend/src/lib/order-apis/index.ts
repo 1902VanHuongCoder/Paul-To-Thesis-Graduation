@@ -76,6 +76,7 @@ export const fetchAllOrders = async () => {
 };
 
 export const createNewOrder = async (checkoutData: CheckoutData) => {
+  console.log("Creating new order with data:", checkoutData);
   const response = await fetch(`${baseUrl}/api/order`, {
     method: "POST",
     headers: {

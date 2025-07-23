@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
@@ -20,8 +20,9 @@ import { generateVNPayPaymentUrl } from "@/lib/payment-apis";
 import { checkPromotionCode } from "@/lib/discount-apis";
 import { createNewOrder } from "@/lib/order-apis";
 import { fetchDeliveryMethods } from "@/lib/delivery-apis";
-import { calculateShippingCost } from "@/lib/others/calculate-shipping-cost";
 import { addNewShippingAddress, getShippingAddressesByUserID } from "@/lib/shipping-address-apis";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog/dialog";
+import { calculateShippingCost } from "@/lib/others/calculate-shipping-cost";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -66,10 +67,7 @@ export interface Cart {
 type CheckoutFormValues = {
     fullName: string;
     phone: string;
-    province: string;
-    district: string;
-    ward: string;
-    detailAddress: string;
+    address: string;
     note?: string;
 };
 
@@ -112,13 +110,25 @@ export default function CheckoutPage() {
         defaultValues: {
             fullName: "",
             phone: "",
-            province: "",
-            district: "",
-            ward: "",
-            detailAddress: "",
+            address: "",
             note: "",
         },
     }); // Form state to manage checkout form inputs
+
+    const [deliveryCost, setDeliveryCost] = useState(0); // For delivery cost calculation
+
+    // Shipping address state
+    const [addresses, setAddresses] = useState<ShippingAddress[]>([]); // List of user addresses
+    const [selectedAddressID, setSelectedAddressID] = useState<number | null>(null); // Selected address ID
+    const [openAddAddress, setOpenAddAddress] = useState(false); // Add address dialog
+    const [form, setForm] = useState({
+        province: "",
+        district: "",
+        ward: "",
+        detailAddress: "",
+        phone: "",
+        isDefault: false,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [provinces, setProvinces] = useState<any[]>([]);
@@ -126,60 +136,7 @@ export default function CheckoutPage() {
     const [districts, setDistricts] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [wards, setWards] = useState<any[]>([]);
-
-    const [selectedProvince, setSelectedProvince] = useState({ selectedProvince: "", code: 1 }); // For selected province and its code
-    const [selectedDistrict, setSelectedDistrict] = useState(""); // for selected district
-    const [deliveryCost, setDeliveryCost] = useState(0); // For delivery cost calculation
-
-    // Shipping address state
-    const [addresses, setAddresses] = useState<ShippingAddress[]>([]); // List of user addresses
-    const [selectedAddressID, setSelectedAddressID] = useState<number | null>(null); // Selected address ID
-    const [openAddAddress, setOpenAddAddress] = useState(false); // Add address dialog
-
-    // Fetch provinces on mount
-    useEffect(() => {
-        const fetchProvinces = async () => {
-            try {
-                const data = await fetchProvinceList();
-                setProvinces(data || []);
-            } catch (error) {
-                console.error("Error fetching provinces:", error);
-            }
-        };
-        fetchProvinces();
-    }, []);
-
-    // Fetch districts when province changes
-    useEffect(() => {
-        if (!selectedProvince) {
-            setDistricts([]);
-            setWards([]);
-            return;
-        }
-        const fetchDistricts = async () => {
-            try {
-                const data = await fetchDistrictList(String(selectedProvince.code));
-                setDistricts(data || []);
-                setWards([]);
-            } catch (error) {
-                console.error("Error fetching districts:", error);
-            }
-        };
-        fetchDistricts();
-    }, [selectedProvince, provinces]);
-
-    // Fetch wards when district changes
-    useEffect(() => {
-        if (!selectedDistrict) {
-            setWards([]);
-            return;
-        }
-        const fetchWards = async () => {
-            const data = await fetchWardList(selectedDistrict);
-            setWards(data.wards || []);
-        };
-        fetchWards();
-    }, [selectedDistrict, districts]);
+    const [loading, setLoading] = useState(false);
 
     // Function to handle payment with VNPay
     const payWithVnPay = async ({ orderID, amount, orderDescription, bankCode, language }: {
@@ -196,9 +153,9 @@ export default function CheckoutPage() {
                 orderDescription,
                 bankCode,
                 language,
-                "other",
             );
-            window.location.href = data;
+            window.location.href = data.url;
+            console.log("VNPay payment URL:", data);
         } catch (error) {
             console.error("Error creating payment:", error);
             toast.error("Đã có lỗi xảy ra trong quá trình tạo thanh toán với VNPay. Hãy thử lại!");
@@ -272,7 +229,7 @@ export default function CheckoutPage() {
         const orderDescription = `${"Thanh toán đơn hàng"} ${data.fullName} ${"trên"} ${new Date().toLocaleDateString()}`;
         const bankCode = "NCB"; // Default bank code, can be changed based on user selection
         const language = 'vi'; // Default language, can be changed based on user selection
-        const address = addresses.find(addr => addr.shippingAddressID === selectedAddressID)?.address;
+        const selectedAddress = addresses.find(addr => addr.shippingAddressID === selectedAddressID);
 
         const orderDataSendToServer = {
             ...checkoutData,
@@ -283,13 +240,14 @@ export default function CheckoutPage() {
             totalQuantity: productQuantity,
             note: data.note || "",
             phone: data.phone,
-            address: address,
+            address: selectedAddress ? selectedAddress.address : "",
             paymentMethod: paymentMethod,
             deliveryID: delivery.selectMethod.deliveryID || 0,
             cartID: cart.cartID,
             deliveryCost: deliveryCost || 0,
             status: "pending",
         };
+        console.log("Order data to send:", orderDataSendToServer);
         setCheckoutData(orderDataSendToServer);
 
         if (paymentMethod === "vn-pay") {
@@ -336,18 +294,6 @@ export default function CheckoutPage() {
         fetchDeliveries();
     }, [])
 
-    // Calculate shipping cost based on distance between origin and destination
-    useEffect(() => {
-        const shippingCost = async () => {
-            const shippingCost = await calculateShippingCost(selectedProvince);
-            setDeliveryCost(shippingCost ?? 0);
-        }
-        if (selectedProvince) {
-            shippingCost();
-        }
-    }, [selectedProvince]);
-
-
     // Calculate total payment including products, discounts, delivery method, and delivery cost
     const totalPayment = useMemo(() => { // Use useMemo because this calculation can be expensive and we want to avoid recalculating it on every render 
         // Calculate total price of products in the cart 
@@ -359,83 +305,187 @@ export default function CheckoutPage() {
         return totalPrice + (discount + deliveryMethod + deliveryCost); // Return total payment including products, discounts, delivery method, and delivery cost
     }, [cart.products, delivery.selectMethod.basePrice, checkoutData?.discount?.discountValue, deliveryCost]);
 
-    // Fetch user addresses on mount
-    useEffect(() => {
-        if (!user) return;
-        const fetchAddresses = async () => {
-            try {
-                const data: ShippingAddress[] = await getShippingAddressesByUserID(user.userID);
-                setAddresses(data || []);
-                if (data && data.length > 0) {
-                    const defaultAddr = data.find((a: ShippingAddress) => a.isDefault) || data[0];
+    const fetchAddresses = useCallback(async (user: { userID: string; username: string; }) => {
+        try {
+            const data: ShippingAddress[] = await getShippingAddressesByUserID(user.userID);
+            setAddresses(data || []);
+            if (data && data.length > 0) {
+                const defaultAddr = data.find((a: ShippingAddress) => a.isDefault) || data[0];
                     setSelectedAddressID(defaultAddr.shippingAddressID);
                     // Auto-fill form with default address
-                    const [detailAddress, ward, district, province] = (defaultAddr.address || '').split(',').map((s: string) => s.trim());
                     methods.reset({
                         fullName: user.username,
                         phone: defaultAddr.phone,
-                        province: province,
-                        district: district,
-                        ward: ward,
-                        detailAddress: detailAddress,
+                        address: defaultAddr.address,
                         note: '',
                     });
-                    setSelectedProvince({ selectedProvince: province, code: provinces.find(p => p.name === province)?.code || '' });
-                    setSelectedDistrict(district);
                 }
             } catch (error) {
                 console.error("Error fetching addresses:", error);
                 return [];
             }
-        }
-        fetchAddresses();
-    }, [user, methods, provinces]);
-
-    // When user selects an address, auto-fill the form
+        }, [methods]);
+    
+    // Fetch user addresses on mount
     useEffect(() => {
-        if (!selectedAddressID) return;
-        const addr = addresses.find(a => a.shippingAddressID === selectedAddressID);
-        if (addr) {
-            const [detailAddress, ward, district, province] = (addr.address || '').split(',').map(s => s.trim());
-            methods.reset({
-                fullName: user?.username,
-                phone: addr.phone,
-                province: province,
-                district: district,
-                ward: ward,
-                detailAddress: detailAddress,
-                note: '',
-            });
-            setSelectedProvince({ selectedProvince: province, code: provinces.find(p => p.name === province)?.code || '' });
-            setSelectedDistrict(district);
+        if (!user) return;
+        fetchAddresses(user);
+    }, [user, fetchAddresses]);
+
+    // Fetch provinces
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const data = await fetchProvinceList();
+                setProvinces(data);
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+            }
+        };
+        if (openAddAddress) {
+            fetchProvinces();
         }
-    }, [selectedAddressID, addresses, user, methods, provinces]);
+    }, [openAddAddress]);
 
-    // Add new address handler
-    const handleAddAddress = async (address: { province: string; district: string; ward: string; detailAddress: string; phone: string; isDefault: boolean; }) => {
-        const fullAddress = `${address.detailAddress}, ${address.ward}, ${address.district}, ${address.province}`;
-
-        if (!user) {
-            toast.error("Bạn cần đăng nhập để thêm địa chỉ.");
+    // Fetch districts when province changes
+    useEffect(() => {
+        if (!form.province) {
+            setDistricts([]);
+            setWards([]);
             return;
         }
+        const selected = provinces.find(p => p.name === form.province);
+        if (selected) {
+            const fetchDistricts = async () => {
+                try {
+                    const data = await fetchDistrictList(selected.code);
+                    setDistricts(data);
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        }
+    }, [form.province, provinces]);
 
+    // Fetch wards when district changes
+    useEffect(() => {
+        if (!form.district) {
+            setWards([]);
+            return;
+        }
+        const selected = districts.find(d => d.name === form.district);
+        if (selected) {
+            const fetchWards = async () => {
+                try {
+                    const data = await fetchWardList(selected.code);
+                    setWards(data);
+                } catch (error) {
+                    console.error("Error fetching wards:", error);
+                }
+            };
+            fetchWards();
+        }
+    }, [form.district, districts]);
+
+    // Handle form input changes
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const target = e.target as HTMLInputElement | HTMLSelectElement;
+        const { name, value, type } = target;
+        const checked = (target as HTMLInputElement).checked;
+        setForm(f => ({
+            ...f,
+            [name]: type === "checkbox" ? checked : value,
+        }));
+    };
+
+    // Handle form submission
+    const handleAddNewShippingAddress = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !user.userID) {
+            toast.error("Bạn cần đăng nhập để thêm địa chỉ giao hàng.");
+            return;
+        }
+        setLoading(true);
         try {
-            const newAddress = await addNewShippingAddress({
+            const address = `${form.detailAddress}, ${form.ward}, ${form.district}, ${form.province}`;
+            await addNewShippingAddress({
                 userID: user.userID,
-                address: fullAddress,
-                phone: address.phone,
-                isDefault: address.isDefault,
+                address,
+                phone: form.phone,
+                isDefault: form.isDefault,
             });
-            setAddresses(prev => [...prev, newAddress]);
-            setOpenAddAddress(false);
-            setSelectedAddressID(newAddress.shippingAddressID);
-            toast.success("Thêm địa chỉ thành công!");
-        } catch (error) {
-            console.error("Error adding shipping address:", error);
-            toast.error("Thêm địa chỉ thất bại!");
+
+            setForm({
+                province: "",
+                district: "",
+                ward: "",
+                detailAddress: "",
+                phone: "",
+                isDefault: false,
+            });
+            fetchAddresses(user);
+            toast.success("Thêm địa chỉ giao hàng thành công!");
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false);
         }
     };
+
+    // Update shipping cost when address or cart changes
+    useEffect(() => {
+        let isMounted = true;
+        async function updateShippingCost() {
+            if (!addresses.length || !cart.products.length) {
+                setDeliveryCost(0);
+                return;
+            }
+            setLoading(true);
+            try {
+                // Use default address if no address is selected
+                let selectedAddr = addresses.find(a => a.shippingAddressID === selectedAddressID);
+                if (!selectedAddr) {
+                    selectedAddr = addresses.find(a => a.isDefault) || addresses[0];
+                }
+                if (!selectedAddr) {
+                    setDeliveryCost(0);
+                    return;
+                }
+
+                // Extract province name from address (robust for different formats)
+                const addressParts = selectedAddr.address.split(",").map(s => s.trim());
+                // Try to find province by last part if not found by prefix
+                const provinceName = addressParts.find(part => part.startsWith("Tỉnh") || part.startsWith("Thành phố"));
+            
+                if (!provinceName) {
+                    setDeliveryCost(0);
+                    return;
+                }
+
+                // Fetch province list and get province code
+                const provincesList = await fetchProvinceList();
+  
+                const foundProvince = provincesList.find((p: { name: string }) => p.name === provinceName);
+                if (!foundProvince) {
+                    setDeliveryCost(0);
+                    return;
+                }
+                const provinceCode = foundProvince.code;
+                // Calculate shipping cost using province code
+                const shippingCost = await calculateShippingCost({ code: provinceCode });
+                console.log(shippingCost);
+                if (isMounted) setDeliveryCost(shippingCost || 0);
+            } catch (err) {
+                if (isMounted) setDeliveryCost(0);
+                console.error("Error calculating shipping cost:", err);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        }
+        updateShippingCost();
+        return () => { isMounted = false; };
+    }, [addresses, selectedAddressID, cart.products]);
 
     return (
         <div className="flex flex-col md:flex-row gap-8 bg-white mt-10">
@@ -515,6 +565,135 @@ export default function CheckoutPage() {
                                         Thêm địa chỉ
                                     </button>
                                 </div>
+                                {/* Add Address Dialog */}
+                                <Dialog open={openAddAddress} onOpenChange={setOpenAddAddress}>
+                                    <DialogContent className="w-6xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Thêm địa chỉ giao hàng mới</DialogTitle>
+                                        </DialogHeader>
+                                        <form onSubmit={async e => {
+                                            e.preventDefault();
+                                            await handleAddNewShippingAddress(e);
+                                        }} className="space-y-3 p-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block mb-1 font-normal text-sm text-black/40">Tỉnh/Thành phố</label>
+                                                    <Select
+                                                        value={form.province}
+                                                        onValueChange={val => setForm(f => ({ ...f, province: val, district: "", ward: "" }))}
+                                                        required
+                                                        disabled={provinces.length === 0}
+                                                    >
+                                                        <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white">
+                                                            <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="max-h-60">
+                                                            <SelectGroup>
+                                                                <SelectLabel>Tỉnh/Thành phố</SelectLabel>
+                                                                {provinces.map(p => (
+                                                                    <SelectItem key={p.code} value={p.name}>{p.name}</SelectItem>
+                                                                ))}
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div>
+                                                    <label className="block mb-1 font-normal text-sm text-black/40">Quận/Huyện</label>
+                                                    <Select
+                                                        value={form.district}
+                                                        onValueChange={val => setForm(f => ({ ...f, district: val, ward: "" }))}
+                                                        required
+                                                        disabled={!form.province}
+                                                    >
+                                                        <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.province}>
+                                                            <SelectValue placeholder="Chọn quận/huyện" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="max-h-60">
+                                                            <SelectGroup>
+                                                                <SelectLabel>Quận/Huyện</SelectLabel>
+                                                                {districts.map(d => (
+                                                                    <SelectItem key={d.code} value={d.name}>{d.name}</SelectItem>
+                                                                ))}
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">  <div>
+                                                <label className="block mb-1 font-normal text-sm text-black/40">Phường/Xã</label>
+                                                <Select
+                                                    value={form.ward}
+                                                    onValueChange={val => setForm(f => ({ ...f, ward: val }))}
+                                                    required
+                                                    disabled={!form.district}
+                                                >
+                                                    <SelectTrigger className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white" disabled={!form.district}>
+                                                        <SelectValue placeholder="Chọn phường/xã" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-60">
+                                                        <SelectGroup>
+                                                            <SelectLabel>Phường/Xã</SelectLabel>
+                                                            {wards.map(w => (
+                                                                <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                                <div>
+                                                    <label className="block mb-1 font-normal text-sm text-black/40">Địa chỉ cụ thể</label>
+                                                    <input
+                                                        type="text"
+                                                        name="detailAddress"
+                                                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                                                        value={form.detailAddress}
+                                                        onChange={e => setForm(f => ({ ...f, detailAddress: e.target.value }))}
+                                                        required
+                                                        placeholder="Nhập số nhà, tên đường..."
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block mb-1 font-normal text-sm text-black/40">Số điện thoại</label>
+                                                <input
+                                                    type="text"
+                                                    name="phone"
+                                                    className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                                                    value={form.phone}
+                                                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                                                    required
+                                                    placeholder="Nhập số điện thoại"
+                                                />
+                                            </div>
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    name="isDefault"
+                                                    id="isDefault"
+                                                    checked={form.isDefault}
+                                                    onChange={handleChange}
+                                                    className="mr-2"
+                                                />
+                                                <label htmlFor="isDefault">Đặt làm địa chỉ mặc định</label>
+                                            </div>
+                                            <div className="flex justify-center mt-4">
+                                                <Button
+                                                    type="button"
+                                                    onClick={handleAddNewShippingAddress}
+                                                    className=""
+                                                    disabled={loading}
+                                                >
+                                                    {loading ? "Đang lưu..." : "Thêm địa chỉ"}
+                                                </Button>
+                                            </div>
+                                        </form>
+                                        <DialogClose asChild>
+                                            <button className="absolute top-4 right-4 hover:text-gray-700 hover:cursor-pointer" aria-label="Đóng">
+                                                Đóng
+                                            </button>
+                                        </DialogClose>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         )}
 
@@ -565,8 +744,7 @@ export default function CheckoutPage() {
                         <span>- {promoCode.discount !== 0 ?
                             formatVND(promoCode.discount)
                             : checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0
-                        }
-                            VND</span>
+                        } VND</span>
                     </div>
                     <div className=" text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span className="flex flex-col">
@@ -690,184 +868,6 @@ export default function CheckoutPage() {
                 </div>
             </div>
             <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
-            {/* Add address dialog (simple inline for now) */}
-            {openAddAddress && (
-                <AddAddressDialog
-                    provinces={provinces}
-                    setProvinces={setProvinces}
-                    districts={districts}
-                    setDistricts={setDistricts}
-                    wards={wards}
-                    setWards={setWards}
-                    setOpenAddAddress={setOpenAddAddress}
-                    handleAddAddress={handleAddAddress}
-                />
-            )}
-        </div>
-    );
-}
-
-function AddAddressDialog({ provinces, setProvinces, districts, setDistricts, wards, setWards, setOpenAddAddress, handleAddAddress }: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    provinces: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setProvinces: (p: any[]) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    districts: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setDistricts: (d: any[]) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    wards: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setWards: (w: any[]) => void;
-    setOpenAddAddress: (v: boolean) => void;
-    handleAddAddress: (address: { province: string; district: string; ward: string; detailAddress: string; phone: string; isDefault: boolean; }) => void;
-}) {
-    const [form, setForm] = useState({
-        province: "",
-        district: "",
-        ward: "",
-        detailAddress: "",
-        phone: "",
-        isDefault: false,
-    });
-
-    // Fetch provinces on mount
-    useEffect(() => {
-        if (provinces.length === 0) {
-            const fetchProvinces = async () => {
-              const data = await fetchProvinceList();
-              setProvinces(data || []);
-            };
-            fetchProvinces();
-        }
-    }, [provinces, setProvinces]);
-
-    // Fetch districts when province changes
-    useEffect(() => {
-        if (!form.province) {
-            setDistricts([]);
-            setWards([]);
-            return;
-        }
-        const selected = provinces.find(p => p.name === form.province);
-        if (selected) {
-            fetchDistrictList(selected.code);
-            setDistricts(selected.districts || []);
-        }
-    }, [form.province, provinces, setDistricts, setWards]);
-
-    // Fetch wards when district changes
-    useEffect(() => {
-        if (!form.district) {
-            setWards([]);
-            return;
-        }
-        const selected = districts.find(d => d.name === form.district);
-        if (selected) {
-            fetchWardList(selected.code);
-            setWards(selected.wards || []);
-        }
-    }, [form.district, districts, setWards]);
-
-    return (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <h3 className="text-lg font-semibold mb-4">Thêm địa chỉ mới</h3>
-                <form onSubmit={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    await handleAddAddress(form);
-                }} className="space-y-3">
-                    <Select
-                        value={form.province}
-                        onValueChange={val => setForm(f => ({ ...f, province: val, district: "", ward: "" }))}
-                        required
-                        disabled={provinces.length === 0}
-                    >
-                        <SelectTrigger
-                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-
-                        >
-                            <SelectValue placeholder="Chọn tỉnh/thành phố" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                            <SelectGroup>
-                                <SelectLabel>Tỉnh/Thành phố</SelectLabel>
-                                {provinces.map(p => (
-                                    <SelectItem key={p.code} value={p.name}>{p.name}</SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={form.district}
-                        onValueChange={val => setForm(f => ({ ...f, district: val, ward: "" }))}
-                        required
-                        disabled={!form.province}
-                    >
-                        <SelectTrigger
-                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-
-                            disabled={!form.province}>
-                            <SelectValue placeholder="Chọn quận/huyện" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                            <SelectGroup>
-                                <SelectLabel>Quận/Huyện</SelectLabel>
-                                {districts.map(d => (
-                                    <SelectItem key={d.code} value={d.name}>{d.name}</SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={form.ward}
-                        onValueChange={val => setForm(f => ({ ...f, ward: val }))}
-                        required
-                        disabled={!form.district}
-                    >
-                        <SelectTrigger
-
-                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-
-                            disabled={!form.district}>
-                            <SelectValue placeholder="Chọn phường/xã" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                            <SelectGroup>
-                                <SelectLabel>Phường/Xã</SelectLabel>
-                                {wards.map(w => (
-                                    <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                    <input
-                        name="detailAddress"
-                        placeholder="Địa chỉ cụ thể"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary/10"
-                        required
-                        value={form.detailAddress}
-                        onChange={e => setForm(f => ({ ...f, detailAddress: e.target.value }))}
-                    />
-                    <input
-                        name="phone"
-                        placeholder="Số điện thoại"
-                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-                        required
-                        value={form.phone}
-                        onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                    />
-                    <label className="flex items-center gap-2">
-                        <input type="checkbox" name="isDefault" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} /> Đặt làm mặc định
-                    </label>
-                    <div className="flex gap-2 justify-end">
-                        <Button type="button" variant="normal" size="sm" onClick={() => setOpenAddAddress(false)}>Hủy thêm</Button>
-                        <Button type="submit" variant="primary" size="sm" >Lưu</Button>
-                    </div>
-                </form>
-            </div>
         </div>
     );
 }

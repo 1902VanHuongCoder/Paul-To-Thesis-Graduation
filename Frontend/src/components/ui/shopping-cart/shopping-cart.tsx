@@ -202,7 +202,7 @@ export default function ShoppingCart() {
                     </div>
                     <div className="flex flex-col gap-2">
                         <button
-                            disabled={!cart.products.length} // Disable if no products in cart
+                            disabled={cart && cart.products ? cart.products.length === 0 : false}
                             onClick={() => {
                                 setOpen(false); // Close the drawer
                                 router.push(`/vi/homepage/checkout`);
@@ -212,7 +212,7 @@ export default function ShoppingCart() {
                         </button>
                         
                         <button
-                            disabled={!cart.products.length} // Disable if no products in cart
+                            disabled={ cart && cart.products ? cart.products.length === 0 : false}
                             onClick={
                                 () => {
                                     setOpen(false); // Close the drawer

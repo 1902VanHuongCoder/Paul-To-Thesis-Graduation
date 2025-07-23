@@ -7,6 +7,7 @@ import Button from "@/components/ui/button/button-brand";
 import { useUser } from "@/contexts/user-context";
 import { Breadcrumb, ContentLoading } from "@/components";
 import { getOrderHistory } from "@/lib/order-apis";
+import clsx from "clsx";
 
 interface OrderProduct {
   productID: number;
@@ -19,7 +20,7 @@ interface Order {
   orderID: string;
   createdAt: string;
   totalPayment: number;
-  status?: string;
+  orderStatus: string;
   products?: OrderProduct[];
 }
 
@@ -78,7 +79,26 @@ const OrderHistory = () => {
                   <td className="p-3">{order.orderID}</td>
                   <td className="p-3">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td className="p-3">{formatVND(order.totalPayment)} VND</td>
-                  <td className="p-3"><span>{order.status ||"Đang xử lý"}</span></td>
+                  <td className="p-3 flex items-center gap-2">
+                    <span className={clsx({
+                      "bg-yellow-500": order.orderStatus === "pending",
+                      "bg-purple-500": order.orderStatus === "accepted",
+                      "bg-blue-500": order.orderStatus === "shipping",
+                      "bg-green-500": order.orderStatus === "completed",
+                      "bg-red-500": order.orderStatus === "cancelled", 
+                      
+                    }, "w-3 h-3 rounded-full")}> 
+
+                    </span>
+                    <span >
+                      {order.orderStatus === "pending" ? "Đang xử lý" :
+                        order.orderStatus === "accepted" ? "Đã xác nhận" :
+                        order.orderStatus === "shipping" ? "Đang giao hàng" :
+                        order.orderStatus === "completed" ? "Hoàn thành" :
+                        order.orderStatus === "cancelled" ? "Đã hủy" :
+                      ""}
+                    </span>
+                  </td>
                   <td className="p-3">
                     <Button
                       variant="normal"

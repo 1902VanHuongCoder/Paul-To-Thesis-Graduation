@@ -219,10 +219,10 @@ const ChatBot = (
             }
             setIsLoading(false);
         };
-        if (isOpen) {
+        if (isOpen && !joinedConversationID) {
             handleOpenChat();
         }
-    }, [user, isOpen]);
+    }, [user, isOpen, joinedConversationID]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -257,7 +257,6 @@ const ChatBot = (
                                 {messages.length === 0 && <div className="text-gray-400">Chưa có tin nhắn nào.</div>}
                                 {messages.length > 0 && messages.map((msg, idx) => {
                                     const isMine = msg.senderID === user?.userID;
-                                    const isAdmin = !isMine;
                                     return (
                                         <div
                                             key={msg.messageID || Math.random()}

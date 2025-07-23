@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -19,11 +20,12 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+    const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    console.log("UserProvider initialized with user:", user);
     const logout = () => {
         setUser(null);
         localStorage.removeItem("user");
+        router.push("/"); // Redirect to login page
         toast.success("Đăng xuất thành công!");
     };
 
