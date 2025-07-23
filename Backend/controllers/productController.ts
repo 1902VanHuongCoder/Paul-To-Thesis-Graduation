@@ -245,6 +245,14 @@ export const deleteProduct = async (
     // Delete related records in ProductTag and ProductAttribute
     await ProductTag.destroy({ where: { productID: productID } });
 
+    // Decrement the count of the selected category
+    if (product.categoryID) {
+      await Category.decrement("count", {
+        by: 1,
+        where: { categoryID: product.categoryID },
+      });
+    }
+
     // Delete the product
     await product.destroy();
 

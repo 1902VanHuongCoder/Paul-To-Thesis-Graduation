@@ -131,7 +131,7 @@ const ExpandableChatToggle: React.FC<ExpandableChatToggleProps> = ({
     variant="default"
     onClick={toggleChat}
     className={cn(
-      "w-14 h-14 rounded-full shadow-md flex items-center justify-center hover:shadow-lg hover:shadow-black/30 transition-all duration-300",
+      "w-14 h-14 rounded-full shadow-md flex items-center justify-center hover:shadow-lg hover:shadow-black/30 transition-all duration-300 bg-secondary hover:cursor-pointer ",
       className,
     )}
     {...props}
@@ -139,7 +139,7 @@ const ExpandableChatToggle: React.FC<ExpandableChatToggleProps> = ({
     {isOpen ? (
       <X className="h-6 w-6" />
     ) : (
-      icon || <MessageCircle className="h-6 w-6" />
+      icon || <MessageCircle className="h-6 w-6 fill-white" />
     )}
   </Button>
 );

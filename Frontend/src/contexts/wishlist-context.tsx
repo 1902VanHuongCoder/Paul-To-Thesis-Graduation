@@ -64,10 +64,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     try {
       await removeFromWishlistList(customerID, productID);
       await fetchWishlist(customerID);
-      toast.success("Đã xóa khỏi danh sách yêu thích");
     } catch (error) {
       console.error("Error removing from wishlist:", error);
-      toast.error("Lỗi khi xóa khỏi danh sách yêu thích");
     }
   };
 
@@ -75,7 +73,6 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     try {
       await clearWishlist(customerID);
       setWishlist([]);
-      toast.success("Đã xóa toàn bộ danh sách yêu thích");
     } catch (error) {
       console.error("Error clearing wishlist:", error);
       toast.error("Lỗi khi xóa toàn bộ danh sách yêu thích");

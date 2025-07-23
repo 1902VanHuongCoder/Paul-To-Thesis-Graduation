@@ -188,3 +188,14 @@ export const deleteAccount = async (userID: string) => {
 
   return res.ok;
 };
+
+export const getAllAdmins = async () => {
+  const res = await fetch(`${baseUrl}/api/users/role/adm`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch admins");
+  }
+
+  const data = await res.json();
+  return data;
+};

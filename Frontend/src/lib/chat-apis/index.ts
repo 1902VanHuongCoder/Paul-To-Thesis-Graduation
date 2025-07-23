@@ -103,3 +103,39 @@ export const fetchConversations = async (userID: string): Promise<ConversationLi
         throw error;
     }
 };
+
+export const createConversation = async ({
+  conversationID,
+  conversationName,
+  conversationAvatar,
+  participants,
+  isGroup,
+} : {
+  conversationID: string;
+  conversationName: string;
+  conversationAvatar?: string;
+  participants: string[];
+  isGroup: boolean;
+}): Promise<Conversation> => {
+  try {
+    const response = await fetch(`${baseUrl}/api/chat/create-conversation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationID,
+        conversationName,
+        conversationAvatar,
+        participants,
+        isGroup,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to create conversation");
+    }
+    const data = await response.json();
+    return data.conversation;
+  } catch (error) {
+    console.error("Error creating conversation:", error);
+    throw error;
+  } 
+}

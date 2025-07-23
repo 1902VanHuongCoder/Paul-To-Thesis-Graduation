@@ -10,6 +10,7 @@ import { fetchProducts } from "@/lib/product-apis";
 import { fetchCategories } from "@/lib/category-apis";
 import { fetchProductsByTag, fetchTags } from "@/lib/product-tag-apis";
 import { increaseNoAccess } from "@/lib/statistic-apis";
+import { useUser } from "@/contexts/user-context";
 
 interface Category {
     categoryDescription: string,
@@ -44,6 +45,7 @@ interface Tag {
 
 const Homepage = () => {
     const { setLoading } = useLoading();
+    const { user } = useUser();
     const [showFilterKit, setShowFilterKit] = React.useState(false);
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [tags, setTags] = React.useState<Tag[]>([]);
@@ -52,7 +54,7 @@ const Homepage = () => {
     const [productView, setProductView] = React.useState("grid");
     const [productsAfterFilter, setProductsAfterFilter] = React.useState<Product[]>([]);
     const [listOfTagID, setListOfTagID] = React.useState<number[]>([]);
-
+    const [isOpenChat, setIsOpenChat] = React.useState(false);
     const displayModeProps = {
         totalResults: productsAfterFilter.length,
         currentPage: 1,
@@ -106,9 +108,21 @@ const Homepage = () => {
     }, [products]);
 
     const handleTagFilter = useCallback((tagID: number) => {
-        const listOfTagIDTemp = [...listOfTagID, tagID];
-        const uniqueArr = removeDuplicates(listOfTagIDTemp);
+        let uniqueArr: number[];
+        if (listOfTagID.includes(tagID)) {
+            // Remove tagID if it exists
+            uniqueArr = listOfTagID.filter(id => id !== tagID);
+        } else {
+            // Add tagID if it doesn't exist
+            uniqueArr = removeDuplicates([...listOfTagID, tagID]);
+        }
+        if (uniqueArr.length === 0) {
+            setProductsAfterFilter(products);
+            setListOfTagID([]);
+            return;
+        }
         setListOfTagID(uniqueArr);
+        console.log(uniqueArr);
         const fetchProductIDContainTagID = async () => {
             const [response] = await Promise.all([
                 fetchProductsByTag(uniqueArr)
@@ -120,12 +134,32 @@ const Homepage = () => {
     }, [listOfTagID, products]);
 
     const sortByPriceAsc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => a.productPrice - b.productPrice)
+        const sortedProducts = [...products].sort((a, b) => {
+            if (a.productPriceSale > 0 && b.productPriceSale > 0) {
+                return a.productPriceSale - b.productPriceSale;
+            } else if (a.productPriceSale > 0 && b.productPriceSale === 0) {
+                return a.productPriceSale - b.productPrice;
+            } else if (a.productPriceSale === 0 && b.productPriceSale > 0) {
+                return a.productPrice - b.productPriceSale;
+            } else {
+                return a.productPrice - b.productPrice;
+            }
+        })
         return sortedProducts;
     }
 
     const sortByPriceDesc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => b.productPrice - a.productPrice)
+        const sortedProducts = [...products].sort((a, b) => {
+            if (a.productPriceSale > 0 && b.productPriceSale > 0) {
+                return b.productPriceSale - a.productPriceSale;
+            } else if (a.productPriceSale > 0 && b.productPriceSale === 0) {
+                return b.productPriceSale - a.productPrice;
+            } else if (a.productPriceSale === 0 && b.productPriceSale > 0) {
+                return b.productPrice - a.productPriceSale;
+            } else {
+                return b.productPrice - a.productPrice;
+            }
+        })
         return sortedProducts;
     }
 
@@ -195,7 +229,14 @@ const Homepage = () => {
                         <CategoryFilter categories={categories} onCategorySelect={handleCategoryFilter} />
                         <CashFilter onFilter={handleCashFilter} />
                         <NewestProduct products={products} />
-                        <TagFilter tags={tags} onTagSelect={handleTagFilter} />
+                        <TagFilter
+                            tags={tags}
+                            onTagSelect={handleTagFilter}
+                            onClear={() => {
+                                setListOfTagID([]);
+                                setProductsAfterFilter(products);
+                            }}
+                        />
                         <Button
                             variant="normal"
                             className="w-full mt-4 flex items-center justify-center gap-x-2 md:hidden"
@@ -259,7 +300,10 @@ const Homepage = () => {
                         />
                     </section>
                 </section>
-                <ChatBot />
+                {user && <ChatBot
+                    isOpen={isOpenChat}
+                    setIsOpen={setIsOpenChat}
+                />}
                 <ParterCarousel />
                 <ToTopButton />
             </main>
