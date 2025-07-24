@@ -73,7 +73,8 @@ export const getOrdersByUserID = async (req:Request, res: Response) => {
     const { userID } = req.params; 
     try {
        const orders = await Order.findAll({
-        where: {userID}
+         where: { userID },
+         order: [['createdAt', 'DESC']]
        });
        if(orders.length > 0){
         res.status(200).json(orders);

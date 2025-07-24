@@ -5,7 +5,8 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useRouter } from "next/navigation"; 
 import { useDictionary } from "@/contexts/dictonary-context";
 import { useCheckout } from "@/contexts/checkout-context";
-const PayPalButton = ({amount}: {amount: number}) => {
+
+const PayPalButton = ({ amount, submitForm, termIsAccepted }: {amount: number, submitForm: () => void, termIsAccepted: boolean}) => {
     const {checkoutData} = useCheckout();
     const {lang} = useDictionary();
     const vndToUsdRate = 0.000042; // Example conversion rate (1 VND = 0.000042 USD)
@@ -21,6 +22,10 @@ const PayPalButton = ({amount}: {amount: number}) => {
         >
             <PayPalButtons
                 createOrder={(data, actions) => {
+                    submitForm();
+                    if(!termIsAccepted) {
+                        return Promise.reject(new Error("Terms not accepted"));
+                    }
                     return actions.order.create({
                         intent: "CAPTURE",
                         purchase_units: [
@@ -36,7 +41,6 @@ const PayPalButton = ({amount}: {amount: number}) => {
                 onApprove={(data, actions) => {
                     if (!actions.order) {
                         console.error("Order is undefined.");
-                        alert("Payment failed. Please try again.");
                         return Promise.reject(new Error("Order is undefined."));
                     }
                     return actions.order.capture().then((details) => {
@@ -46,7 +50,7 @@ const PayPalButton = ({amount}: {amount: number}) => {
                 }}
                 onError={(err) => {
                     console.error("PayPal Checkout Error:", err);
-                    alert("Payment failed. Please try again.");
+                    return Promise.reject(new Error("Payment failed. Please try again."));
                 }}
             />
         </PayPalScriptProvider>

@@ -109,6 +109,21 @@ export async function updateNews({
   return res.json();
 }
 
+export const updateNewsViews = async (newsID: number) => {
+  const res = await fetch(`${baseUrl}/api/news/update-views/${newsID}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to update news views: ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
 export async function deleteNews(id: number) {
   const res = await fetch(`${baseUrl}/api/news/${id}`, {
     method: "DELETE",

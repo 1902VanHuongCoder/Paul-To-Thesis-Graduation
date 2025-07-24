@@ -8,6 +8,7 @@ import { useUser } from "@/contexts/user-context";
 import { Breadcrumb, ContentLoading } from "@/components";
 import { getOrderHistory } from "@/lib/order-apis";
 import clsx from "clsx";
+import formatDate from "@/lib/others/format-date";
 
 interface OrderProduct {
   productID: number;
@@ -77,7 +78,7 @@ const OrderHistory = () => {
               {orders.map((order) => (
                 <tr key={order.orderID} className="border-b hover:bg-gray-50">
                   <td className="p-3">{order.orderID}</td>
-                  <td className="p-3">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="p-3">{formatDate(order.createdAt)}</td>
                   <td className="p-3">{formatVND(order.totalPayment)} VND</td>
                   <td className="p-3 flex items-center gap-2">
                     <span className={clsx({

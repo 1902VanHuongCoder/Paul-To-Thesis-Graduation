@@ -27,7 +27,7 @@ export default function CartPage() {
     const router = useRouter();
 
     // const [selectedShipping, setSelectedShipping] = useState("local");
-    const [termsAccepted, setTermsAccepted] = useState(false);
+    // const [termsAccepted, setTermsAccepted] = useState(false);
 
     const totalPayment = useMemo(()=> {
         const subtotal = cart.products.reduce((total, item) => {
@@ -71,10 +71,6 @@ export default function CartPage() {
     const handleCheckout = () => {
         if (cart.products.length === 0) {
             alert("Giỏ hàng của bạn đang trống");
-            return;
-        }
-        if (!termsAccepted) {
-            alert("Vui lòng đồng ý với các điều khoản và điều kiện");
             return;
         }
         router.push(`/vi/homepage/checkout`);
@@ -216,7 +212,7 @@ export default function CartPage() {
                 />
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Tổng quan giỏ hàng</h2>
                 <div className="space-y-4">
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span>{
                             "Tổng phụ"
                         }</span>
@@ -224,7 +220,7 @@ export default function CartPage() {
                             {formatVND(totalPayment)} VND
                         </span>
                     </div>
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
                         <span>
                             {
                                 "Giảm giá"
@@ -238,7 +234,7 @@ export default function CartPage() {
                         }</span>
                         <span>{formatVND(totalPayment - (checkoutData?.discount?.discountValue || 0))} VND </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                         <input
                             type="checkbox"
                             checked={termsAccepted}
@@ -248,13 +244,12 @@ export default function CartPage() {
                         <span className="text-sm text-gray-600">
                             <span>Đồng ý với </span><button className="font-semibold hover:underline cursor-pointer" onClick={() => setOpenTermsAndPolicy(true)}>Điều khoản và quy định</button>
                         </span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-2 mt-4 flex-col">
                         <Button
                             onClick={handleCheckout}
                             variant="primary"
                             size="md"
-                            disabled={!termsAccepted}
                             className=""
                         >
                             {"Thanh toán"}

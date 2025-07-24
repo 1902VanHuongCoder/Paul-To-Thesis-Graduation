@@ -89,7 +89,6 @@ export default function CheckoutPage() {
     const { checkoutData, setCheckoutData } = useCheckout();
 
     // State variables
-    const [showPaypal, setShowPaypal] = useState(false); // For PayPal payment
     const [paymentMethod, setPaymentMethod] = useState(""); // Default payment method
     const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false); // For Terms and Privacy Policy dialog
     const [termsAccepted, setTermsAccepted] = useState(false); // For terms and conditions acceptance 
@@ -100,11 +99,13 @@ export default function CheckoutPage() {
 
     const [delivery, setDelivery] = useState<{
         allMethods: DeliveryMethod[];
-        selectMethod: Partial<DeliveryMethod>;
+        selectMethod: DeliveryMethod;
     }>({
         allMethods: [],
-        selectMethod: {}
+        selectMethod: {} as DeliveryMethod,
     }); // For delivery methods and selected method
+
+    console.log(delivery);
 
     const methods = useForm<CheckoutFormValues>({
         defaultValues: {
@@ -221,6 +222,11 @@ export default function CheckoutPage() {
             return;
         }
 
+        if (!delivery.selectMethod.deliveryID) {
+            toast.error("Vui lòng chọn phương thức giao hàng.");
+            return;
+        }
+
         const productQuantity = cart.products.reduce((total, product) => {
             return total + product.CartItem.quantity;
         }, 0);
@@ -242,7 +248,7 @@ export default function CheckoutPage() {
             phone: data.phone,
             address: selectedAddress ? selectedAddress.address : "",
             paymentMethod: paymentMethod,
-            deliveryID: delivery.selectMethod.deliveryID || 0,
+            deliveryID: delivery.selectMethod.deliveryID,
             cartID: cart.cartID,
             deliveryCost: deliveryCost || 0,
             status: "pending",
@@ -260,7 +266,7 @@ export default function CheckoutPage() {
                 language
             });
         } else if (paymentMethod === "paypal") {
-            setShowPaypal(true);
+            return;
         } else if (paymentMethod === "cash") {
             try {
                 await createNewOrder(orderDataSendToServer);
@@ -298,7 +304,8 @@ export default function CheckoutPage() {
     const totalPayment = useMemo(() => { // Use useMemo because this calculation can be expensive and we want to avoid recalculating it on every render 
         // Calculate total price of products in the cart 
         const totalPrice = cart.products.reduce((total, product) => {
-            return total + (product.CartItem.price * product.CartItem.quantity);
+            const price = product.productPriceSale ? product.productPriceSale : product.CartItem.price;
+            return total + (price * product.CartItem.quantity);
         }, 0);
         const discount = checkoutData?.discount?.discountValue || 0; // Get discount value from checkout data or default to 0 
         const deliveryMethod = delivery.selectMethod.basePrice || 0; // Get delivery method base price or default to 0
@@ -730,7 +737,7 @@ export default function CheckoutPage() {
                                 cart.products.map(product => (
                                     <div key={product.productID} className="flex justify-between">
                                         <span>{product.productName} × {product.CartItem.quantity}</span>
-                                        <span>{formatVND(product.CartItem.price * product.CartItem.quantity)} VND</span>
+                                        <span>{formatVND(product.productPriceSale ? product.productPriceSale * product.CartItem.quantity : product.CartItem.price * product.CartItem.quantity)} VND</span>
                                     </div>
                                 ))
                             }
@@ -803,7 +810,7 @@ export default function CheckoutPage() {
                                     checked={paymentMethod === "paypal"}
                                     onChange={() => {
                                         setPaymentMethod("paypal");
-                                        onSubmit(methods.getValues());
+                                        // onSubmit(methods.getValues());
                                     }}
                                 />
                                 PayPal
@@ -840,19 +847,20 @@ export default function CheckoutPage() {
                     {/* Place Order Button */}
                     <div className="flex justify-center">
                         {paymentMethod === "paypal" ? (
-                            showPaypal ? (
-                                <PayPalButton amount={totalPayment} />
-                            ) : (
-                                <Button
-                                    type="submit"
-                                    form="checkout-form"
-                                    variant="primary"
-                                    size="md"
-                                    className="mt-4"
-                                >
-                                    {"Đặt hàng"}
-                                </Button>
-                            )
+                            // showPaypal ? (
+                            //     <PayPalButton amount={totalPayment} />
+                            // ) : (
+                            //     <Button
+                            //         type="submit"
+                            //         form="checkout-form"
+                            //         variant="primary"
+                            //         size="md"
+                            //         className="mt-4"
+                            //     >
+                            //         {"Đặt hàng"}
+                            //     </Button>
+                            // )
+                            <PayPalButton termIsAccepted={termsAccepted} submitForm={() => {onSubmit(methods.getValues())}} amount={totalPayment} />
                         ) : (
                             <Button
                                 type="submit"

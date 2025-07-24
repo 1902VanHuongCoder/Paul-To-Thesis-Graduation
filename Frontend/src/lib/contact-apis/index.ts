@@ -1,3 +1,5 @@
+import { baseUrl } from "../others/base-url";
+
 export const createNewContact = async ({
   userID,
   subject,
@@ -7,7 +9,7 @@ export const createNewContact = async ({
   subject: string;
   message: string;
 }) => {
-  const response = await fetch("/api/contact", {
+  const response = await fetch(`${baseUrl}/api/contact`, {
     method: "POST",
     body: JSON.stringify({
       userID,
@@ -27,7 +29,7 @@ export const createNewContact = async ({
 };
 
 export const fetchAllContacts = async () => {
-  const response = await fetch(`/api/contact`);
+  const response = await fetch(`${baseUrl}/api/contact`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch contacts");

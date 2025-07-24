@@ -162,6 +162,24 @@ export const updateNews = async (req: Request, res: Response) => {
   }
 };
 
+export const updateNewsViews = async (req: Request, res: Response) => {
+  const { newsID } = req.params;
+  try {
+    const newsArticle = await News.findByPk(newsID);
+    if (!newsArticle) {
+      res.status(404).json({ message: "News article not found" });
+      return;
+    }
+
+    // Increment views
+    newsArticle.views += 1;
+    await newsArticle.save();
+
+    res.status(200).json({ message: "Views updated successfully", views: newsArticle.views });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+} 
 
 // DELETE a news article by ID
 export const deleteNews = async (req: Request, res: Response) => {
