@@ -22,6 +22,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
+    console.log("Current user in context:", user);
     const logout = () => {
         setUser(null);
         localStorage.removeItem("user");

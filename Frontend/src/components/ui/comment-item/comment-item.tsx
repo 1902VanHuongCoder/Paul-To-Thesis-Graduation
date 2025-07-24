@@ -4,7 +4,9 @@ import React from "react";
 import Image, { StaticImageData } from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/others/base-url";
+import { deleteNewsComment } from "@/lib/news-comment-apis";
+import { deleteProductComment } from "@/lib/product-comment-apis";
+import toast from "react-hot-toast";
 // import { baseUrl } from "@/configs/base-url";
 interface CommentItemProps {
     index: number;
@@ -23,6 +25,7 @@ interface CommentItemProps {
     currentUserID?: string;
     onDelete?: () => void;
     reFetchComments: () => void;
+    type: "product" | "news";
 }
 
 export default function CommentItem({
@@ -40,6 +43,7 @@ export default function CommentItem({
     onLike,
     onDislike,
     reFetchComments,
+    type,
 }: CommentItemProps & { onLike?: () => void; onDislike?: () => void }) {
     // Contexts 
     const { user } = useUser();
@@ -63,17 +67,40 @@ export default function CommentItem({
     // Handler for deleting the comment
     const handleDelete = async () => {
         if (!commentID) return;
-        if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
-        try {
-            await fetch(`${baseUrl}/api/comment/${commentID}`, { method: "DELETE" });
-
-            // Refetch comments or update state in parent component
-            reFetchComments();
-            alert("Xóa bình luận thành công!");
-        } catch (err) {
-            alert("Xóa bình luận thất bại!");
-            console.error("Error deleting comment:", err);
-        }
+        toast((t) => (
+            <span>
+                Bạn có chắc muốn xóa bình luận này?
+                <div className="mt-2 flex gap-2 justify-end">
+                    <button
+                        className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                if (type === "product") {
+                                    await deleteProductComment(commentID);
+                                    reFetchComments();
+                                } else if (type === "news") {
+                                    await deleteNewsComment(commentID);
+                                    reFetchComments();
+                                }
+                                toast.success("Xóa bình luận thành công!", { position: "top-center" });
+                            } catch (err) {
+                                toast.error("Xóa bình luận thất bại!", { position: "top-center" });
+                                console.error("Error deleting comment:", err);
+                            }
+                        }}
+                    >
+                        Xóa
+                    </button>
+                    <button
+                        className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Hủy
+                    </button>
+                </div>
+            </span>
+        ), { duration: 8000, position: "top-center" });
     };
 
     return (
@@ -119,8 +146,9 @@ export default function CommentItem({
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <button
+                <div className={`flex gap-2`}>
+                    <div className={`flex items-center gap-2 ${user && user.userID === userID ? 'hidden' : ''}`}>
+                        <button
                         className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
                         onClick={handleLikeClick}
                         aria-label="Like"
@@ -164,6 +192,8 @@ export default function CommentItem({
                             )}
                         </AnimatePresence>
                     </button>
+
+                    </div>
                     
                     {user && user.userID === userID && (
                         <button

@@ -304,6 +304,7 @@ export default function ProductDetailsPage() {
                               onDislike={() => handleDislike(comment.commentID)}
                               reFetchComments={fetchComments}
                               rating={comment.rating}
+                              type="product"
                             />
                           ))
                         ) : (

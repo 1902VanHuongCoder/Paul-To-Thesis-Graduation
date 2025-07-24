@@ -203,11 +203,13 @@ export const updateUser = async (
 
     // Handle password update
     if (password) {
+      console.log("Updating password for user:", userID);
       user.password = await bcrypt.hash(password, 10);
     }
 
     await user.save();
-    res.status(200).json({ message: "Địa chỉ email đã tồn tại rồi.", user });
+    console.log("User updated successfully:", user);
+    res.status(200).json({ message: "Cập nhật người dùng thành công.", user });
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ error: (error as Error).message });

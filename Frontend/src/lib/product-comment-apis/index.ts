@@ -84,3 +84,14 @@ export const dislikeComment = async (commentID: number) => {
   return response.json();
 };
 
+export const deleteProductComment = async (commentID: number) => {
+  const response = await fetch(`${baseUrl}/api/comment/${commentID}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete comment");
+  }
+
+  return response.json();
+}

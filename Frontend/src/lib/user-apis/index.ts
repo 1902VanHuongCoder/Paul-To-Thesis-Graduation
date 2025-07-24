@@ -162,6 +162,24 @@ export const updateUserProfile = async (
   return data;
 };
 
+export const updateUserPassword = async (
+  password: string,
+  userID: string
+) => {
+  const res = await fetch(`${baseUrl}/api/users/${userID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      password,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to update user profile");
+  }
+  const data = await res.json();
+  return data;
+};
+
 export const updateUserProfileStatus = async (
   userID: string,
   isActive: boolean
@@ -199,3 +217,18 @@ export const getAllAdmins = async () => {
   const data = await res.json();
   return data;
 };
+
+export const checkRecoveryCode = async (email: string, code: string) => {
+  const res = await fetch(`${baseUrl}/api/users/check-recovery-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Invalid recovery code");
+  }
+
+  const data = await res.json();
+  return data;
+}

@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { useUser } from "@/contexts/user-context";
 import { comment, fetchComments } from "@/lib/product-comment-apis";
 import { getOrderDetails } from "@/lib/order-apis";
+import { isToxicComment } from "@/lib/others/prevent-toxic-comment";
 
 export interface DeliveryMethod {
   deliveryID: number;
@@ -81,6 +82,11 @@ export default function OrderDetailPage() {
         toast.error("Bạn cần đăng nhập để bình luận!");
         return;
       }
+      if(isToxicComment(newComment.trim())) { 
+        toast.error("Bình luận của bạn chứa từ ngữ không phù hợp!");
+        return;
+      }
+      
       await comment(user.userID, productID, newComment.trim(), newRating, "active");
       toast.success("Bình luận của bạn đã được gửi!");
 

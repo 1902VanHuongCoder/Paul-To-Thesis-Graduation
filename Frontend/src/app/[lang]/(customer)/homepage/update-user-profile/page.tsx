@@ -12,6 +12,7 @@ import PasswordForgetDialog from "@/components/section/password-forget/password-
 import CreateNewPassword from "@/components/section/password-forget/create-newpass";
 import toast from "react-hot-toast";
 import { checkPassword, getUserInfo, updateUserProfile } from "@/lib/user-apis";
+import { useUser } from "@/contexts/user-context";
 
 interface UserProfile {
     userID: string;
@@ -26,6 +27,7 @@ export default function UpdateUserProfilePage() {
     // Search params
     const param = useSearchParams();
     const userID = param.get("userID") || "";
+    const {setUser: setUserContext} = useUser(); // Get setUser from user context
 
     // State variables
     const [user, setUser] = useState<UserProfile | null>(null); // User profile data
@@ -148,6 +150,7 @@ export default function UpdateUserProfilePage() {
             const ok = await confirmOldPassword();
             if (!ok) {
                 setSubmitting(false);
+                setErrorMsg("Xác nhận mật khẩu cũ không chính xác, vui lòng thử lại.");
                 return;
             }
         }
@@ -166,7 +169,8 @@ export default function UpdateUserProfilePage() {
                 throw new Error("Cập nhật thất bại");
             }
             toast.success("Cập nhật thông tin thành công!");
-            setUser(data.user);
+            console.log("User profile updated successfully:", data);
+            setUserContext(data.user);
             setForm(f => ({
                 ...f,
                 oldPassword: "",
@@ -246,14 +250,15 @@ export default function UpdateUserProfilePage() {
                     {/* Email */}
                     {user && !user.providerID && (
                         <div>
-                            <label className="block mb-1 text-gray-500 text-sm">Email</label>
+                            <label className="block mb-1 text-gray-500 text-sm">Email (Không cho phép thay đổi email)</label>
                             <Input
-                                className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                                className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white opacity-60"
                                 name="email"
                                 type="email"
                                 value={form.email}
                                 onChange={handleChange}
                                 required
+                                readOnly 
                             />
                         </div>
                     )}

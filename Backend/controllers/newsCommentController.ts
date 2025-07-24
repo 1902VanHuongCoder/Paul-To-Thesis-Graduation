@@ -74,11 +74,10 @@ export const deleteNewsComment = async (
     const comment = await NewsComment.findByPk(commentID);
     if (!comment) {
       res.status(404).json({ message: "Comment not found" });
-    } else {
-      comment.status = "deleted";
-      await comment.save();
-      res.status(200).json({ message: "Comment deleted" });
-    }
+      return;
+    } 
+    await comment.destroy();
+    res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
