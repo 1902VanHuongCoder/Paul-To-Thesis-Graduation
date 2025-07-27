@@ -24,6 +24,7 @@ import Image from "next/image";
 import PasswordForgetDialog from "../password-forget/password-forget";
 import CreateNewPassword from "../password-forget/create-newpass";
 import { googleRegister, login } from "@/lib/user-apis";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     open: boolean;
@@ -31,6 +32,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
     setOpenSignUpForm: (open: boolean) => void;
 }) {
     const { setUser } = useUser();
+    const router = useRouter();
     const { loading, setLoading } = useLoading();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -51,7 +53,7 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
         }
         setLoading(true);
         try {
-            const { data, status, message, token } = await login(email, password);
+            const { data, status, message, token, role, isActive } = await login(email, password);
             if (status !== "success") {
                 setErrorMsg(message);
                 return;
@@ -62,14 +64,22 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                 email: data.email,
                 avatar: data.avatar,
                 token: token,
+                role: role,
             };
+            if (!isActive) {
+                setErrorMsg("Tài khoản của bạn đã bị khóa. Vui lòng kiểm tra email để kích hoạt tài khoản.");
+                return;
+            }
             setUser(userData);
             if (rememberMe) {
                 localStorage.setItem("user", JSON.stringify(userData));
             } else {
                 localStorage.removeItem("user");
             }
-            toast.success("Đăng nhập thành công!");
+            if (role === "adm") {
+                router.push("/vi/dashboard");
+                toast.success("Đăng nhập thành công!");
+            }
             setOpen(false);
         } catch {
             setErrorMsg("Đăng nhập thất bại. Vui lòng thử lại sau");
@@ -104,13 +114,13 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                 providerID,
             });
             setSuccessMsg("Đăng ký Google thành công! Vui lòng đăng nhập.");
-            console.log("Google login successful:", data);
             const userData = {
                 userID: data.user.userID,
                 username: data.user.username,
                 email: data.user.email,
                 avatar: data.user.avatar,
                 token: data.token,
+                role: data.user.role,
             }
             setUser(userData);
             localStorage.setItem("user", JSON.stringify(userData));

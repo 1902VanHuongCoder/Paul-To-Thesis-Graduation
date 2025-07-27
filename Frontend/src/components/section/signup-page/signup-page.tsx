@@ -108,13 +108,17 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
             // generate 4 random number
             const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
             const userID = `USR${day}${month}${year}${randomNumber}L`;
-            await register({
+            const res = await register({
                 userID,
                 username,
                 email,
                 password,
                 role: "cus",
             }, `${detailAddress}, ${ward}, ${district}, ${province}`, phone, true);
+            if(res.message){
+                setErrorMsg(res.message);
+                return;
+            }
             toast.success("Đăng ký thành công! Vui lòng đăng nhập");
             setUsername("");
             setEmail("");

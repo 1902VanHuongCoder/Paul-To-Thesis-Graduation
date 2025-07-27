@@ -134,9 +134,12 @@ export default function AddNewUserPage() {
                 true
             )
             // const data = await res.json();
-            if (!res.ok) {
+            if (!res) {
                 toast.error("Có lỗi khi tạo người dùng. Kiểm tra kết nối và thử lại!");
-            } else {
+            } else if(res.message){
+                setErrorMsg(res.message);
+            }
+            else {
                 toast.success("Tạo người dùng thành công!");
                 setUsername("");
                 setEmail("");

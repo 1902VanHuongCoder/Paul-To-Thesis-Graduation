@@ -13,7 +13,9 @@ export const getAllUsers = async (
   res: Response
 ): Promise<void> => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      order: [["createdAt", "DESC"]],
+    });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -80,7 +82,7 @@ export const localSignUp = async (
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(409).json({ message: "Địa chỉ email đã tồn tại rồi" });
+      res.status(409).json({ message: "Đã có tài khoản với email này, vui lòng sử dụng đăng ký với email khác." });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({

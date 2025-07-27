@@ -25,8 +25,10 @@ export const login = async (email: string, password: string) => {
   }
   return {
     data: responseData.user,
+    role: responseData.user.role,
     status: "success",
     token: responseData.token,
+    isActive: responseData.user.isActive,
     message: "Login successful",
   };
 };
@@ -80,10 +82,6 @@ export const register = async (
       },
     }),
   });
-
-  if (!res.ok) {
-    throw new Error("Registration failed");
-  }
 
   const data = await res.json();
   return data;

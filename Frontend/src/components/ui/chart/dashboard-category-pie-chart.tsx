@@ -4,7 +4,7 @@ import * as React from "react"
 import { Pie, PieChart, Cell, Label } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { baseUrl } from "@/lib/others/base-url"
+import { fetchCategories } from "@/lib/category-apis"
 
 const COLORS = [
 	"#4F8A8B",
@@ -29,30 +29,21 @@ export function DashboardCategoryPieChart() {
 	const [loading, setLoading] = React.useState(true)
 
 	React.useEffect(() => {
-		fetch(`${baseUrl}/api/subcategory`)
-			.then((res) => res.json())
-			.then((data) => {
-				// Group by category name and count number of subcategories per category
-				const categoryMap: Record<string, number> = {}
-				type SubcategoryItem = {
-					Category?: { categoryName?: string }
-					categoryName?: string
-					category?: string
-				}
-				(data as SubcategoryItem[]).forEach((item) => {
-					const catName =
-						item.Category?.categoryName || item.categoryName || item.category || "Khác"
-					if (!categoryMap[catName]) categoryMap[catName] = 0
-					categoryMap[catName]++
-				})
-				const chartData = Object.entries(categoryMap).map(([categoryName, count]) => ({
-					categoryName,
-					count,
-				}))
-				setCategoryData(chartData)
-				setLoading(false)
-			})
-			.catch(() => setLoading(false))
+	   const fetchCategoriesData = async () => {
+			   try {
+					   const data = await fetchCategories();
+					   // Use count property from Category model to show number of products per category
+					   const chartData = data.map((item: CategoryData) => ({
+							   categoryName: item.categoryName || item.category || "Khác",
+							   count: item.count || 0,
+					   }));
+					   setCategoryData(chartData);
+			   } catch (error) {
+					   console.error("Error fetching categories:", error);
+			   }
+			   setLoading(false);
+	   };
+	   fetchCategoriesData();
 	}, [])
 
 	const totalCategories = React.useMemo(() => {

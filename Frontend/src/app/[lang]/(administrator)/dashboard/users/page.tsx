@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog/dialog";
 import toast from "react-hot-toast";
 import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
+import formatDate from "@/lib/others/format-date";
 
 interface User {
   userID: string;
@@ -203,7 +204,7 @@ export default function UsersPage() {
                   {updatingUserId === user.userID ? "..." : user.isActive ? "Đang hoạt động" : "Đã khóa"}
                 </button>
               </TableCell>
-              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>{formatDate(user.createdAt)}</TableCell>
               <TableCell className="flex justify-center items-center">
                 <Dialog open={deleteDialogOpen && userToDelete?.userID === user.userID} onOpenChange={open => {
                   setDeleteDialogOpen(open);

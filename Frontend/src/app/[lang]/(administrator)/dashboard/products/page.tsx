@@ -79,7 +79,7 @@ export default function ProductsPage() {
     const [originFilter, setOriginFilter] = useState("");
     const [ratingFilter, setRatingFilter] = useState("");
     const [sortField, setSortField] = useState("");
-    const [sortOrder, setSortOrder] = useState("asc");
+    const [sortOrder,] = useState("asc");
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [productsPerPage, setProductsPerPage] = useState(10);
@@ -122,9 +122,9 @@ export default function ProductsPage() {
     const filteredProducts = products
         .filter((product) => {
             const matchesName = product.productName.toLowerCase().includes(nameFilter.toLowerCase());
-            const matchesCategory = !categoryFilter || String(product.categoryID) === categoryFilter;
-            const matchesOrigin = !originFilter || String(product.originID) === originFilter;
-            const matchesRating = !ratingFilter || product.rating >= Number(ratingFilter);
+            const matchesCategory = !categoryFilter || categoryFilter === "df" || String(product.categoryID) === categoryFilter;
+            const matchesOrigin = !originFilter || originFilter === "df" || String(product.originID) === originFilter;
+            const matchesRating = !ratingFilter || ratingFilter === "df" || product.rating === Number(ratingFilter);
             return matchesName && matchesCategory && matchesOrigin && matchesRating;
         })
         .sort((a, b) => {
@@ -241,37 +241,22 @@ export default function ProductsPage() {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-24" aria-label="Sort order">
-                        <SelectValue placeholder="Thứ tự" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectLabel>Order</SelectLabel>
-                            <SelectItem value="asc">Asc</SelectItem>
-                            <SelectItem value="desc">Desc</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-
-            </div>
-            <div className="flex flex-wrap gap-4 mb-4 items-center justify-between">
-
-                <div className="flex items-center gap-2">
-                    <span className="text-sm">Số sản phẩm/trang:</span>
-                    <Select value={String(productsPerPage)} onValueChange={val => { setProductsPerPage(Number(val)); setCurrentPage(1); }}>
-                        <SelectTrigger className="w-20">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm">Số sản phẩm/trang:</span>
+                        <Select value={String(productsPerPage)} onValueChange={val => { setProductsPerPage(Number(val)); setCurrentPage(1); }}>
+                            <SelectTrigger className="w-20">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="5">5</SelectItem>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="20">20</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                        </Select>
                 </div>
             </div>
+
             <Table className="w">
                 <TableCaption>{loading ? "Loading products..." : products.length === 0 ? "No products found." : null}</TableCaption>
                 <TableHeader>
