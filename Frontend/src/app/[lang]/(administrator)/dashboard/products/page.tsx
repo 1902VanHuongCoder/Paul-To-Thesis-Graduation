@@ -49,6 +49,7 @@ import { deleteProduct, fetchProductById, fetchProducts } from "@/lib/product-ap
 import { fetchCategories } from "@/lib/category-apis";
 import { fetchOrigins } from "@/lib/origin-apis";
 import { deleteMultipleImages } from "@/lib/file-apis";
+import toast from "react-hot-toast";
 
 interface Product {
     productID: number;
@@ -151,7 +152,6 @@ export default function ProductsPage() {
 
     // Delete product and all related images
     const handleDeleteProduct = async (productID: number) => {
-        if (!confirm("Are you sure you want to delete this product?")) return;
         setDeletingId(productID);
         // 1. Fetch product detail to get all image URLs
         const product = await fetchProductById(String(productID));
@@ -168,7 +168,7 @@ export default function ProductsPage() {
         if (res) {
             setProducts((prev) => prev.filter((p) => p.productID !== productID));
         } else {
-            alert("Failed to delete product.");
+            toast.error("Xóa sản phẩm thất bại. Vui lòng thử lại.");
         }
         setDeletingId(null);
     };

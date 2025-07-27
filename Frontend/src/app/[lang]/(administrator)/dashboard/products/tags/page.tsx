@@ -52,9 +52,10 @@ export default function AddTagPage() {
   const onSubmit = async (data: TagFormValues) => {
     const res = await createTag(data.tagName);
     if (res) {
+      const newTagArray = [...tags, { tagID: res.tagID, tagName: data.tagName }];
+      setTags(newTagArray);
       toast.success("Thẻ đã được thêm thành công!");
       reset();
-      fetchTags();
     } else {
       toast.error("Thêm thẻ thất bại. Vui lòng thử lại.");
     }
@@ -70,8 +71,8 @@ export default function AddTagPage() {
     if (pendingDeleteID == null) return;
     const res = await deleteTag(pendingDeleteID);
     if (res) {
+      setTags((prev) => prev.filter((item) => item.tagID !== pendingDeleteID)); 
       toast.success("Thẻ đã được xóa thành công!");
-      fetchTags();
     } else {
       toast.error("Xóa thẻ thất bại. Vui lòng thử lại.");
     }
@@ -89,9 +90,11 @@ export default function AddTagPage() {
   const handleEditSave = async (id: number) => {
     const res = await updateTag(id, editName);
     if (res) {
+      setTags((prev) =>
+        prev.map((tag) => (tag.tagID === id ? { ...tag, tagName: editName } : tag))
+      );
       toast.success("Thẻ đã được cập nhật thành công!");
       setEditID(null);
-      fetchTags();
     } else {
       toast.error("Cập nhật thẻ thất bại. Vui lòng thử lại.");
     }
@@ -110,8 +113,8 @@ export default function AddTagPage() {
         </div>
         <div className="flex justify-end"><Button type="submit" className="hover:cursor-pointer">Thêm thẻ</Button></div>
       </form>
-      <div className="">
-        <ul className="flex flex-wrap gap-x-4">
+      <div className="mt-4">
+        <ul className="flex flex-wrap gap-4">
           {tags.map(tag => (
             <li key={tag.tagID} className="flex items-center gap-2 border p-2 rounded bg-gray-50 shrink-0">
               <Tag className="w-4 h-4 text-blue-500" />

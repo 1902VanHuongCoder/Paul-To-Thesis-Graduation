@@ -59,7 +59,7 @@ export default function AddCategoryPage() {
     try {
       await createCategory(data);
       reset();
-      fetchCategories();
+      fetchCategories().then(setCategories);
       toast.success("Thêm danh mục thành công");
     } catch (error) {
       console.error("Error creating category:", error);
@@ -77,9 +77,13 @@ export default function AddCategoryPage() {
   const confirmDelete = async () => {
     if (pendingDeleteID == null) return;
     try {
-      await deleteCategory(pendingDeleteID);
-      setCategories(categories.filter(cat => cat.categoryID !== pendingDeleteID));
-      toast.success("Xóa danh mục thành công");
+      const { message, status } = await deleteCategory(pendingDeleteID);
+      if (status === 200) {
+        setCategories(categories.filter(cat => cat.categoryID !== pendingDeleteID));
+        toast.success(message);
+      } else {
+        toast.error(message);
+      }
     } catch(error){
       console.error("Error deleting category:", error);
       toast.error("Xóa danh mục thất bại. Vui lòng thử lại.");
@@ -104,8 +108,14 @@ export default function AddCategoryPage() {
         categoryDescription: editDescription,
       });
 
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.categoryID === id
+            ? { ...cat, categoryName: editName, categoryDescription: editDescription }
+            : cat
+        )
+      );
       setEditID(null);
-      fetchCategories();
       toast.success("Cập nhật danh mục thành công");
     } catch (error) {
       console.error("Error updating category:", error);

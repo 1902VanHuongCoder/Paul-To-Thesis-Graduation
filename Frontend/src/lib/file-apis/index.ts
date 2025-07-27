@@ -37,7 +37,8 @@ export const uploadMultipleImages = async (files: File[]): Promise<string[]> => 
     }
 
     const data = await response.json();
-    return data.map((file: { url: string }) => file.url); 
+    return data.files.map((file: { url: string }) => file.url);
+
   } catch (error) {
     console.error("Error uploading files:", error);
     throw error;
@@ -64,7 +65,7 @@ export const deleteAImage = async (url: string): Promise<void> => {
 
 export const deleteMultipleImages = async (urls: string[]): Promise<void> => {
   try {
-    const response = await fetch(`${baseUrl}/api/upload/multiple-delete`, {
+    const response = await fetch(`${baseUrl}/api/upload/multi-delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ urls: urls }),

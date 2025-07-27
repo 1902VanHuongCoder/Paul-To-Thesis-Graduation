@@ -26,7 +26,7 @@ interface Product {
 }
 
 export default function ImportProductUsingBarcodePage() {
-    const {user} = useUser();
+    const { user } = useUser();
     const [note, setNote] = useState<string>("");
     const [products, setProducts] = useState<Product[]>([]);
     const [error, setError] = useState<string>("");
@@ -125,7 +125,7 @@ export default function ImportProductUsingBarcodePage() {
 
     // Update product quantities in the backend
     const handleUpdateProductQuantity = async () => {
-        if(!user) { toast.error("Bạn cần đăng nhập để thực hiện thao tác này."); return; }
+        if (!user) { toast.error("Bạn cần đăng nhập để thực hiện thao tác này."); return; }
         try {
             const res = await fetch(`${baseUrl}/api/product/update/quantity`, {
                 method: "PUT",
@@ -138,13 +138,15 @@ export default function ImportProductUsingBarcodePage() {
                 })))
             });
             if (res) {
-                alert("Cập nhật số lượng thành công!");
+                setProducts([]);
+                setBarcodeManual("");
+                toast.success("Cập nhật số lượng thành công!");
             } else {
-                alert("Cập nhật số lượng thất bại!");
+                toast.error("Cập nhật số lượng thất bại!");
             }
         } catch (err) {
             console.error("Error updating product quantity:", err);
-            alert("Có lỗi xảy ra khi cập nhật số lượng!");
+            toast.error("Có lỗi xảy ra khi cập nhật số lượng!");
         }
     };
 
@@ -240,18 +242,22 @@ export default function ImportProductUsingBarcodePage() {
                     </TableBody>
                 </Table>
             )}
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center gap-x-2">
                 <Input
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Ghi chú cho thao tác nhập kho"
-                    className="w-full p-2 border rounded mb-4"
+                    className="w-full p-2 border rounded"
                     autoFocus
                 />
-                <Button onClick={handleUpdateProductQuantity} className="mt-4">
+                <Button onClick={handleUpdateProductQuantity}
+                    disabled={products.length === 0}
+                    variant="default"
+                    className="hover:cursor-pointer">
                     Cập nhật số lượng trong kho
-                </Button></div>
+                </Button>
+            </div>
         </div>
     );
 }

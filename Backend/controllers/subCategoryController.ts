@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Category, SubCategory } from "../models";
+import { Category, Product, SubCategory } from "../models";
 import generateSlug from "../utils/createSlug";
 
 // GET all subcategories
@@ -120,15 +120,29 @@ export const deleteSubCategory = async (
     const subCategory = await SubCategory.findByPk(id);
 
     if (!subCategory) {
-      res.status(404).json({ message: "Subcategory not found" });
+      res.status(404).json({ message: "Danh mục con không tồn tại." });
+      return;
+    }
+
+    // Check if any products are related to this subcategory
+    const relatedProducts = await Product.count({
+      where: { subcategoryID: id },
+    })
+    if (relatedProducts > 0) {
+      res.status(400).json({
+        message:
+          "Không thể xóa danh mục con vì đang có sản phẩm thuộc danh mục này. Vui lòng xóa hoặc cập nhật các sản phẩm liên quan trước.",
+      });
       return;
     }
 
     // Delete the subcategory
     await subCategory.destroy();
-    res.status(204).send();
-  } catch (error) {
+    res.status(200).json({ message: "Danh mục con đã được xóa thành công." });
+  } catch (error: any) {
     console.error("Error deleting subcategory:", error);
-    res.status(500).json({ error: (error as Error).message });
+    res
+      .status(500)
+      .json({ message: "Đã xảy ra lỗi khi xóa danh mục con. Hãy thử lại." });
   }
 };

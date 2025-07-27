@@ -36,6 +36,6 @@ export async function deleteCategory(id: number) {
   const res = await fetch(`${baseUrl}/api/category/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error("Failed to delete category");
-  return res.json();
+  const data = await res.json();
+  return { message: data.message, status: res.status };
 }

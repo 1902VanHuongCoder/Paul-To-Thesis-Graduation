@@ -120,6 +120,17 @@ export const createNews = async (req: Request, res: Response) => {
 export const updateNews = async (req: Request, res: Response) => {
   const { newsID } = req.params;
   const { title, subtitle, content, slug, images, tags, isPublished, titleImageUrl } = req.body;
+  console.log({
+    newsID,
+    title,
+    subtitle,
+    content,
+    slug,
+    images,
+    tags,
+    isPublished,
+    titleImageUrl,
+  });
   try {
     const newsArticle = await News.findByPk(newsID);
     if (!newsArticle) {

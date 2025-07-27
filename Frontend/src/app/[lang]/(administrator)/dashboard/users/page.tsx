@@ -111,12 +111,12 @@ export default function UsersPage() {
 
   const handleDeleteUser = async (userID: string) => {
     try {
-      const res = await deleteAccount(userID);
-      if (res) {
+      const {status, message}  = await deleteAccount(userID);
+      if (status === 200) {
         setUsers((prev) => prev.filter((u) => u.userID !== userID));
-        toast.success(`Xóa tài khoản thành công.`);
+        toast.success(message);
       } else {
-        toast.error("Xóa tài khoản thất bại. Vui lòng thử lại sau.");
+        toast.error(message);
       }
     } catch (err) {
       alert("Xóa tài khoản thất bại.");

@@ -42,10 +42,12 @@ import generateSlug from "@/lib/others/generateSlug";
 import { uploadMultipleImages } from "@/lib/file-apis";
 import { createNews } from "@/lib/news-apis";
 import { fetchTagsOfNews } from "@/lib/tag-of-news-apis";
+import { useRouter } from "next/navigation";
 
 
 export default function AddNewsPage() {
     const { user } = useUser();
+    const router = useRouter();
     type FormValues = {
         title: string;
         subtitle: string;
@@ -177,6 +179,7 @@ export default function AddNewsPage() {
                 toast.error("Tạo bài viết thất bại.");
             } else {
                 toast.success("Tạo bài viết thành công!");
+                router.push("/vi/dashboard/posts");
             }
         } catch (err) {
             toast.error("Có lỗi xảy ra khi tạo bài viết.");
@@ -440,7 +443,10 @@ export default function AddNewsPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 py-4">
-                        <Checkbox {...isPublished} id="isPublished" />
+                        <Checkbox {...isPublished} id="isPublished" 
+                            checked={watch("isPublished")}
+                            onCheckedChange={checked => setValue("isPublished", !!checked)}
+                        />
                         <label htmlFor="isPublished">Công khai bài viết</label>
                     </div>
                     <div className="mt-6 flex justify-end">

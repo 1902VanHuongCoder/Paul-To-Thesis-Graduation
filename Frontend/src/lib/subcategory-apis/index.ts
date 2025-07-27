@@ -56,10 +56,8 @@ export const deleteSubCategory = async (id: string) => {
   const res = await fetch(`${baseUrl}/api/subcategory/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) {
-    throw new Error("Failed to delete subcategory");
-  }
-  return res.json();
+  const data = await res.json();
+  return {message: data.message, status: res.status};
 };
 
 

@@ -24,7 +24,7 @@ export async function createTag(tagName: string) {
     body: JSON.stringify({ tagName }),
   });
   if (!res.ok) throw new Error("Failed to create tag");
-  return res.ok;
+  return res.json();
 }
 
 export async function updateTag(tagID: number, tagName: string) {

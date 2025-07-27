@@ -83,7 +83,7 @@ export default function AddSubCategoryPage() {
       if (res) {
         toast.success("Thêm danh mục con thành công!");
         reset();
-        fetchSubCategories();
+        fetchSubCategories().then(setSubCategories);
       } else {
         toast.error("Thêm danh mục con thất bại. Vui lòng thử lại.");
       }
@@ -102,10 +102,14 @@ export default function AddSubCategoryPage() {
   const confirmDelete = async () => {
     if (!deleteID) return;
     try {
-      await deleteSubCategory(deleteID);
-      setSubCategories(subCategories.filter(sub => sub.subcategoryID !== deleteID));
-      fetchSubCategories();
-      toast.success("Xóa danh mục con thành công");
+      const { message, status } = await deleteSubCategory(deleteID);
+      if (status === 200) {
+        setSubCategories(subCategories.filter(sub => sub.subcategoryID !== deleteID));
+        fetchSubCategories();
+        toast.success("Xóa danh mục con thành công");
+      } else {
+        toast.error(message);
+      }
     } catch (error) {
       console.error("Error deleting subcategory:", error);
       toast.error("Xóa danh mục con thất bại. Vui lòng thử lại.");
@@ -130,7 +134,9 @@ export default function AddSubCategoryPage() {
       const res = await updateSubCategory(id, updatedSubCategory);
       if (res) {
         setEditID(null);
-        fetchSubCategories();
+        setSubCategories(subCategories.map(sub =>
+          sub.subcategoryID === id ? { ...sub, ...updatedSubCategory } : sub
+        ));
         toast.success("Cập nhật danh mục con thành công");
       } else {
         toast.error("Cập nhật danh mục con thất bại. Vui lòng thử lại.");

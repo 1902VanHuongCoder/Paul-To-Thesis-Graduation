@@ -42,6 +42,8 @@ import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3,
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs/tabs';
 import { Quote as QuoteIcon } from 'lucide-react';
 import clsx from "clsx";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 // import toast from "react-hot-toast";
 
 type ProductFormValues = {
@@ -119,7 +121,7 @@ export default function AddProductPage() {
   const methods = useForm<ProductFormValues>();
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = methods;
   const [, setMessage] = useState("");
-
+  const router = useRouter();
 
   // State for dropdowns
   const [categories, setCategories] = useState<Category[]>([]);
@@ -244,18 +246,6 @@ export default function AddProductPage() {
 
     try {
       //  3. Submit product
-      console.log("Submitting product with data:", {
-        ...data,
-        productPrice: data.productPrice ? parseFloat(data.productPrice.toString()) : 0,
-        productPriceSale: data.productPriceSale ? parseFloat(data.productPriceSale.toString()) : 0,
-        quantityAvailable: data.quantityAvailable,
-        tagIDs: data.tagIDs,
-        images: uploadedUrls.slice(0, data.images ? data.images.length : 0),
-        descriptionImages: uploadedUrls.slice(data.images ? data.images.length : 0),
-        description: JSON.stringify(content),
-      }
-      );
-      alert(data.boxBarcode);
       const res = await fetch(`${baseUrl}/api/product`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -276,14 +266,15 @@ export default function AddProductPage() {
       });
 
       if (res.ok) {
-        setMessage("Product added successfully!");
+        toast.success("Thêm sản phẩm thành công!");
+        router.push("/vi/dashboard/products");
         reset();
       } else {
-        setMessage("Failed to add product.");
+        toast.error("Thêm sản phẩm thất bại.");
       }
     } catch (error) {
       console.error("Error submitting product:", error);
-      setMessage("Failed to add product.");
+      toast.error("Thêm sản phẩm thất bại.");
     }
 
   };
@@ -896,7 +887,7 @@ export default function AddProductPage() {
           </FormControl>
         </FormItem>
         <div className="flex justify-end">
-          <Button variant="default" type="submit" className="mt-4" onClick={handleSubmit(onSubmit)}>Thêm sản phẩm</Button>
+          <Button variant="default" type="submit" className="mt-4 hover:cursor-pointer" onClick={handleSubmit(onSubmit)}>Thêm sản phẩm</Button>
         </div>
       </FormProvider >
     </main >

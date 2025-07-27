@@ -163,7 +163,7 @@ export default function EditNewsPage() {
             }
         };
         fetchNewsData();
-    }, [newsID, editor]);
+    }, [newsID]);
 
     // Handle title image file input change
     const handleTitleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,7 +248,7 @@ export default function EditNewsPage() {
                 await deleteMultipleImages(oldImageUrlsInEditor);
             }
 
-            const res = await updateNews({
+            const { status } = await updateNews({
                 id: Number(newsID),
                 userID: "0",
                 title: watch("title"),
@@ -260,12 +260,11 @@ export default function EditNewsPage() {
                 tags: watch("tagIDs") || [],
                 isPublished: watch("isPublished"),
             });
-            if (!res.ok) {
-                // const data = await res.json();
-                toast.success("Cập nhật bài viết thất bại. Vui lòng thử lại.");
-            } else {
+            if (status === 200) {
                 toast.success("Cập nhật bài viết thành công!");
-                router.refresh?.();
+                router.push(`/vi/dashboard/posts`);
+            } else {
+                toast.error("Cập nhật bài viết thất bại. Vui lòng thử lại.");
             }
         } catch (err) {
             console.error("Error updating news:", err);
@@ -317,7 +316,7 @@ export default function EditNewsPage() {
                         <FormItem>
                             <FormLabel>Tag</FormLabel>
                             <FormControl>
-                                <>
+                                <div className="space-y-2">
                                     <div className="flex flex-wrap gap-2">
                                         {(watch("tagIDs") || []).map((id: number) => {
                                             const tag = tagOptions.find(t => t.newsTagID === id);
@@ -363,7 +362,7 @@ export default function EditNewsPage() {
                                         </SelectContent>
                                     </Select>
 
-                                </>
+                                </div>
                             </FormControl>
                         </FormItem>
                         <FormItem>

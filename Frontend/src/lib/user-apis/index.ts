@@ -197,12 +197,8 @@ export const deleteAccount = async (userID: string) => {
   const res = await fetch(`${baseUrl}/api/users/${userID}`, {
     method: "DELETE",
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to delete user");
-  }
-
-  return res.ok;
+  const data = await res.json();
+  return { message: data.message , status: res.status };
 };
 
 export const getAllAdmins = async () => {

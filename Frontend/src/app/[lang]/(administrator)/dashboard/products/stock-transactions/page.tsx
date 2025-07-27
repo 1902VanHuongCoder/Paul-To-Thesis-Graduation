@@ -55,7 +55,7 @@ export default function InventoryTransactionsPage() {
 
   const filtered = transactions.filter(tran => {
     const matchesSearch = search === "" || (tran.product?.productName || "").toLowerCase().includes(search.toLowerCase());
-    const matchesType = !typeFilter || tran.transactionType === typeFilter;
+    const matchesType = !typeFilter || tran.transactionType === typeFilter || typeFilter === "all";
     return matchesSearch && matchesType;
   });
 

@@ -395,8 +395,8 @@ export default function EditProductPage() {
         try {
             const res = await updateProduct(productID, {
                 productName: data.productName,
-                productPrice: Number(data.productPrice.replace(/\./g, "").replace(/,/g, "")),
-                productPriceSale: data.productPriceSale ? Number(data.productPriceSale.replace(/\./g, "").replace(/,/g, "")) : null,
+                productPrice: Number(data.productPrice),
+                productPriceSale: data.productPriceSale ? Number(data.productPriceSale) : null,
                 quantityAvailable: Number(data.quantityAvailable),
                 categoryID: Number(data.categoryID),
                 subcategoryID: Number(data.subcategoryID),
@@ -591,7 +591,9 @@ export default function EditProductPage() {
                             <FormItem className="col-span-2">
                                 <FormLabel className="text-gray-600">Ngày hết hạn</FormLabel>
                                 <FormControl>
-                                    <Input type="date" {...register("expiredAt")} />
+                                    <Input 
+                                    defaultValue={watch("expiredAt") || ""}
+                                    type="date" {...register("expiredAt")} />
                                 </FormControl>
                             </FormItem>
                             <FormItem>
@@ -865,7 +867,7 @@ export default function EditProductPage() {
                         </div>
                     </div>
                     {/* {message && <FormMessage className="mt-2">{message}</FormMessage>} */}
-                    <div className="flex justify-end"><Button variant="default" type="submit" className="">Cập nhật sản phẩm</Button></div>
+                    <div className="flex justify-end"><Button variant="default" type="submit" className="hover:cursor-pointer">Cập nhật sản phẩm</Button></div>
                 </form>
             </FormProvider>
             {/* Hidden outline, border, and box-shadow when user focus on tiptap editor */}

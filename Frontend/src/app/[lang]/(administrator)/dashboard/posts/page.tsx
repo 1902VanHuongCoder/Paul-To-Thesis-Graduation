@@ -93,43 +93,65 @@ export default function AddNewsPage() {
 
     // Delete news
     const handleDelete = async (newsID: number) => {
-        if (!confirm("Bạn có chắc muốn xóa bài viết này?")) return;
-        try {
-            // 1. Fetch news detail to get all image URLs
-            const news = await fetchNewsById(newsID);
-            if (!news) {
-                toast.error("Không lấy được thông tin bài viết.");
-                return;
-            }
-            // Collect all related image URLs (titleImageUrl + images array)
-            const allImageUrls = [
-                news.titleImageUrl,
-                ...(news.images || [])
-            ].filter(Boolean);
+        toast((t) => (
+            <span>
+                Bạn có chắc muốn xóa bài viết này?
+                <div className="mt-2 flex gap-2 justify-end">
+                    <button
+                        className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                // 1. Fetch news detail to get all image URLs
+                                const news = await fetchNewsById(newsID);
+                                if (!news) {
+                                    toast.error("Không lấy được thông tin bài viết.", { position: "top-center" });
+                                    return;
+                                }
+                                // Collect all related image URLs (titleImageUrl + images array)
+                                const allImageUrls = [
+                                    news.titleImageUrl,
+                                    ...(news.images || [])
+                                ].filter(Boolean);
 
-            // 2. Delete all images from storage
-            if (allImageUrls.length > 0) {
-                await deleteMultipleImages(allImageUrls);
-            }
+                                // 2. Delete all images from storage
+                                if (allImageUrls.length > 0) {
+                                    await deleteMultipleImages(allImageUrls);
+                                }
 
-            // 3. Delete news
-            const res = await deleteNews(newsID);
-            if (res) {
-                toast.success("Đã xóa bài viết thành công!");
-                fetchNewsList();
-            } else {
-                toast.error("Không xóa được bài viết.");
-                console.error("Failed to delete news:", res.statusText);
-            }
-        } catch (error) {
-            console.error("Error deleting news:", error);
-            toast.error("Xóa bài viết thất bại. Vui lòng thử lại.");
-        }
+                                // 3. Delete news
+                                const res = await deleteNews(newsID);
+                                if (res) {
+                                    toast.success("Đã xóa bài viết thành công!", { position: "top-center" });
+                                    fetchNewsList();
+                                } else {
+                                    toast.error("Không xóa được bài viết.", { position: "top-center" });
+                                }
+                            } catch (error) {
+                                console.error("Error deleting news:", error);
+                                toast.error("Xóa bài viết thất bại. Vui lòng thử lại.", { position: "top-center" });
+                            }
+                        }}
+                    >
+                        Xóa
+                    </button>
+                    <button
+                        className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Hủy
+                    </button>
+                </div>
+            </span>
+        ), {
+            duration: 8000, position: "top-center"
+        });
     };
 
     const fetchNewsList = async () => {
         try {
            const data = await fetchNews();
+           console.log("Fetched news data:", data);
            setNewsList(data);
         } catch (err) {
             console.error("Error fetching news list:", err);

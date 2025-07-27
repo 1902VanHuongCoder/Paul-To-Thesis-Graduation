@@ -9,7 +9,8 @@ export async function fetchNews() {
 export async function fetchNewsById(id: number) {
   const res = await fetch(`${baseUrl}/api/news/${id}`);
   if (!res.ok) throw new Error("Failed to fetch product");
-  return res.json();
+  const data = await res.json();
+  return data;
 }
 
 export async function createNews({
@@ -101,28 +102,22 @@ export async function updateNews({
       "Content-Type": "application/json",
     },
   });
-
-  if (!res.ok) {
-    throw new Error(`Failed to update news: ${res.statusText}`);
-  }
-
-  return res.json();
+  const data = await res.json();
+  return { message: data.message, status: res.status };
 }
 
 export const updateNewsViews = async (newsID: number) => {
-  const res = await fetch(`${baseUrl}/api/news/update-views/${newsID}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-
+  const res = await fetch(`${baseUrl}/api/news/update-views/${newsID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+  });
+  const data = await res.json();
   if (!res.ok) {
     throw new Error(`Failed to update news views: ${res.statusText}`);
   }
 
-  return res.json();
-}
+  return { message: data.message, status: res.status };
+};
 
 export async function deleteNews(id: number) {
   const res = await fetch(`${baseUrl}/api/news/${id}`, {
@@ -131,8 +126,8 @@ export async function deleteNews(id: number) {
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to delete news: ${res.statusText}`);
+    throw new Error(`Failed to delete news`);
   }
 
-  return res.json();
+  return res.ok;
 }
