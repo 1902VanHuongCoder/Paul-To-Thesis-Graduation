@@ -200,7 +200,7 @@ export const createOrder = async (
 
       // Emit order notification to all admins, this allow them to know that a new order has been created 
       io.emit("order-notification", {
-        userName : newOrder.fullName,
+        userName: newOrder.fullName,
         createdAt: newOrder.createdAt,
       });
       

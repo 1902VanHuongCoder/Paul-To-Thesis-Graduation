@@ -63,16 +63,10 @@ export const updateDeliveryMethod = async (deliveryID: number, methodData: Deliv
 }
 
 export const deleteDeliveryMethod = async (deliveryID: number) => {
-  try {
+
     const response = await fetch(`${baseUrl}/api/delivery/${deliveryID}`, {
       method: "DELETE",
     });
-    if (!response.ok) {
-      throw new Error("Failed to delete delivery method");
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error deleting delivery method:", error);
-    throw error;
-  }
+    const data = await response.json();
+    return { message: data.message, status: response.status };
 }

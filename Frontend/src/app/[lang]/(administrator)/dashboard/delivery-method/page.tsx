@@ -96,11 +96,15 @@ export default function AddDeliveryMethodPage() {
   const confirmDelete = async () => {
     if (!deleteID) return;
     try {
-      await deleteDeliveryMethod(deleteID);
-      toast.success("Xóa phương thức giao hàng thành công!");
-      fetchDeliveryList();
+      const { message, status } = await deleteDeliveryMethod(deleteID);
+      if (status === 200) {
+            toast.success(message);
+          setDeliveryList(deliveryList.filter(item => item.deliveryID !== deleteID));
+      }else{
+        toast.error(message);
+      }
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa: " + (error as Error).message);
+      console.error("Error deleting delivery method:", error);
     }
     setShowConfirm(false);
   };

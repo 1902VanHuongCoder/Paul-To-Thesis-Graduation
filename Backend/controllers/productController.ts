@@ -18,7 +18,6 @@ export const getAllProducts = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  console.log("Fetching all products...");
   try {
     // Sort products by createdAt in descending order (latest first)
     const products = await Product.findAll({

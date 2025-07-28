@@ -18,6 +18,7 @@ import Image from "next/image";
 import darkLogo from "@public/images/dark+logo.png";
 import toast from "react-hot-toast";
 import { fetchAllOrders, updateOrderStatus } from "@/lib/order-apis";
+import formatDate from "@/lib/others/format-date";
 
 export interface DeliveryMethod {
   deliveryID: number;
@@ -91,8 +92,22 @@ export default function OrdersPage() {
   }, [refresh]);
 
   const handleStatusChange = async (newStatus: string, orderID: string) => {
+    if(newStatus === "pending"){
+      toast.error("Không thể đặt trạng thái là 'Chờ xác nhận'.");
+      return;
+    }
     const order = orders.find(o => o.orderID === orderID);
-    if (!order) return;
+    if (!order) {
+      toast.error("Đơn hàng không tồn tại.");
+      return;
+    }
+    const orderUpdated = orders.map(o => {
+      if (o.orderID === orderID) {
+        return { ...o, orderStatus: newStatus };
+      }
+      return o; 
+    });
+    setOrders(orderUpdated);
     const res = await updateOrderStatus(newStatus, order);
     if (res) {
       toast.success("Cập nhật thành công trạng thái đơn hàng");
@@ -126,12 +141,12 @@ export default function OrdersPage() {
 
   // Status color mapping
   const statusColor = {
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    accepted: 'bg-blue-100 text-blue-800 border-blue-300',
-    shipping: 'bg-purple-100 text-purple-800 border-purple-300',
-    completed: 'bg-green-100 text-green-800 border-green-300',
-    cancelled: 'bg-red-100 text-red-800 border-red-300',
-    default: 'bg-gray-100 text-gray-800 border-gray-300',
+    pending: 'bg-yellow-500 text-yellow-800 border-yellow-300',
+    accepted: 'bg-blue-500 text-blue-800 border-blue-300',
+    shipping: 'bg-purple-500 text-purple-800 border-purple-300',
+    completed: 'bg-green-500 text-green-800 border-green-300',
+    cancelled: 'bg-red-500 text-red-800 border-red-300',
+    default: 'bg-gray-500 text-gray-800 border-gray-300',
   };
 
   return (
@@ -217,30 +232,29 @@ export default function OrdersPage() {
               <TableCell>{order.phone}</TableCell>
               <TableCell className="max-w-[60px] truncate">{order.address}</TableCell>
               <TableCell>{order.paymentMethod === 'cash' ? 'Tiền mặt' : order.paymentMethod}</TableCell>
-              <TableCell>
-                <div className={`inline-block px-2 py-1 rounded border text-xs font-semibold transition-colors duration-200 ${statusColor[order.orderStatus as keyof typeof statusColor] || statusColor.default}`}>
-                  {order.orderStatus === "pending" ? "Chờ xác nhận" :
-                    order.orderStatus === "accepted" ? "Đã xác nhận" :
-                      order.orderStatus === "shipping" ? "Đang giao" :
-                        order.orderStatus === "completed" ? "Hoàn thành" :
-                          order.orderStatus === "cancelled" ? "Đã hủy" : "Không xác định"}
+              <TableCell className="relative">
+                <div className={`absolute w-[10px] h-[10px] top-1/2 left-1 -translate-y-1/2 z-10 shadow-md rounded-full ${statusColor[order.orderStatus as keyof typeof statusColor]} rounded border text-xs font-semibold transition-colors duration-200`}>
                 </div>
-                <Select value={order.orderStatus} onValueChange={v => handleStatusChange(order.orderID, v)}>
-                  <SelectTrigger className="w-28 mt-1">
+                <Select
+                  value={order.orderStatus}
+                  onValueChange={v => handleStatusChange(v, order.orderID)}
+                  disabled={order.orderStatus === "completed"}
+                >
+                  <SelectTrigger className="w-30 mt-1 pl-4 focus-visible:ring-0 outline-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                    <SelectItem value="accepted">Đã xác nhận</SelectItem>
-                    <SelectItem value="shipping">Đang giao</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                    <SelectItem value="pending" disabled={order.orderStatus === "completed"}>Chờ xác nhận</SelectItem>
+                    <SelectItem value="accepted" disabled={order.orderStatus === "completed"}>Đã xác nhận</SelectItem>
+                    <SelectItem value="shipping" disabled={order.orderStatus === "completed"}>Đang giao</SelectItem>
+                    <SelectItem value="completed" disabled={order.orderStatus === "completed"}>Hoàn thành</SelectItem>
+                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed"}>Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
               <TableCell>{order.totalPayment?.toLocaleString()}</TableCell>
               <TableCell>{order.totalQuantity}</TableCell>
-              <TableCell>{order.createdAt ? order.createdAt.slice(0, 10) : ""}</TableCell>
+              <TableCell>{formatDate(order.createdAt)}</TableCell>
               <TableCell>
                 <Button variant="outline" size="sm" onClick={() => setViewOrder(order)}>Xem</Button>
               </TableCell>
@@ -281,14 +295,14 @@ export default function OrdersPage() {
             // onInteractOutside={e => e.preventDefault()}
           >
             <Image src={darkLogo} alt="Logo" width={100} height={100} className="w-auto h-[50px]" />
-            <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] -rotate-45 text-center select-none pointer-events-none">NFEAM HOUSE</div>
+            <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] -rotate-25 text-center select-none pointer-events-none">NFEAM HOUSE</div>
             <p className="py-8 text-center text-3xl font-bold">THÔNG TIN ĐƠN HÀNG</p>
             <div className="space-y-4 text-md w-full">
               <div className="grid grid-cols-2 items-center">
                 <div><span>Mã đơn hàng: </span> <span className="font-semibold">{viewOrder.orderID}</span></div>
                 <div><span>Ngày đặt: </span><span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleString()}</span></div>
               </div>
-              <div className={`absolute right-5 top-5 flex items-center gap-x-2 z-100 px-4 py-2 shadow-sm rounded-md border ${statusColor[viewOrder.orderStatus as keyof typeof statusColor] || statusColor.default}`}>
+              <div className={`absolute right-5 top-5 flex items-center gap-x-2 z-100 px-4 py-2 shadow-sm rounded-md border bg-white`}>
                 <span className={`w-[10px] h-[10px] rounded-full animate-ping ${
                   viewOrder.orderStatus === 'pending' ? 'bg-yellow-500' :
                   viewOrder.orderStatus === 'accepted' ? 'bg-blue-500' :

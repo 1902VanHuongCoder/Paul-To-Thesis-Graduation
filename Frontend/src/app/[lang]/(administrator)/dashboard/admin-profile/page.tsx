@@ -2,7 +2,6 @@
 
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
-import { Breadcrumb } from "@/components";
 import { Button } from "@/components/ui/button/button";
 
 export default function AdminProfilePage() {
@@ -19,7 +18,6 @@ export default function AdminProfilePage() {
 
     return (
         <div className="px-6 py-10">
-            <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Thông tin quản trị viên" }]} />
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col items-center space-y-4">
                     <Avatar className="size-24 border-2 border-primary/30">

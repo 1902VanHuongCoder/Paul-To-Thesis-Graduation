@@ -1,7 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../configs/mysql-database-connect";
 
-export default class Message extends Model {}
+export default class Message extends Model {
+  createdAt: any;
+}
 Message.init(
   {
     messageID: {

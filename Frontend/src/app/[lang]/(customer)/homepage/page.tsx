@@ -11,6 +11,7 @@ import { fetchCategories } from "@/lib/category-apis";
 import { fetchProductsByTag, fetchTags } from "@/lib/product-tag-apis";
 import { increaseNoAccess } from "@/lib/statistic-apis";
 import { useUser } from "@/contexts/user-context";
+import { useChat } from "@/contexts/chat-context";
 
 interface Category {
     categoryDescription: string,
@@ -46,6 +47,7 @@ interface Tag {
 const Homepage = () => {
     const { setLoading } = useLoading();
     const { user } = useUser();
+    const { toggleChat, isChatOpen } = useChat();
     const [showFilterKit, setShowFilterKit] = React.useState(false);
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [tags, setTags] = React.useState<Tag[]>([]);
@@ -54,7 +56,6 @@ const Homepage = () => {
     const [productView, setProductView] = React.useState("grid");
     const [productsAfterFilter, setProductsAfterFilter] = React.useState<Product[]>([]);
     const [listOfTagID, setListOfTagID] = React.useState<number[]>([]);
-    const [isOpenChat, setIsOpenChat] = React.useState(false);
     const displayModeProps = {
         totalResults: productsAfterFilter.length,
         currentPage: 1,
@@ -301,8 +302,10 @@ const Homepage = () => {
                     </section>
                 </section>
                 {user && <ChatBot
-                    isOpen={isOpenChat}
-                    setIsOpen={setIsOpenChat}
+                    isOpen={isChatOpen}
+                    setIsOpen={() => {
+                        toggleChat();
+                    }}
                 />}
                 <ParterCarousel />
                 <ToTopButton />

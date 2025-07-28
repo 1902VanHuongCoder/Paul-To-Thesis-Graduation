@@ -57,7 +57,7 @@ export default function AddOriginPage() {
     if (res) {
       toast.success("Thêm xuất xứ thành công!");
       reset();
-      fetchOrigins();
+      setOrigins([...origins, { originID: res.originID, originName: data.originName, originImage: imageUrl }]);
     } else {
       toast.error("Thêm xuất xứ thất bại. Vui lòng thử lại.");
     }
@@ -69,13 +69,13 @@ export default function AddOriginPage() {
       toast.error("Mã sản phẩm không tồn tại. Hãy thử lại.");
       return;
     }
-    const res = await deleteOrigin(id);
-    if (res) {
+    const {message, status} = await deleteOrigin(id);
+    if (status === 200) {
       toast.success("Đã xóa xuất xứ thành công!");
       setShowConfirm(false);
-      fetchOrigins();
+      setOrigins(origins.filter(o => o.originID !== id));
     } else {
-      toast.error("Xóa xuất xứ thất bại. Vui lòng thử lại.");
+      toast.error(message);
     }
   };
 
@@ -92,6 +92,7 @@ export default function AddOriginPage() {
     if (editImage) {
       try {
         imageUrl = await uploadSingleImage(editImage);
+
       } catch (error) {
         toast.error("Xảy ra lỗi khi tải ảnh lên.");
         console.error("Error uploading image:", error);
@@ -112,19 +113,25 @@ export default function AddOriginPage() {
       console.error("Error deleting old image:", error);
       return;
     }
+    try {
 
-    const res = await updateOrigin(originID, editName, imageUrl);
-
-    if (res.ok) {
-      toast.success("Cập nhật nhà sản xuất thành công!");
-      setOrigins(origins.map(o =>
-        o.originID === originID ? { ...o, originName: editName, originImage: imageUrl || o.originImage } : o
-      ));
-      setEditID(null);
-      fetchOrigins();
-    } else {
-      toast.error("Cập nhật nhà sản xuất thất bại. Vui lòng thử lại.");
+      const res = await updateOrigin(originID, editName, imageUrl);
+      if (res) {
+        toast.success("Cập nhật nhà sản xuất thành công!");
+        setOrigins(origins.map(o =>
+          o.originID === originID ? { ...o, originName: editName, originImage: imageUrl || o.originImage } : o
+        ));
+        setEditID(null);
+        fetchOrigins();
+      } else {
+        toast.error("Cập nhật nhà sản xuất thất bại. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      toast.error("Xảy ra lỗi khi cập nhật xuất xứ.");
+      console.error("Error updating origin:", error);
+      return;
     }
+
   };
 
   return (

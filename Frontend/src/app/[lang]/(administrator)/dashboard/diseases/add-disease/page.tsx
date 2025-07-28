@@ -43,6 +43,7 @@ import { useUser } from "@/contexts/user-context";
 import toast from "react-hot-toast";
 import { uploadMultipleImages } from "@/lib/file-apis";
 import { createNewDisease } from "@/lib/disease-apis";
+import { useRouter } from "next/navigation";
 
 type DiseaseFormValues = {
     diseaseName: string;
@@ -53,6 +54,7 @@ type DiseaseFormValues = {
 };
 
 export default function AddDiseasePage() {
+    const router = useRouter();
     const { register, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<DiseaseFormValues>();
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -87,6 +89,7 @@ export default function AddDiseasePage() {
                 reset();
                 setImagePreviews([]);
                 editor?.commands.setContent('<p>Nhập triệu chứng bệnh ở đây...</p>');
+                router.push("/vi/dashboard/diseases");
             } else {
                 toast.error("Thêm bệnh thất bại!");
             }
@@ -96,6 +99,7 @@ export default function AddDiseasePage() {
             setLoading(false);
         }
     };
+
 
     return (
         <div>

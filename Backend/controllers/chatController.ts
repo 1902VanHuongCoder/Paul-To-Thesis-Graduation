@@ -5,6 +5,7 @@ import {
   Message,
   User,
 } from "../models";
+import { io } from "../server";
 import { Request, Response } from "express";
 // Get all conversations based on conversationID
 export const getConversations = async (
@@ -79,14 +80,6 @@ export const createConversation = async (
 
   let existingConversation;
 
-  console.log("Creating conversation with data:", {
-    conversationID,
-    conversationName,
-    participants,
-    isGroup,
-    conversationAvatar,
-  });
-
   // Conversation ID is created by concatenating two first participants's IDs, so if request conversationID is in two cases, it already existed
   // const possibleIDs = [
   //   `CON${participants[0]}${participants[1]}`,
@@ -105,10 +98,8 @@ export const createConversation = async (
     res.status(500).json({ message: "Internal server error" });
     return;
   }
-  // Check if the conversation already exists
   // If it existed, return the existing conversation
   if (existingConversation) {
-    console.log("Conversation already exists:", existingConversation);
     res.status(200).json({
       message: "Conversation already exists",
       conversation: existingConversation,
@@ -130,7 +121,6 @@ export const createConversation = async (
           userID,
         }))
       );
-
       res.status(201).json({
         message: "Conversation created successfully",
         conversation: newConversation,

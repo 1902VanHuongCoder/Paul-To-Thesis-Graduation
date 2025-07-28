@@ -28,19 +28,17 @@ export async function updateOrigin(originID: number, originName: string, imageUr
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       originName,
-      ...(imageUrl ? { originImage: imageUrl } : {}),
+      originImage: imageUrl || "", // Use empty string if no new image is provided
     }),
   });
 
-  if (!res.ok) throw new Error("Failed to update origin");
-  return res.json();
+  return res.ok;
 }
 
 export async function deleteOrigin(originID: number) {
   const res = await fetch(`${baseUrl}/api/origin/${originID}`, {
     method: "DELETE",
   });
-
-  if (!res.ok) throw new Error("Failed to delete origin");
-  return res.json();
+  const data = await res.json()
+  return {message: data.message, status: res.status};
 }

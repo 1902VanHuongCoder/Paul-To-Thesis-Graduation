@@ -27,7 +27,7 @@ import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 import newsCommentRoutes from "./routes/newsCommentRoutes";
 import contactRoutes from "./routes/contactRoutes";
 import chatRoutes from "./routes/chatRoutes";
-import aboutRoutes from "./routes/aboutRoutes"; 
+import aboutRoutes from "./routes/aboutRoutes";
 import statisticRoutes from "./routes/statisticRoutes";
 import diseaseRoutes from "./routes/diseaseRoutes"; // Import disease routes
 
@@ -37,11 +37,13 @@ import { Server } from "socket.io";
 const app = express();
 
 // Enable CORS
-app.use(cors({
-  origin: "http://localhost:3000", // Allow requests from this origin
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow requests from this origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Connect to MySQL and Sync DB
 sequelize
@@ -88,9 +90,9 @@ app.use("/api/discount", discountRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/news-comment", newsCommentRoutes);
 app.use("/api/contact", contactRoutes);
-app.use("/api/chat", chatRoutes); 
-app.use("/api/about", aboutRoutes); 
-app.use("/api/statistic", statisticRoutes); 
+app.use("/api/chat", chatRoutes);
+app.use("/api/about", aboutRoutes);
+app.use("/api/statistic", statisticRoutes);
 app.use("/api/disease", diseaseRoutes); // Disease routes
 
 // Create HTTP server and integrate Socket.IO
@@ -103,32 +105,18 @@ export const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
-
-  // Socket to get and broadcast to all admins when a new order is created 
-  socket.on("order-notifications", (data) => {
-    socket.broadcast.emit("order-notification", data);
-  });
-
-  // Socket to get and broadcast to all admins when a new chat message is sent
-  socket.on("chat-notifications", (data) => {
-    console.log("📬 Chat notification received:", data);
-    socket.to("chat-notification").emit("chat-notification", data); 
-  });
 
   // Join a specific room based on room parameter
   socket.on("join_room", (room: string) => {
+    console.log(`🔵 User ${socket.id} joined room: ${room}`);
     socket.join(room);
-    console.log(`🏠 User ${socket.id} joined room: ${room}`);
   });
 
   // Handle to get and broadcast messages to a specific room
   socket.on("send_message", (data) => {
-    console.log("📨 Message received:", data);
-    console.log("📢 Broadcasting message to room:", data.room);
-    socket.to(data.room).emit("send_message", data); // Broadcast message to the room
-    socket.to("chat-notification").emit("chat-notification", data); 
-
+    socket.to(data.room).emit("send_message", data);
+    console.log(`📩 Message sent to room ${data.room}:`, data);
+    socket.to("chat-notification").emit("chat-notification", data);
   });
 
   socket.on("disconnect", () => {

@@ -16,6 +16,8 @@ import Image from "next/image";
 import { addNewMessage, createConversation, loadChatMessages } from "@/lib/chat-apis";
 import { getAllAdmins } from "@/lib/user-apis";
 import { User as UserIcon } from "lucide-react";
+import { baseUrl } from "@/lib/others/base-url";
+import { usePathname } from "next/navigation";
 
 interface User {
     userID: string;
@@ -43,7 +45,8 @@ const ChatBot = (
     { isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void; }
 ) => {
     const { user } = useUser();
-    const socketRef = useRef<Socket | null>(null);
+    const currentPath = usePathname();
+    const [socket, setSocket] = useState<Socket | null>(null);
     const [, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [joinedConversationID, setJoinedConversationID] = useState<string | null>(null);
@@ -54,19 +57,20 @@ const ChatBot = (
     const recognitionRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Initialize socket only once
+    // Initialize socket and join notification rooms
     useEffect(() => {
-        if (!socketRef.current) {
-            socketRef.current = io("http://localhost:3001");
-        }
+        const s: Socket = io(baseUrl);
+        setSocket(s);
+        // Join notification rooms
         return () => {
-            socketRef.current?.disconnect();
+            s.off("chat-notification");
+            s.disconnect();
         };
-    }, []);
+    }, [currentPath]);
 
     // Listen for incoming messages
     useEffect(() => {
-        if (!socketRef.current) return;
+        if (!socket) return;
         const handleReceiveMessage = (data: {
             room: string;
             senderID: string;
@@ -88,11 +92,11 @@ const ChatBot = (
                 ]);
             }
         };
-        socketRef.current.on("send_message", handleReceiveMessage);
+        socket.on("send_message", handleReceiveMessage);
         return () => {
-            socketRef.current?.off("send_message", handleReceiveMessage);
+            socket.off("send_message", handleReceiveMessage);
         };
-    }, [joinedConversationID]);
+    }, [socket, joinedConversationID]);
 
     // Load messages when joining a conversation
     useEffect(() => {
@@ -130,25 +134,21 @@ const ChatBot = (
             input
         );
         // Emit via socket
-        socketRef.current?.emit("send_message", {
-            userAvatar: user.avatar,
-            room: joinedConversationID,
-            username: user.username,
-            message: input,
-            senderID: user.userID,
-            createdAt: new Date().toISOString(),
-        });
-        setMessages((prev) => [
-            ...prev,
-            {
-                messageID: Math.random(),
-                conversationID: String(joinedConversationID),
+        if (socket) {
+            socket.emit("send_message", {
+                userAvatar: user.avatar,
+                room: joinedConversationID,
+                username: user.username,
+                message: input,
                 senderID: user.userID,
-                content: input,
                 createdAt: new Date().toISOString(),
-                sender: { userID: user.userID, username: user.username, email: user.email },
-            },
-        ]);
+            });
+        } else {
+            alert("Socket connection not established. Please try again later.");
+        }
+        // Reload messages from backend to avoid duplicates and ensure sync
+        const data = await loadChatMessages(joinedConversationID);
+        setMessages(data);
         setInput("");
         setIsLoading(false);
     };
@@ -214,15 +214,26 @@ const ChatBot = (
             });
             setConversation(data);
             setJoinedConversationID(data.conversationID);
-            if (socketRef.current && data.conversationID) {
-                socketRef.current.emit("join_room", data.conversationID);
+            // Ensure socket is connected before joining room
+            if (socket && data.conversationID) {
+                if (socket.connected) {
+                    alert("Đã kết nối với phòng trò chuyện.");
+                    socket.emit("join_room", data.conversationID);
+                } else {
+                    alert("Đang kết nối với phòng trò chuyện...");
+                    socket.on("connect", () => {
+                        socket.emit("join_room", data.conversationID);
+                    });
+                }
+            } else {
+                console.error("Socket connection not established or conversationID missing.");
             }
             setIsLoading(false);
         };
         if (isOpen && !joinedConversationID) {
             handleOpenChat();
         }
-    }, [user, isOpen, joinedConversationID]);
+    }, [user, isOpen, joinedConversationID, socket]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -266,13 +277,17 @@ const ChatBot = (
                                                 {/* Avatar */}
                                                 <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white">
                                                     {isMine ? (
-                                                        <Image
-                                                            src={user?.avatar || "/images/default-avatar.png"}
-                                                            alt={user?.username || "User"}
-                                                            width={32}
-                                                            height={32}
-                                                            className="rounded-full object-cover w-8 h-8 border border-gray-300"
-                                                        />
+                                                        user?.avatar ? (
+                                                            <Image
+                                                                src={user.avatar}
+                                                                alt={user.username || "User"}
+                                                                width={32}
+                                                                height={32}
+                                                                className="rounded-full object-cover w-8 h-8 border border-gray-300"
+                                                            />
+                                                        ) : (
+                                                            <UserIcon className="w-7 h-7 text-primary bg-gray-200 rounded-full p-1 border border-gray-300" />
+                                                        )
                                                     ) : (
                                                         <UserIcon className="w-7 h-7 text-primary bg-gray-200 rounded-full p-1 border border-gray-300" />
                                                     )}

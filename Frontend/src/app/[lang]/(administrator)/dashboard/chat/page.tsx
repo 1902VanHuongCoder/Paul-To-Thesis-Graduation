@@ -49,6 +49,7 @@ export default function ChatPage() {
   const [joinedConversationID, setJoinedConversationID] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize socket only once
   useEffect(() => {
@@ -66,18 +67,19 @@ export default function ChatPage() {
     // Only add messages that belong to the current conversation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleReceiveMessage = (data: any) => {
-      // If the message is for the current conversation, add it
-      alert("Get new message: " + data.message);
-      alert(data.room + " - " + joinedConversationID);
+      // Server emits: { room, senderID, message, ... }
       if (String(data.room) === String(joinedConversationID)) {
-        setMessages((prev) => [...prev, {
-          messageID: Math.random(), // Temporary ID if not provided
-          conversationID: String(joinedConversationID),
-          senderID: data.senderID,
-          content: data.message,
-          createdAt: new Date().toISOString(),
-          sender: data.sender || { userID: data.senderID, username: data.username, email: "" },
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            messageID: Math.random(), // Temporary ID if not provided
+            conversationID: String(joinedConversationID),
+            senderID: data.senderID,
+            content: data.message,
+            createdAt: new Date().toISOString(),
+            sender: data.sender || { userID: data.senderID, username: data.username, email: "" },
+          },
+        ]);
       }
     };
     socketRef.current.on("send_message", handleReceiveMessage);
@@ -104,26 +106,20 @@ export default function ChatPage() {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !joinedConversationID || !user) return;
-
+    // Add message to DB
     const res = await addNewMessage(joinedConversationID, user.userID, newMessage);
-
     if (!res) {
       console.error("Failed to send message");
       return;
     }
-
-    // Emit via socket
+    // Emit via socket (room = conversationID)
     socketRef.current?.emit("send_message", {
       room: joinedConversationID,
       username: user.username,
       message: newMessage,
-      time:
-        new Date(Date.now()).getHours().toString().padStart(2, "0") +
-        ":" +
-        new Date(Date.now()).getMinutes().toString().padStart(2, "0"),
       senderID: user.userID,
+      sender: { userID: user.userID, username: user.username, email: user.email },
     });
-
     setNewMessage("");
     // Update local messages
     setMessages((prev) => [
@@ -144,32 +140,58 @@ export default function ChatPage() {
     if (!user) return;
     setJoinedConversationID(conversationID);
     setConversation(conversationData);
-
-    // Join the room
-    socketRef.current?.emit("join_room", conversationID);
-
+    // Join the room (ensure user joins the correct room for real-time updates)
+    if (socketRef.current && conversationID) {
+      socketRef.current.emit("join_room", conversationID);
+    }
     // Fetch messages for this conversation
-    const data = await loadChatMessages(conversationID);
-    setMessages(data);
-
-    // Update UI before 
+    try {
+      const data = await loadChatMessages(conversationID);
+      setMessages(data);
+      await markMessagesAsRead(conversationID, user.userID);
+      // Update unread count after marking as read
+      updateUnreadCount();
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      setMessages([]);
+    }
+    // Update UI before
     const conversationChanged = conversationUserBelongs.map((conv) => {
       if (conv.conversationID === conversationID) {
         return { ...conv, conversation: { ...conv.conversation, messages: [] } };
       }
       return conv;
     });
-
     setConversationUserBelongs(conversationChanged);
+  };
 
+  // Update unread count for chat badge
+  const updateUnreadCount = async () => {
+    if (!user) return;
     try {
-      await markMessagesAsRead(conversationID, user.userID);
-      setMessages(messages);
+      const data: ConversationList[] = await fetchConversations(user.userID);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      let count = 0;
+      data.forEach((item) => {
+        if (item.conversation.messages && item.conversation.messages.length > 0) {
+          count += item.conversation.messages.filter(message => !message.isRead && message.senderID !== user.userID).length;
+        }
+      });
+      // If you have a global state for unreadCount, update it here
+      // setUnreadCount(count); // Uncomment if using local state
+      // Optionally, trigger a global event or context update
     } catch (error) {
-      console.error("Error loading messages:", error);
-      setMessages([]);
+      console.error("Error updating unread count:", error);
+      // setUnreadCount(0); // Uncomment if using local state
     }
-  }
+  };
+
+  // Ensure user joins the room on initial load if already in a conversation
+  useEffect(() => {
+    if (socketRef.current && joinedConversationID) {
+      socketRef.current.emit("join_room", joinedConversationID);
+    }
+  }, [joinedConversationID]);
 
   // fetch conversations that user is a part of 
   useEffect(() => {
@@ -185,22 +207,28 @@ export default function ChatPage() {
     fetchData();
   }, [user]);
 
+  // Scroll to end when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
-    <div className="bg-[#f5f7fa] min-h-screen flex flex-col items-center py-6">
-      <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg flex overflow-hidden min-h-[600px]">
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="w-full bg-white flex border-[1px] border-gray-300">
         {/* Sidebar: Danh sách cuộc trò chuyện */}
-        <aside className="w-80 border-r bg-gradient-to-b from-blue-100 to-blue-50 flex flex-col">
-          <div className="p-5 border-b flex items-center gap-2 text-blue-700 font-bold text-xl bg-white">
+        <aside className="w-80 border-r flex flex-col">
+          <div className="p-5 border-b flex items-center gap-2 text-primary-hover font-bold text-xl bg-white">
             <MessageCircle className="w-7 h-7" /> Trò chuyện
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <h2 className="px-5 pt-4 pb-2 text-base font-semibold text-blue-700">Danh sách cuộc trò chuyện</h2>
+          <div className="flex-1 overflow-y-auto max-h-screen">
             {conversationUserBelongs.length > 0 ? (
               <ul className="pl-0">
                 {conversationUserBelongs.map((conv) => (
                   <li key={conv.conversationID}>
                     <button
-                      className={`w-full flex items-center gap-3 px-5 py-3 rounded-lg mb-1 hover:bg-blue-200/60 transition text-left ${joinedConversationID === conv.conversationID ? "bg-blue-100" : ""}`}
+                      className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-primary-hover/10 hover:cursor-pointer transition text-left ${joinedConversationID === conv.conversationID ? "bg-primary-hover/10" : ""}`}
                       onClick={() => handleOpenChatPanel(conv.conversationID, conv)}
                     >
                       <span className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300 text-white font-bold text-lg">
@@ -234,25 +262,26 @@ export default function ChatPage() {
         {/* Main Chat Panel */}
         <main className="flex-1 flex flex-col h-full bg-white">
           {/* Header */}
-          <div className="p-5 border-b font-semibold text-lg bg-gradient-to-r from-blue-100 to-blue-50 shadow-sm min-h-[56px] flex items-center text-blue-800">
+          <div className="p-5 border-b font-semibold text-lg bg-gradient-to-r shadow-sm min-h-[56px] flex items-center">
             {conversation?.conversation.conversationName || "Chọn một cuộc trò chuyện để bắt đầu"}
           </div>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 bg-[#f5f7fa]">
+          <div className="flex-1 overflow-y-auto p-6 bg-white max-h-[calc(100vh-64px)]">
             {messages.length === 0 && <div className="text-gray-400">Chưa có tin nhắn nào.</div>}
-            {messages.length > 0 && messages.map((msg) => (
+            {messages.length > 0 && messages.map((msg, idx) => (
               <div
                 key={msg.messageID || Math.random()}
                 className={`mb-3 flex ${msg.senderID === user?.userID ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`rounded-2xl px-4 py-2 max-w-[70%] break-words shadow ${msg.senderID === user?.userID ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"}`}
+                  className={`rounded-2xl px-4 py-2 max-w-[70%] break-words shadow ${msg.senderID === user?.userID ? "bg-primary-hover text-white" : "bg-gray-200 text-gray-900"}`}
                 >
                   <span className="block mb-1">{msg.content}</span>
                   <span className="block text-xs text-right opacity-70">
                     {msg.sender?.username || msg.senderID} | {new Date(msg.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
+                {idx === messages.length - 1 && <div ref={messagesEndRef} />}
               </div>
             ))}
           </div>
@@ -260,13 +289,13 @@ export default function ChatPage() {
           {joinedConversationID && (
             <div className="p-4 border-t flex gap-2 bg-white">
               <input
-                className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-hover"
                 placeholder="Nhập tin nhắn..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
               />
-              <button className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-600 transition" onClick={handleSendMessage}>
+              <button className="bg-primary-hover text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-primary-hover transition" onClick={handleSendMessage}>
                 Gửi
               </button>
             </div>

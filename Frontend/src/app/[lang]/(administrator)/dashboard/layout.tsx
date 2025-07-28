@@ -73,19 +73,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     socket.emit("join_room", "order-notification");
 
     // Listen for chat notifications
-    socket.on("chat-notification", () => {
-
+    socket.on("chat-notification", (data: {
+      userAvatar?: string;
+      room?: string;
+      username: string;
+      message?: string;
+      senderID?: string;
+      createdAt: string;
+    }) => {
       toast.custom((t) => (
         <CustomToast
           t={t}
-          createdAt="2023-10-01T12:00:00Z"
-          username="John Doe"
-          type="order"
+          createdAt={data.createdAt}
+          username={data.username}
+          userAvatar={data.userAvatar}
+          type="chat"
         />
-
-
       ), {
-        duration: 5000,
+        duration: 1000,
         position: "bottom-right",
         style: {
           width: "400px",
@@ -95,19 +100,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
 
     // Listen for order notifications 
-    socket.on("order-notification", () => {
-
+    socket.on("order-notification", (data: {
+      userAvatar?: string;
+      room?: string;
+      username?: string;
+      message?: string;
+      senderID?: string;
+      createdAt: string;
+    }) => {
       toast.custom((t) => (
         <CustomToast
           t={t}
-          createdAt="2023-10-01T12:00:00Z"
-          username="John Doe"
+          createdAt={data.createdAt}
+          username={data.username}
+          userAvatar={data.userAvatar}
           type="order"
         />
-
-
       ), {
-        duration: 5000,
+        duration: 1000,
         position: "bottom-right",
         style: {
           width: "400px",
@@ -115,6 +125,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         },
       })
     });
+
+    // // Fetch unread count for chat badge
+    // if (user) {
+    //   const fetchConversationsData = async () => {
+    //     try {
+    //       const data = await fetchConversations(user.userID);
+    //       if (!data) {
+    //         throw new Error("Failed to fetch conversations");
+    //       }
+    //     } catch (error) {
+    //       console.error("Error fetching conversations:", error);
+    //     }
+    //   };
+    //   fetchConversationsData();
+    // }
 
     // Fetch unread count for chat badge
     if (user) {

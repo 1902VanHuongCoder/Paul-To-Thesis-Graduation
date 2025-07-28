@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/user-context";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
-import { Breadcrumb } from "@/components";
-import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
 import { deleteOneImage, uploadAvatar } from "@/lib/others/upload-images";
 import { Eye, EyeOff } from "lucide-react";
@@ -14,7 +12,6 @@ import { checkPassword, updateUserProfile } from "@/lib/user-apis";
 
 export default function AdminSettingsPage() {
     const { user, setUser } = useUser();
-    const { dictionary: d } = useDictionary();
     const [form, setForm] = useState({
         username: user?.username || "",
         email: user?.email || "",
@@ -142,8 +139,7 @@ export default function AdminSettingsPage() {
     if (!user) return <div className="p-8 text-center text-red-500">Không tìm thấy quản trị viên</div>;
 
     return (
-        <div className="px-6 py-10">
-            <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin quản trị viên" }]} />
+        <div>
             <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Cập nhật hồ sơ quản trị viên</h1>
             <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
@@ -199,9 +195,10 @@ export default function AdminSettingsPage() {
                     <div>
                         <label className="block mb-1 text-gray-500 text-sm">Email</label>
                         <Input
-                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus-visible:outline-none focus-visible:ring-0 opacity-50"
                             name="email"
                             type="email"
+                            readOnly={true}
                             value={form.email}
                             onChange={handleChange}
                             required
