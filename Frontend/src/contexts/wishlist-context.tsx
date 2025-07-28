@@ -51,9 +51,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const addToWishlist = async (customerID: string, productID: number) => {
     try {
-      await addToWishlistList(customerID, productID);
+      const { message } = await addToWishlistList(customerID, productID);
       await fetchWishlist(customerID);
-      toast.success("Đã thêm vào danh sách yêu thích");
+      toast.success(message);
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       toast.error("Lỗi khi thêm vào danh sách yêu thích");

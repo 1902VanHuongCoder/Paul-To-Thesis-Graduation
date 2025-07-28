@@ -117,20 +117,19 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
   const { commentID } = req.params;
 
-  console.log("Deleting comment with ID:", commentID);
   try {
     const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
-      res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Bình luận không tồn tại!" });
       return;
     }
 
     await comment.destroy();
-    res.status(204).send();
+    res.status(200).json({ message: "Bình luận đã được xóa thành công!" });
   } catch (error) {
     console.error("Error deleting comment:", error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: "Lỗi khi xóa bình luận" });
   }
 };
 

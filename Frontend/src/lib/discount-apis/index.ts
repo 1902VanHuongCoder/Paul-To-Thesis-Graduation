@@ -13,91 +13,87 @@ type Discount = {
   updatedAt?: string;
 };
 export const checkPromotionCode = async (code: string) => {
-    try {
-        const response = await fetch(`${baseUrl}/api/discount/${code}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to check promotion code');
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error checking promotion code:', error);
-        throw error;
-    }
-}
+  const response = await fetch(`${baseUrl}/api/discount/${code}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await response.json();
+  return {
+    status: response.status,
+    message: data.message,
+    discount: data.discount,
+  };
+};
 
 export const createDiscount = async (discountData: Discount) => {
-    try {
-        const response = await fetch(`${baseUrl}/api/discount`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(discountData),
-        });
+  try {
+    const response = await fetch(`${baseUrl}/api/discount`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(discountData),
+    });
 
-        if (!response.ok) {
-            throw new Error('Failed to create discount');
-        }
-        return response.json();
-    } catch (error) {
-        console.error('Error creating discount:', error);
-        throw error;
+    if (!response.ok) {
+      throw new Error("Failed to create discount");
     }
-}
+    return response.json();
+  } catch (error) {
+    console.error("Error creating discount:", error);
+    throw error;
+  }
+};
 export const fetchAllDiscounts = async () => {
-    try {
-        const response = await fetch(`${baseUrl}/api/discount`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch discounts');
-        }
-        return response.json();
-    } catch (error) {
-        console.error('Error fetching discounts:', error);
-        throw error;
+  try {
+    const response = await fetch(`${baseUrl}/api/discount`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch discounts");
     }
-}
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching discounts:", error);
+    throw error;
+  }
+};
 
 export const updateDiscount = async (discountData: Discount) => {
-    try {
-        const response = await fetch(`${baseUrl}/api/discount/${discountData.discountID}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(discountData),
-        });
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/discount/${discountData.discountID}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(discountData),
+      }
+    );
 
-        if (!response.ok) {
-            throw new Error('Failed to update discount');
-        }
-        return response.ok;
-    } catch (error) {
-        console.error('Error updating discount:', error);
-        throw error;
+    if (!response.ok) {
+      throw new Error("Failed to update discount");
     }
-}
+    return response.ok;
+  } catch (error) {
+    console.error("Error updating discount:", error);
+    throw error;
+  }
+};
 
 export const deleteDiscount = async (discountId: string) => {
-    try {
-        const response = await fetch(`${baseUrl}/api/discount/${discountId}`, {
-            method: 'DELETE',
-        });
+  try {
+    const response = await fetch(`${baseUrl}/api/discount/${discountId}`, {
+      method: "DELETE",
+    });
 
-        if (!response.ok) {
-            throw new Error('Failed to delete discount');
-        }
-        return response.ok;
-    } catch (error) {
-        console.error('Error deleting discount:', error);
-        throw error;
+    if (!response.ok) {
+      throw new Error("Failed to delete discount");
     }
-}
+    return response.ok;
+  } catch (error) {
+    console.error("Error deleting discount:", error);
+    throw error;
+  }
+};

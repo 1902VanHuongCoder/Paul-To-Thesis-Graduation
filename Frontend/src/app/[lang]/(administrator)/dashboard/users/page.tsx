@@ -44,6 +44,7 @@ export default function UsersPage() {
   // const {lang} = useDictionary();
   const [users, setUsers] = React.useState<User[]>([])
   const [usernameFilter, setUsernameFilter] = React.useState("")
+  const [userIDFilter, setUserIDFilter] = React.useState("")
   const [activeOnly, setActiveOnly] = React.useState(false)
   const [roleFilter, setRoleFilter] = React.useState("");
   const [loading, setLoading] = React.useState(true)
@@ -70,14 +71,16 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
-
   const filteredUsers = users.filter((user) => {
     const matchesUsername = user.username
       .toLowerCase()
       .includes(usernameFilter.toLowerCase())
+    const matchesUserID = user.userID
+      .toLowerCase()
+      .includes(userIDFilter.toLowerCase())
     const matchesActive = !activeOnly || user.isActive
     const matchesRole = roleFilter === "all" || !roleFilter || user.role === roleFilter
-    return matchesUsername && matchesActive && matchesRole
+    return matchesUsername && matchesUserID && matchesActive && matchesRole
   })
 
   // Pagination logic
@@ -132,6 +135,12 @@ export default function UsersPage() {
           placeholder="Tìm kiếm bằng username..."
           value={usernameFilter}
           onChange={(e) => setUsernameFilter(e.target.value)}
+          className="max-w-xs"
+        />
+        <Input
+          placeholder="Tìm kiếm bằng UserID..."
+          value={userIDFilter}
+          onChange={(e) => setUserIDFilter(e.target.value)}
           className="max-w-xs"
         />
         <label className="flex items-center gap-2 border-1 px-4 py-1.5 rounded-md">

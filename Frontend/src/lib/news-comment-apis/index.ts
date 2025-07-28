@@ -63,7 +63,7 @@ export const likeNewsComment = async (
   commentID: number
 ): Promise<boolean> => {
   const response = await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -80,7 +80,7 @@ export const dislikeNewsComment = async (
   commentID: number
 ): Promise<boolean> => {
   const response = await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -95,13 +95,13 @@ export const dislikeNewsComment = async (
 
 export const deleteNewsComment = async (
   commentID: number
-): Promise<boolean> => {
+): Promise<{ status: number; message: string }> => {
   const response = await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete news comment");
-  }
-  return response.ok;
+ const data = await response.json();
+  return {
+    status: response.status,
+    message: data.message,
+  };
 };

@@ -18,6 +18,7 @@ import { getAllAdmins } from "@/lib/user-apis";
 import { User as UserIcon } from "lucide-react";
 import { baseUrl } from "@/lib/others/base-url";
 import { usePathname } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface User {
     userID: string;
@@ -144,7 +145,7 @@ const ChatBot = (
                 createdAt: new Date().toISOString(),
             });
         } else {
-            alert("Socket connection not established. Please try again later.");
+            toast.error("Không thể gửi tin nhắn, kết nối socket không thành công.");
         }
         // Reload messages from backend to avoid duplicates and ensure sync
         const data = await loadChatMessages(joinedConversationID);
@@ -217,10 +218,8 @@ const ChatBot = (
             // Ensure socket is connected before joining room
             if (socket && data.conversationID) {
                 if (socket.connected) {
-                    alert("Đã kết nối với phòng trò chuyện.");
                     socket.emit("join_room", data.conversationID);
                 } else {
-                    alert("Đang kết nối với phòng trò chuyện...");
                     socket.on("connect", () => {
                         socket.emit("join_room", data.conversationID);
                     });

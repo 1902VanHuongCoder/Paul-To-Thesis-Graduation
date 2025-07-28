@@ -58,7 +58,7 @@ export const fetchCommentByProductID = async (productID: number) => {
 
 export const likeComment = async (commentID: number) => {
   const response = await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-    method: "POST",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "like" }),
   });
@@ -72,7 +72,7 @@ export const likeComment = async (commentID: number) => {
 
 export const dislikeComment = async (commentID: number) => {
   const response = await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-    method: "POST",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "dislike" }),
   });
@@ -88,10 +88,9 @@ export const deleteProductComment = async (commentID: number) => {
   const response = await fetch(`${baseUrl}/api/comment/${commentID}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete comment");
-  }
-
-  return response.json();
+  const data = await response.json();
+  return {
+    status: response.status,
+    message: data.message
+  };
 }

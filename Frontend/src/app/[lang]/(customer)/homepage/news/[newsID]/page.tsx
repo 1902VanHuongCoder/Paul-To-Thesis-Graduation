@@ -129,12 +129,12 @@ export default function NewsDetailPage() {
     }
     );
 
-    
+
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newComment.trim() || !news || !user) return; // Ensure there's content and news is loade
-        const userAlreadyCommented = news?.comments.some(comment => comment.userID === user.userID);
+        const userAlreadyCommented = comments.some(comment => comment.userID === user.userID);
         if (userAlreadyCommented) {
             toast.error("Bạn đã bình luận về bài viết này rồi!");
             return;
@@ -146,18 +146,19 @@ export default function NewsDetailPage() {
                 return;
             }
             // Post new comment to the API
-            await createNewsComment(
+            const res = await createNewsComment(
                 news.newsID,
                 user.userID,
                 newComment.trim(),
             )
-
-            // Refetch comments (or optimistically update)
-            const comments = await fetchNewsCommentsByNewsID(news.newsID);
-            console.log("Fetched comments:", comments);
-            setNews((prev) => prev ? { ...prev, comments } : prev);
-            setNewComment("");
-            commentInputRef.current?.focus();
+            if (res) {
+                toast.success("Bình luận đã được gửi thành công!");
+                setNewComment(""); // Clear the comment input
+                commentInputRef.current?.focus(); // Focus the comment input again
+                setComments((prev) => [
+                    res, ...prev
+                ]);
+            }
         } catch (err) {
             console.error("Failed to submit comment:", err);
         } finally {
@@ -168,13 +169,13 @@ export default function NewsDetailPage() {
     // Handle like and dislike actions for comments
     const handleLikeComment = async (commentID: number) => {
         if (!news) return;
-        const existingComment = news.comments.map(c => {
+        const existingComment = comments.map(c => {
             if (c.commentID === commentID) {
                 return { ...c, likeCount: c.likeCount + 1 };
             }
             return c;
         })
-        setNews((prev) => prev ? { ...prev, comments: existingComment } : prev);
+        setComments(existingComment);
 
         try {
             const res = await likeNewsComment(commentID);
@@ -189,13 +190,13 @@ export default function NewsDetailPage() {
 
     const handleDislikeComment = async (commentID: number) => {
         if (!news) return;
-        const existingComment = news.comments.map(c => {
+        const existingComment = comments.map(c => {
             if (c.commentID === commentID) {
                 return { ...c, dislikeCount: c.dislikeCount + 1 };
             }
             return c;
         });
-        setNews((prev) => prev ? { ...prev, comments: existingComment } : prev);
+        setComments(existingComment);
         try {
             const res = await dislikeNewsComment(commentID);
             if (!res) {
@@ -209,8 +210,8 @@ export default function NewsDetailPage() {
 
     const handleDeleteComment = (commentID: number) => {
         if (!news) return;
-        const updatedComments = news.comments.filter(c => c.commentID !== commentID);
-        setNews((prev) => prev ? { ...prev, comments: updatedComments } : prev);
+        const updatedComments = comments.filter(c => c.commentID !== commentID);
+        setComments(updatedComments);
     }
 
     // Fetch news detail and other news when newsID changes
@@ -238,7 +239,7 @@ export default function NewsDetailPage() {
                 console.error("Failed to fetch comments:", error);
             }
         }
-        if (newsID) { 
+        if (newsID) {
             fetchNewsDetail();
             fetchComments();
         }
@@ -352,24 +353,24 @@ export default function NewsDetailPage() {
                 <div className="space-y-6">
                     {news && comments.length > 0 ? (
                         comments.map((comment, index) => (
-                                <CommentItem
-                                    commentID={comment.commentID}
-                                    index={index}
-                                    commentsLength={comments.length}
-                                    userID={comment.userID}
-                                    key={comment.commentID}
-                                    avatar={comment.user_comments?.avatar || NoImage}
-                                    name={comment.user_comments?.username || `Người dùng ${comment.userID}`}
-                                    date={new Date(comment.commentAt).toLocaleDateString()}
-                                    comment={comment.content}
-                                    likeCount={comment.likeCount}
-                                    dislikeCount={comment.dislikeCount}
-                                    onLike={() => handleLikeComment(comment.commentID)}
-                                    onDislike={() => handleDislikeComment(comment.commentID)}
-                                    reFetchComments={() => handleDeleteComment(comment.commentID)}
-                                    type="news"
-                                />
-                            ))
+                            <CommentItem
+                                commentID={comment.commentID}
+                                index={index}
+                                commentsLength={comments.length}
+                                userID={comment.userID}
+                                key={comment.commentID}
+                                avatar={comment.user_comments?.avatar || NoImage}
+                                name={comment.user_comments?.username || `Người dùng ${comment.userID}`}
+                                date={new Date(comment.commentAt).toLocaleDateString()}
+                                comment={comment.content}
+                                likeCount={comment.likeCount}
+                                dislikeCount={comment.dislikeCount}
+                                onLike={() => handleLikeComment(comment.commentID)}
+                                onDislike={() => handleDislikeComment(comment.commentID)}
+                                reFetchComments={() => handleDeleteComment(comment.commentID)}
+                                type="news"
+                            />
+                        ))
                     ) : (
                         <div className="text-gray-500">Chưa có bình luận nào cho bài đăng này.</div>
                     )}

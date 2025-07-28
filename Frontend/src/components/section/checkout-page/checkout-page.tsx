@@ -94,6 +94,7 @@ export default function CheckoutPage() {
     const [termsAccepted, setTermsAccepted] = useState(false); // For terms and conditions acceptance 
     const [promoCode, setPromoCode] = useState({
         code: "",
+        maxDiscount: 0,
         discount: checkoutData?.discount ? checkoutData.discount.discountValue : 0,
     }); // For promo code input and discount value
 
@@ -104,8 +105,6 @@ export default function CheckoutPage() {
         allMethods: [],
         selectMethod: {} as DeliveryMethod,
     }); // For delivery methods and selected method
-
-    console.log(delivery);
 
     const methods = useForm<CheckoutFormValues>({
         defaultValues: {
@@ -172,39 +171,49 @@ export default function CheckoutPage() {
 
         try {
             const discountID = promoCode.code;
-            const data = await checkPromotionCode(discountID);
-            const now = new Date();
-            const expireDate = new Date(data.expireDate);
+            const { discount, status, message } = await checkPromotionCode(discountID);
 
-            if (
-                data.isActive === false ||
-                expireDate < now ||
-                (data.usageLimit && data.usedCount >= data.usageLimit)
-            ) {
-                toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
-                return;
-            } else if (data.minOrderValue && totalPayment < data.minOrderValue) {
-                toast.error(
-                    `Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(
-                        data.minOrderValue
-                    )} VND.`
-                );
-                return;
+            if (status === 200) {
+                toast.success(`Mã giảm giá ${discount.discountPercent}% đã được áp dụng`);
             } else {
-                const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
-                setCheckoutData({
-                    ...checkoutData,
-                    discount: {
-                        discountID: data.discount.discountID,
-                        discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
-                    }
-                })
-                toast.success("Áp dụng mã giảm giá thành công!");
-                setPromoCode({
-                    code: "",
-                    discount: 0,
-                });
+                toast.error(message);
+                return;
             }
+
+
+            // Calculate discount value
+            let discountValue = 0;
+
+            if (totalPayment < discount.minOrderAmount) {
+                toast.error(`Đơn hàng của bạn không đủ điều kiện để áp dụng mã giảm giá. Giá trị đơn hàng tối thiểu là ${formatVND(discount.minOrderAmount)}.`);
+                return;
+            }
+            if (discount.usageLimit && discount.usedCount && discount.usedCount >= discount.usageLimit) {
+                toast.error(`Mã giảm giá đã hết lượt sử dụng.`);
+                return;
+            }
+
+            if (discount.discountPercent) {
+                discountValue = (discount.discountPercent / 100) * totalPayment;
+            }
+
+
+            if (discount.maxDiscountAmount && discountValue > discount.maxDiscountAmount) {
+                discountValue = discount.maxDiscountAmount;
+            }
+
+            setCheckoutData({
+                ...checkoutData,
+                discount: {
+                    discountID: discount.discountID,
+                    discountValue,
+                }
+            });
+            setPromoCode({
+                code: "",
+                maxDiscount: discount.maxDiscountAmount,
+                discount: discountValue,
+            });
         } catch (error) {
             console.error("Error checking promo code:", error);
             toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
@@ -253,7 +262,6 @@ export default function CheckoutPage() {
             deliveryCost: deliveryCost || 0,
             status: "pending",
         };
-        console.log("Order data to send:", orderDataSendToServer);
         setCheckoutData(orderDataSendToServer);
 
         if (paymentMethod === "vn-pay") {
@@ -307,10 +315,13 @@ export default function CheckoutPage() {
             const price = product.productPriceSale ? product.productPriceSale : product.CartItem.price;
             return total + (price * product.CartItem.quantity);
         }, 0);
-        const discount = checkoutData?.discount?.discountValue || 0; // Get discount value from checkout data or default to 0 
+
+        const discount = checkoutData && checkoutData.discount ? checkoutData.discount.discountValue || 0 : promoCode.discount; // Get discount value from checkout data or default to 0
+
         const deliveryMethod = delivery.selectMethod.basePrice || 0; // Get delivery method base price or default to 0
-        return totalPrice + (discount + deliveryMethod + deliveryCost); // Return total payment including products, discounts, delivery method, and delivery cost
-    }, [cart.products, delivery.selectMethod.basePrice, checkoutData?.discount?.discountValue, deliveryCost]);
+
+        return totalPrice + deliveryMethod + deliveryCost - discount; // Return total payment including products, discounts, delivery method, and delivery cost
+    }, [cart.products, delivery.selectMethod.basePrice, checkoutData, deliveryCost, promoCode]);
 
     const fetchAddresses = useCallback(async (user: { userID: string; username: string; }) => {
         try {
@@ -318,21 +329,21 @@ export default function CheckoutPage() {
             setAddresses(data || []);
             if (data && data.length > 0) {
                 const defaultAddr = data.find((a: ShippingAddress) => a.isDefault) || data[0];
-                    setSelectedAddressID(defaultAddr.shippingAddressID);
-                    // Auto-fill form with default address
-                    methods.reset({
-                        fullName: user.username,
-                        phone: defaultAddr.phone,
-                        address: defaultAddr.address,
-                        note: '',
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching addresses:", error);
-                return [];
+                setSelectedAddressID(defaultAddr.shippingAddressID);
+                // Auto-fill form with default address
+                methods.reset({
+                    fullName: user.username,
+                    phone: defaultAddr.phone,
+                    address: defaultAddr.address,
+                    note: '',
+                });
             }
-        }, [methods]);
-    
+        } catch (error) {
+            console.error("Error fetching addresses:", error);
+            return [];
+        }
+    }, [methods]);
+
     // Fetch user addresses on mount
     useEffect(() => {
         if (!user) return;
@@ -464,20 +475,25 @@ export default function CheckoutPage() {
                 const addressParts = selectedAddr.address.split(",").map(s => s.trim());
                 // Try to find province by last part if not found by prefix
                 const provinceName = addressParts.find(part => part.startsWith("Tỉnh") || part.startsWith("Thành phố"));
-            
-                if (!provinceName) {
+
+                // Slice "Tinh" or "Thanh pho" prefix if exists
+                const slicedProvinceName = provinceName?.replace(/^(Tỉnh|Thành phố)\s*/, "") || "";
+
+                if (!slicedProvinceName) {
                     setDeliveryCost(0);
                     return;
                 }
 
                 // Fetch province list and get province code
                 const provincesList = await fetchProvinceList();
-  
-                const foundProvince = provincesList.find((p: { name: string }) => p.name === provinceName);
+
+
+                const foundProvince = provincesList.find((p: { name: string }) => p.name.includes(slicedProvinceName));
                 if (!foundProvince) {
                     setDeliveryCost(0);
                     return;
                 }
+
                 const provinceCode = foundProvince.code;
                 // Calculate shipping cost using province code
                 const shippingCost = await calculateShippingCost({ code: provinceCode });
@@ -500,7 +516,7 @@ export default function CheckoutPage() {
             <div className="flex-1">
                 <h1 className="text-2xl font-bold mb-2 uppercase text-center">THANH TOÁN</h1>
                 {/* Discount Section */}
-                {promoCode.discount !== 0 ? "" : (
+                {/* {promoCode.discount !== 0 ? "" : ( */}
                     <div className="mt-6 flex items-center mb-4">
                         <input
                             type="text"
@@ -512,6 +528,14 @@ export default function CheckoutPage() {
                         <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="shrink-0 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full py-3.5 bg-primary text-white transition-all">
                             {"Áp dụng mã giảm giá"}
                         </Button>
+                    </div>
+                {/* )} */}
+                {promoCode.maxDiscount > 0 && (
+                    <div className="flex text-gray-700 mb-4 justify-end gap-x-2">
+                        <span>
+                            {"Giảm giá tối đa: "}
+                        </span>
+                        <span>{formatVND(promoCode.maxDiscount)} VND</span>
                     </div>
                 )}
                 <FormProvider {...methods}>
@@ -546,23 +570,23 @@ export default function CheckoutPage() {
                         </FormItem>
                         {/* Address selection */}
                         {user && addresses.length > 0 && (
-                            <div className="mb-4 ">
+                            <div className="mb-4 w-full">
                                 <FormLabel className="pb-2 pl-1">Chọn địa chỉ giao hàng <span className="text-red-500">*</span></FormLabel>
                                 <div className="flex items-center">
                                     <Select
                                         value={selectedAddressID ? String(selectedAddressID) : undefined}
                                         onValueChange={val => setSelectedAddressID(Number(val))}
                                     >
-                                        <SelectTrigger className="w-full px-4 py-6 rounded-tl-full rounded-bl-full  border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
+                                        <SelectTrigger className="flex-1 px-4 py-6 rounded-tl-full rounded-bl-full  border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white truncate"
                                         >
-                                            <SelectValue placeholder="Chọn địa chỉ giao hàng" />
+                                            <SelectValue placeholder="Chọn địa chỉ giao hàng" className="truncate" />
                                         </SelectTrigger>
                                         <SelectContent className="max-h-60">
                                             <SelectGroup>
                                                 <SelectLabel>Địa chỉ giao hàng</SelectLabel>
                                                 {addresses.map(addr => (
-                                                    <SelectItem key={addr.shippingAddressID} value={String(addr.shippingAddressID)}>
-                                                        {addr.address} - {addr.phone} {addr.isDefault ? '(Mặc định)' : ''}
+                                                    <SelectItem key={addr.shippingAddressID} value={String(addr.shippingAddressID)} className="truncate max-w-full">
+                                                        <span className="truncate block max-w-full">{addr.address} - {addr.phone} {addr.isDefault ? '(Mặc định)' : ''}</span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectGroup>
@@ -747,7 +771,7 @@ export default function CheckoutPage() {
                         <span>
                             {"Giảm giá"}
                         </span>
-                        {/* <span>- {checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0} VND</span> */}
+                        {/* <span>- {checkoutData?.discount ? formatVND(checkoutdiscount.discountValue) : 0} VND</span> */}
                         <span>- {promoCode.discount !== 0 ?
                             formatVND(promoCode.discount)
                             : checkoutData?.discount ? formatVND(checkoutData.discount.discountValue) : 0
@@ -860,7 +884,7 @@ export default function CheckoutPage() {
                             //         {"Đặt hàng"}
                             //     </Button>
                             // )
-                            <PayPalButton termIsAccepted={termsAccepted} submitForm={() => {onSubmit(methods.getValues())}} amount={totalPayment} />
+                            <PayPalButton termIsAccepted={termsAccepted} submitForm={() => { onSubmit(methods.getValues()) }} amount={totalPayment} />
                         ) : (
                             <Button
                                 type="submit"

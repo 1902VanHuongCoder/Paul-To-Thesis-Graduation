@@ -183,7 +183,7 @@ export default function ProductDetailsPage() {
         setComments([]);
       }
 
-      setComments(data.filter((c: ProductComment) => c.status === "active"));
+      setComments(data);
     } catch (error) {
       setComments([]);
       console.error("Error fetching comments:", error);

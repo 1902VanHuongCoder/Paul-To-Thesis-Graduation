@@ -82,11 +82,11 @@ export default function OrderDetailPage() {
         toast.error("Bạn cần đăng nhập để bình luận!");
         return;
       }
-      if(isToxicComment(newComment.trim())) { 
+      if (isToxicComment(newComment.trim())) {
         toast.error("Bình luận của bạn chứa từ ngữ không phù hợp!");
         return;
       }
-      
+
       await comment(user.userID, productID, newComment.trim(), newRating, "active");
       toast.success("Bình luận của bạn đã được gửi!");
 
@@ -165,22 +165,45 @@ export default function OrderDetailPage() {
                 <button
                   className="px-4 py-1 bg-primary text-white rounded hover:bg-primary/90 transition hover:cursor-pointer"
                   onClick={async () => {
-                    if (!confirm("Bạn có chắc muốn hủy đơn hàng này?")) return;
-                    try {
-                      const res = await fetch(`${baseUrl}/api/order/${order.orderID}`, {
-
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ ...order, orderStatus: "cancelled" }),
-                      });
-                      if (!res.ok) throw new Error("Failed to cancel order");
-                      setOrder({ ...order, orderStatus: "cancelled" });
-                    } catch (err) {
-                      console.error(err);
-                      alert("Hủy đơn hàng thất bại. Vui lòng thử lại.");
-                    }
+                    toast(
+                      (t) => (
+                        <div>
+                          <div className="mb-2">Bạn có chắc muốn hủy đơn hàng này?</div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+                              onClick={() => toast.dismiss(t.id)}
+                            >
+                              Hủy
+                            </button>
+                            <button
+                              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                              onClick={async () => {
+                                toast.dismiss(t.id);
+                                try {
+                                  const res = await fetch(`${baseUrl}/api/order/${order.orderID}`, {
+                                    method: "PUT",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({ ...order, orderStatus: "cancelled" }),
+                                  });
+                                  if (!res.ok) throw new Error("Failed to cancel order");
+                                  setOrder({ ...order, orderStatus: "cancelled" });
+                                  toast.success("Đơn hàng đã được hủy thành công!");
+                                } catch (err) {
+                                  console.error(err);
+                                  toast.error("Hủy đơn hàng thất bại. Vui lòng thử lại.");
+                                }
+                              }}
+                            >
+                              Xác nhận
+                            </button>
+                          </div>
+                        </div>
+                      ),
+                      { duration: 10000, position: "top-center" }
+                    );
                   }}
                 >
                   Hủy đơn
@@ -358,7 +381,7 @@ export default function OrderDetailPage() {
                     type="button"
                     onClick={() => setReviewingProductID(null)}
                   >
-                    Đóng 
+                    Đóng
                   </button>
                 </div>
               </form>

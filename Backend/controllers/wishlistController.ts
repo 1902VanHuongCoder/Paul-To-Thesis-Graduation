@@ -35,19 +35,18 @@ export const addToWishlist = async (
   res: Response
 ): Promise<void> => {
   const { customerID, productID } = req.body;
-  console.log("Adding to wishlist:", { customerID, productID });
   try {
     // Prevent duplicate wishlist entries
     const exists = await Wishlist.findOne({ where: { customerID, productID } });
     if (exists) {
-      res.status(409).json({ message: "Product already in wishlist" });
+      res.status(202).json({ message: "Sản phẩm đã tồn tại trong danh sách yêu thích" });
     } else {
       const wishlist = await Wishlist.create({ customerID, productID });
-      res.status(201).json(wishlist);
+      res.status(201).json({ message: "Thêm sản phẩm vào danh sách yêu thích thành công", data: wishlist });
     }
   } catch (error) {
     console.error("Error adding to wishlist:", error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: "Lỗi khi thêm vào danh sách yêu thích. Hãy thử lại!" });
   }
 };
 
