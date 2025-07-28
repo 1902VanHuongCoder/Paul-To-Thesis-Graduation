@@ -3,39 +3,35 @@
 import { Footer, Navigation, TopHeader } from "@/components";
 import { Toaster } from "react-hot-toast";
 import Head from "next/head";
-import { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/others/base-url";
+import { useEffect } from "react";
 import toast from "react-hot-toast";
 import CustomToast from "@/components/ui/toast/custom-toast";
-import { io, Socket } from "socket.io-client";
-import { usePathname } from "next/navigation";
 import { useChat } from "@/contexts/chat-context";
+import socket from "@/lib/others/socket-client";
+
 
 const HomepageLayout = ({ children }: { children: React.ReactNode }) => {
     // Initialize socket and join notification rooms
-    const [, setSocket] = useState<Socket | null>(null);
     const { isChatOpen: isOpen } = useChat();
-    const currentPath = usePathname();
     useEffect(() => {
-        const s: Socket = io(baseUrl);
-        setSocket(s);
-        // Join notification rooms
-        if (currentPath === "/vi/homepage" && isOpen) {
-            s.off("chat-notification");
+
+        // Join or leave notification room based on path and chat state
+        if (isOpen) {
+            socket.emit("leave_room", "chat-notification");
+            socket.off("chat-notification");
         } else {
-            s.emit("join_room", "chat-notification");
+            socket.emit("join_room", "chat-notification");
         }
 
         // Listen for chat notifications
-        s.on("chat-notification", (data: {
+        const handleChatNotification = (data: {
             userAvatar: string;
             room: string;
             username: string;
             message: string;
             senderID: string;
             createdAt: string;
-        }
-        ) => {
+        }) => {
             toast.custom((t) => (
                 <CustomToast
                     t={t}
@@ -51,14 +47,16 @@ const HomepageLayout = ({ children }: { children: React.ReactNode }) => {
                     width: "400px",
                     maxWidth: "100%",
                 },
-
             });
-        });
-        return () => {
-            s.off("chat-notification");
-            s.disconnect();
         };
-    }, [isOpen, currentPath]);
+
+        socket.on("chat-notification", handleChatNotification);
+
+        return () => {
+            socket.emit("leave_room", "chat-notification");
+            socket.off("chat-notification", handleChatNotification); // <-- Remove handler!
+        };
+    }, [isOpen]);
 
     return (
         <>

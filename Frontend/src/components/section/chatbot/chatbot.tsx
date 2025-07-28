@@ -10,16 +10,14 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChatInput } from "@/components/ui/input/chat-input";
 import { Button } from "../../ui/button/button";
 import { useUser } from "@/contexts/user-context";
-import { io, Socket } from "socket.io-client";
 import RiceIcon from "@public/vectors/Rice+Flower+Icon.png"; // If you have a rice SVG icon
 import Image from "next/image";
 import { addNewMessage, createConversation, loadChatMessages } from "@/lib/chat-apis";
 import { getAllAdmins } from "@/lib/user-apis";
 import { User as UserIcon } from "lucide-react";
-import { baseUrl } from "@/lib/others/base-url";
-import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
-
+import { useChat } from "@/contexts/chat-context";
+import socket from "@/lib/others/socket-client";
 interface User {
     userID: string;
     username: string;
@@ -42,15 +40,11 @@ interface Conversation {
     isGroup: boolean;
 }
 
-const ChatBot = (
-    { isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void; }
-) => {
+const ChatBot = () => {
     const { user } = useUser();
-    const currentPath = usePathname();
-    const [socket, setSocket] = useState<Socket | null>(null);
+    const { isChatOpen, setJoinedConversationID, joinedConversationID } = useChat();
     const [, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [joinedConversationID, setJoinedConversationID] = useState<string | null>(null);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -58,16 +52,6 @@ const ChatBot = (
     const recognitionRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Initialize socket and join notification rooms
-    useEffect(() => {
-        const s: Socket = io(baseUrl);
-        setSocket(s);
-        // Join notification rooms
-        return () => {
-            s.off("chat-notification");
-            s.disconnect();
-        };
-    }, [currentPath]);
 
     // Listen for incoming messages
     useEffect(() => {
@@ -97,7 +81,7 @@ const ChatBot = (
         return () => {
             socket.off("send_message", handleReceiveMessage);
         };
-    }, [socket, joinedConversationID]);
+    }, [joinedConversationID]);
 
     // Load messages when joining a conversation
     useEffect(() => {
@@ -122,8 +106,6 @@ const ChatBot = (
         }
         return `CON${userID}${targetUserID}`;
     };
-
-
 
     // Send message
     const handleSendMessage = async () => {
@@ -194,6 +176,9 @@ const ChatBot = (
             if (!user) {
                 return;
             }
+            if(joinedConversationID) { 
+                return;
+            }
             let admins: User[] = [];
 
             try {
@@ -219,6 +204,7 @@ const ChatBot = (
             if (socket && data.conversationID) {
                 if (socket.connected) {
                     socket.emit("join_room", data.conversationID);
+                    alert(`Đã vào phòng trò chuyện ${data.conversationID}`);
                 } else {
                     socket.on("connect", () => {
                         socket.emit("join_room", data.conversationID);
@@ -229,10 +215,10 @@ const ChatBot = (
             }
             setIsLoading(false);
         };
-        if (isOpen && !joinedConversationID) {
+        if (isChatOpen && !joinedConversationID) {
             handleOpenChat();
         }
-    }, [user, isOpen, joinedConversationID, socket]);
+    }, [user, isChatOpen, joinedConversationID, setJoinedConversationID]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -240,12 +226,24 @@ const ChatBot = (
         }
     }, [messages]);
 
+    useEffect(() => {
+        if (joinedConversationID && isChatOpen) {
+            socket.emit("join_room", joinedConversationID);
+        }
+        // Cleanup on unmount
+        return () => {
+            if (joinedConversationID) {
+                socket.emit("leave_room", joinedConversationID);
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isChatOpen]);
+
     return (
-        <div className="h-auto relative z-80">
+        <div className={`h-auto relative z-80 `}>
             <ExpandableChat
                 size="lg"
                 position="bottom-right"
-                onClick={() => setIsOpen(true)}
             >
                 <ExpandableChatHeader className="flex-col text-center justify-center">
                     <h1 className="text-xl font-semibold uppercase flex items-center justify-center gap-2">

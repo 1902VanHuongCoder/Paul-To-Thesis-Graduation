@@ -105,11 +105,16 @@ export const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-
   // Join a specific room based on room parameter
   socket.on("join_room", (room: string) => {
-    console.log(`🔵 User ${socket.id} joined room: ${room}`);
+    console.log(`🟢 User ${socket.id} joined room: ${room}`);
     socket.join(room);
+  });
+
+  // Handle leaving a specific room
+  socket.on("leave_room", (room: string) => {
+    console.log(`🟡 User ${socket.id} left room: ${room}`);
+    socket.leave(room);
   });
 
   // Handle to get and broadcast messages to a specific room

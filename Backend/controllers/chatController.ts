@@ -54,7 +54,22 @@ export const addNewMessage = async (
       { newestMessage: content },
       { where: { conversationID } }
     );
-    
+
+    // Fetch all admin userIDs
+    const adminUsers = await User.findAll({ where: { role: 'adm' }, attributes: ['userID'] });
+    const adminIDs = adminUsers.map((u: any) => u.userID);
+    // Calculate unread messages count except those sent by admins
+    const unreadCount = await Message.count({
+      where: {
+        isRead: false,
+        senderID: { [Op.notIn]: adminIDs },
+      },
+    });
+    console.log("Unread messages count for admin (excluding admin's messages):", unreadCount);
+    // Emit the unread count to the admin room
+    io.to("admin-room").emit("unread_count_update", {
+      unreadCount,
+    });
     res.status(201).json({
       message: "Message sent successfully",
       data: newMessage,
@@ -79,12 +94,6 @@ export const createConversation = async (
   } = req.body;
 
   let existingConversation;
-
-  // Conversation ID is created by concatenating two first participants's IDs, so if request conversationID is in two cases, it already existed
-  // const possibleIDs = [
-  //   `CON${participants[0]}${participants[1]}`,
-  //   `CON${participants[1]}${participants[0]}`,
-  // ];
 
   try {
     // Check if a conversation already exists with the possible IDs
@@ -239,15 +248,14 @@ export const getConversationsUserBelongs = async (
   res: Response
 ): Promise<void> => {
   const { userID } = req.params;
-  console.log("Fetching conversations for userID:", userID);
   if (!userID) {
     res.status(400).json({ message: "userID is required" });
     return;
   }
 
   try {
-   // Fetch conversations where the user is a paticipant 
-   // and count unread messages for each conversation
+    // Fetch conversations where the user is a paticipant
+    // and count unread messages for each conversation
     const conversations = await ConversationParticipant.findAll({
       where: { userID },
       include: [
@@ -320,9 +328,19 @@ export const markMessagesAsRead = async (
       }
     );
 
+    // Update unread messages count for the admin
+    const unreadCount = await Message.count({
+      where: {
+        isRead: false,
+      },
+    });
+    io.to("admin-room").emit("unread_count_update", {
+      unreadCount,
+    });
+
     res.status(200).json({ message: "Messages marked as read successfully" });
   } catch (error) {
     console.error("Error marking messages as read:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};

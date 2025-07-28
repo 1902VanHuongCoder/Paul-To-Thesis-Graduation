@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { X, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/others/utils";
 import { Button } from "../../ui/button/button";
+import { useChat } from "@/contexts/chat-context";
 
 
 export type ChatPosition = "bottom-right" | "bottom-left";
@@ -46,10 +47,8 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
   children,
   ...props
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { toggleChat, isChatOpen } = useChat();
   const chatRef = useRef<HTMLDivElement>(null);
-
-  const toggleChat = () => setIsOpen(!isOpen);
 
   return (
     <div
@@ -62,7 +61,7 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
           "flex flex-col bg-background border sm:rounded-lg shadow-md overflow-hidden transition-all duration-250 ease-out sm:absolute sm:w-[90vw] sm:h-[80vh] fixed inset-0 w-full h-full sm:inset-auto",
           chatConfig.chatPositions[position],
           chatConfig.dimensions[size],
-          isOpen ? chatConfig.states.open : chatConfig.states.closed,
+          isChatOpen ? chatConfig.states.open : chatConfig.states.closed,
           className,
         )}
       >
@@ -78,7 +77,7 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
       </div>
       <ExpandableChatToggle
         icon={icon}
-        isOpen={isOpen}
+        isOpen={isChatOpen}
         toggleChat={toggleChat}
       />
     </div>

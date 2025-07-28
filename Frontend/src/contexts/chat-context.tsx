@@ -6,19 +6,22 @@ type ChatContextType = {
     openChat: () => void;
     closeChat: () => void;
     toggleChat: () => void;
+    joinedConversationID: string | null;
+    setJoinedConversationID: (id: string | null) => void;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [joinedConversationID, setJoinedConversationID] = useState<string | null>(null);
 
     const openChat = () => setIsChatOpen(true);
     const closeChat = () => setIsChatOpen(false);
     const toggleChat = () => setIsChatOpen((prev) => !prev);
 
     return (
-        <ChatContext.Provider value={{ isChatOpen, openChat, closeChat, toggleChat }}>
+        <ChatContext.Provider value={{ isChatOpen, openChat, closeChat, toggleChat, joinedConversationID, setJoinedConversationID }}>
             {children}
         </ChatContext.Provider>
     );

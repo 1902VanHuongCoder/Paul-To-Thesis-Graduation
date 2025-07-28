@@ -1,11 +1,10 @@
 "use client";
 import { useUser } from "@/contexts/user-context";
 import { useState, useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { addNewMessage, fetchConversations, loadChatMessages, markMessagesAsRead } from "@/lib/chat-apis";
-import { baseUrl } from "@/lib/others/base-url";
+import socket from "@/lib/others/socket-client";
 
 interface User {
   userID: string;
@@ -41,7 +40,6 @@ interface ConversationList {
 }
 
 export default function ChatPage() {
-  const socketRef = useRef<Socket | null>(null);
   const [conversation, setConversation] = useState<ConversationList | null>(null);
   const [conversationUserBelongs, setConversationUserBelongs] = useState<ConversationList[]>([]);
   const { user } = useUser();
@@ -51,19 +49,10 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize socket only once
-  useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io(baseUrl);
-    }
-    return () => {
-      socketRef.current?.disconnect();
-    };
-  }, []);
 
   // Listen for incoming messages
   useEffect(() => {
-    if (!socketRef.current) return;
+    if (!socket) return;
     // Only add messages that belong to the current conversation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleReceiveMessage = (data: any) => {
@@ -82,9 +71,9 @@ export default function ChatPage() {
         ]);
       }
     };
-    socketRef.current.on("send_message", handleReceiveMessage);
+    socket.on("send_message", handleReceiveMessage);
     return () => {
-      socketRef.current?.off("send_message", handleReceiveMessage);
+      socket.off("send_message", handleReceiveMessage);
     };
   }, [joinedConversationID]);
 
@@ -113,7 +102,7 @@ export default function ChatPage() {
       return;
     }
     // Emit via socket (room = conversationID)
-    socketRef.current?.emit("send_message", {
+    socket.emit("send_message", {
       room: joinedConversationID,
       username: user.username,
       message: newMessage,
@@ -141,8 +130,8 @@ export default function ChatPage() {
     setJoinedConversationID(conversationID);
     setConversation(conversationData);
     // Join the room (ensure user joins the correct room for real-time updates)
-    if (socketRef.current && conversationID) {
-      socketRef.current.emit("join_room", conversationID);
+    if (socket && conversationID) {
+      socket.emit("join_room", conversationID);
     }
     // Fetch messages for this conversation
     try {
@@ -188,9 +177,15 @@ export default function ChatPage() {
 
   // Ensure user joins the room on initial load if already in a conversation
   useEffect(() => {
-    if (socketRef.current && joinedConversationID) {
-      socketRef.current.emit("join_room", joinedConversationID);
+    if (socket && joinedConversationID) {
+      socket.emit("join_room", joinedConversationID);
     }
+    return () => {
+      // Leave the room when component unmounts or conversation changes
+      if (socket && joinedConversationID) {
+        socket.emit("leave_room", joinedConversationID);
+      }
+    };
   }, [joinedConversationID]);
 
   // fetch conversations that user is a part of 

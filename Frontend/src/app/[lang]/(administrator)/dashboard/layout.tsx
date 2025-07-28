@@ -7,17 +7,16 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { baseUrl } from "@/lib/others/base-url"
 import { MessageCircle } from "lucide-react"
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react"
-import { io, Socket } from "socket.io-client"
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import CustomToast from "@/components/ui/toast/custom-toast";
 import Link from "next/link";
 import { useUser } from "@/contexts/user-context";
 import { fetchConversations } from "@/lib/chat-apis";
+import socket from "@/lib/others/socket-client";
 
 interface User {
   userID: string;
@@ -59,10 +58,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    const socket: Socket = io(baseUrl);
     // If path is equal to "/vi/dashboard/chat", the system will not get chat notifications
     if (path === "/vi/dashboard/chat") {
-      // disconnect to chat-notifications room 
+      // disconnect to chat-notifications room
+      socket.emit("leave_room", "chat-notification");
       socket.off("chat-notification");
     } else {
       // else we join the 'chat-notification room' to get chat notifications
@@ -72,13 +71,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Join the 'order-notification' room to get order notifications
     socket.emit("join_room", "order-notification");
 
-    // Listen for chat notifications
-    socket.on("chat-notification", (data: {
-      userAvatar?: string;
-      room?: string;
+    // Join the 'admin-room' to receive unread count updates
+    socket.emit("join_room", "admin-room");
+
+    const unreadCountUpdate = (data: { unreadCount: number }) => {
+      setUnreadCount(data.unreadCount);
+    };
+
+    const handleChatNotification = (data: {
+      userAvatar: string;
+      room: string;
       username: string;
-      message?: string;
-      senderID?: string;
+      message: string;
+      senderID: string;
       createdAt: string;
     }) => {
       toast.custom((t) => (
@@ -90,19 +95,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           type="chat"
         />
       ), {
-        duration: 1000,
+        duration: 5000,
         position: "bottom-right",
         style: {
           width: "400px",
           maxWidth: "100%",
         },
-      })
-    });
+      });
+    };
 
-    // Listen for order notifications 
-    socket.on("order-notification", (data: {
-      userAvatar?: string;
-      room?: string;
+    const handleOrderNotification = (data: {
+      userAvatar: string;
+      room: string;
       username?: string;
       message?: string;
       senderID?: string;
@@ -117,30 +121,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           type="order"
         />
       ), {
-        duration: 1000,
+        duration: 5000,
         position: "bottom-right",
         style: {
           width: "400px",
           maxWidth: "100%",
         },
-      })
-    });
+      });
+    };
 
-    // // Fetch unread count for chat badge
-    // if (user) {
-    //   const fetchConversationsData = async () => {
-    //     try {
-    //       const data = await fetchConversations(user.userID);
-    //       if (!data) {
-    //         throw new Error("Failed to fetch conversations");
-    //       }
-    //     } catch (error) {
-    //       console.error("Error fetching conversations:", error);
-    //     }
-    //   };
-    //   fetchConversationsData();
-    // }
+    socket.on("chat-notification", handleChatNotification);
+    socket.on("order-notification", handleOrderNotification);
+    socket.on("unread_count_update", unreadCountUpdate);
 
+    return () => {
+      // Leave the chat-notification room when component unmounts
+      socket.emit("leave_room", "chat-notification");
+      socket.off("chat-notification", handleChatNotification);
+      // Leave the order-notification room when component unmounts
+      socket.emit("leave_room", "order-notification");
+      socket.off("order-notification", handleOrderNotification);
+      socket.off("unread_count_update", unreadCountUpdate);
+      // Leave the admin-room when component unmounts
+      socket.emit("leave_room", "admin-room");
+    };
+  }, [path, user]);
+
+  useEffect(() => {
     // Fetch unread count for chat badge
     if (user) {
       const fetchConversationsData = async () => {
@@ -164,17 +171,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       };
       fetchConversationsData();
     }
-
-    return () => {
-      socket.off("chat-notification");
-      socket.off("order-notification");
-      socket.disconnect();
-    };
-  }, [path, user]);
+  }, [user]);
 
   return (
     <SidebarProvider className="overflow-x-hidden">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 justify-between font-sans">
