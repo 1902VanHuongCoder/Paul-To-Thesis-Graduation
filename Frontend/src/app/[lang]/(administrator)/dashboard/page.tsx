@@ -13,6 +13,7 @@ import { getAllUsers } from '@/lib/user-apis';
 import { getAccessStats } from '@/lib/statistic-apis';
 import TopSellingProductSection from '@/components/section/top-selling-product/top-selling-product';
 import OrderPerProductSection from '@/components/section/order-per-product/order-per-product';
+import TopUserOrderSection from '@/components/section/top-user-order';
 
 export interface DeliveryMethod {
     deliveryID: number;
@@ -245,18 +246,38 @@ const Page = () => {
                     </CardFooter>
                 </Card>
             </div>
-            <div> 
-                {/* Top selling section */}
-                <div>
-                    <h2 className="text-4xl font-bold text-primary mt-6 mb-4">Sản phẩm bán chạy/bán chậm</h2>
-                    <TopSellingProductSection />
-                </div>
-                <div>
-                    <button className='bg-primary px-2 py-2 text-white rounded-md mb-2 cursor-pointer' onClick={() => setShowOrderCount(!showOrderCount)}>Hiển thị số đơn hàng trên sản phẩm </button>
-                    {showOrderCount && <OrderPerProductSection />}
+            <div>
+                <div className="">
+                    <TopUserOrderSection />
                 </div>
             </div>
-            <h2 className="text-4xl font-bold text-primary mt-6 mb-4">Thống kê khác</h2>
+            <div>
+                {/* Top selling section */}
+                <div>
+                    <TopSellingProductSection />
+                </div>
+                <div className='flex justify-end mb-4'>
+                    <button
+                        className="flex items-center gap-2 px-4 py-2.5 hover:cursor-pointer bg-gradient-to-r from-green-700 to-green-900 text-white rounded-full shadow-lg hover:from-green-800 hover:to-green-950 transition font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                        onClick={() => setShowOrderCount(!showOrderCount)}
+                    >
+                        <span>
+                            {showOrderCount ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            )}
+                        </span>
+                        Hiển thị số đơn hàng trên sản phẩm
+                    </button>
+                </div>
+                    {showOrderCount && <OrderPerProductSection />}
+            </div>
+            <h2 className="text-2xl font-bold text-primary mt-6 mb-4">Thống Kê Khác</h2>
             <div className="min-h-[100vh] grid rounded-xl md:min-h-min mt-6 bg-white grid-rows-3 gap-4">
                 <div className='grid grid-cols-[1fr_16px_1fr]'>
                     <NewsCommentRatingPieChart />

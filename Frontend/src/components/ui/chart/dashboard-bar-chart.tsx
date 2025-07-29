@@ -163,124 +163,122 @@ export function DashboardBarChart() {
   }, [activeChart, monthData, selectedYear]);
 
   return (
-    <Card className="py-4 sm:py-0">
-      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-          <CardTitle>Biểu đồ doanh thu cửa hàng</CardTitle>
-          <CardDescription>
-            Hiển thị doanh thu theo theo tháng và cả năm.
-          </CardDescription>
+    <Card className="py-4 sm:py-0 bg-white shadow-lg rounded-xl border border-gray-200">
+      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row bg-white rounded-t-xl">
+      <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+        <CardTitle className="text-2xl font-semibold text-gray-800">Biểu đồ doanh thu cửa hàng</CardTitle>
+        <CardDescription className="text-gray-500">
+        Hiển thị doanh thu theo theo tháng và cả năm.
+        </CardDescription>
+      </div>
+      <div className="flex gap-4 items-end px-6 py-4 bg-white rounded-tr-xl">
+        <div className="flex flex-col">
+        <label htmlFor="year-select" className="text-xs text-muted-foreground mb-1">Năm</label>
+        <Select value={selectedYear.toString()} onValueChange={v => setSelectedYear(Number(v))}>
+          <SelectTrigger id="year-select" className="w-24 bg-white border-gray-300 shadow-sm"><SelectValue placeholder="Năm" /></SelectTrigger>
+          <SelectContent>
+          {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+          </SelectContent>
+        </Select>
         </div>
-        <div className="flex gap-2 items-center">
-          <div className="flex flex-col">
-            <label htmlFor="year-select" className="text-xs text-muted-foreground mb-1">Năm</label>
-            <Select value={selectedYear.toString()} onValueChange={v => setSelectedYear(Number(v))}>
-              <SelectTrigger id="year-select" className="w-24"><SelectValue placeholder="Năm" /></SelectTrigger>
-              <SelectContent>
-                {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="month-select" className="text-xs text-muted-foreground mb-1">Tháng</label>
-            <Select value={selectedMonth.toString()} onValueChange={v => setSelectedMonth(Number(v))}>
-              <SelectTrigger id="month-select" className="w-20"><SelectValue placeholder="Tháng" /></SelectTrigger>
-              <SelectContent>
-                {months.map(m => <SelectItem key={m} value={m.toString()}>{m.toString().padStart(2, "0")}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <button
-            data-active={activeChart === "week"}
-            className="data-[active=true]:bg-muted/50 flex flex-col justify-center gap-1 border-t px-4 py-2 text-left border-l sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
-            onClick={() => setActiveChart("week")}
-          >
-            <span className="text-muted-foreground text-xs">Mỗi tháng</span>
-            <span className="text-lg leading-none font-bold sm:text-2xl">{weekChartData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</span>
-          </button>
-          <button
-            data-active={activeChart === "month"}
-            className="data-[active=true]:bg-muted/50 flex flex-col justify-center gap-1 border-t px-4 py-2 text-left border-l sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
-            onClick={() => setActiveChart("month")}
-          >
-            <span className="text-muted-foreground text-xs">Cả năm</span>
-            <span className="text-lg leading-none font-bold sm:text-2xl">{monthChartData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</span>
-          </button>
+        <div className="flex flex-col">
+        <label htmlFor="month-select" className="text-xs text-muted-foreground mb-1">Tháng</label>
+        <Select value={selectedMonth.toString()} onValueChange={v => setSelectedMonth(Number(v))}>
+          <SelectTrigger id="month-select" className="w-20 bg-white border-gray-300 shadow-sm"><SelectValue placeholder="Tháng" /></SelectTrigger>
+          <SelectContent>
+          {months.map(m => <SelectItem key={m} value={m.toString()}>{m.toString().padStart(2, "0")}</SelectItem>)}
+          </SelectContent>
+        </Select>
         </div>
+        <button
+        data-active={activeChart === "week"}
+        className="data-[active=true]:bg-blue-50 data-[active=true]:text-blue-600 transition-colors flex flex-col justify-center gap-1 border-t px-4 py-2 text-left border-l sm:border-t-0 sm:border-l sm:px-6 sm:py-4 rounded-lg"
+        onClick={() => setActiveChart("week")}
+        >
+        <span className="text-muted-foreground text-xs">Mỗi tháng</span>
+        <span className="text-lg leading-none font-bold sm:text-2xl">{weekChartData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</span>
+        </button>
+        <button
+        data-active={activeChart === "month"}
+        className="data-[active=true]:bg-blue-50 data-[active=true]:text-blue-600 transition-colors flex flex-col justify-center gap-1 border-t px-4 py-2 text-left border-l sm:border-t-0 sm:border-l sm:px-6 sm:py-4 rounded-lg"
+        onClick={() => setActiveChart("month")}
+        >
+        <span className="text-muted-foreground text-xs">Cả năm</span>
+        <span className="text-lg leading-none font-bold sm:text-2xl">{monthChartData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</span>
+        </button>
+      </div>
       </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        {loading ? (
-          <div className="text-center py-10">Đang tải dữ liệu...</div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
-          >
-            <BarChart
-              data={activeChart === "week" ? weekChartData : monthChartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  if (activeChart === "week") {
-                    // value: 2024-07-W2
-                    // Use regex to extract week number
-                    const match = value.match(/^(\d{4})-(\d{2})-W(\d)$/);
-                    if (match) {
-                      const [, year, month, week] = match;
-                      return `Tuần ${week}/${month}/${year}`;
-                    }
-                    return value;
-                  } else {
-                    const [year, month] = value.split("-")
-                    return `${month}/${year}`
-                  }
-                }}
-              />
-              <YAxis
-                
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                width={80}
-                tickFormatter={v => v.toLocaleString() + " VND"}
-                // label={{ value: "Doanh thu (VND)", angle: -90, position: "insideLeft", offset:-10 }}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    className="w-[150px]"
-                    nameKey="revenue"
-                    labelFormatter={(value) => {
-                      if (activeChart === "week") {
-                        const [year, month, w] = value.split(/-|W/)
-                        return `Tuần ${w}/${month}/${year}`
-                      } else {
-                        const [year, month] = value.split("-")
-                        return `Tháng ${month}/${year}`
-                      }
-                    }}
-                  />
-                }
-              />
-              <Bar
-                dataKey="revenue"
-                fill={chartConfig[activeChart].color}
-                radius={[4, 4, 0, 0]}
-                barSize={32}
-              />
-            </BarChart>
-          </ChartContainer>
-        )}
+      <CardContent className="px-2 sm:p-6 bg-white rounded-b-xl h-full">
+      {loading ? (
+        <div className="text-center py-10 text-gray-400">Đang tải dữ liệu...</div>
+      ) : (
+        <ChartContainer
+        config={chartConfig}
+        className="aspect-auto w-full h-full"
+        >
+        <BarChart
+          data={activeChart === "week" ? weekChartData : monthChartData}
+          margin={{
+          left: 12,
+          right: 12,
+          }}
+        >
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          minTickGap={32}
+          tickFormatter={(value) => {
+            if (activeChart === "week") {
+            const match = value.match(/^(\d{4})-(\d{2})-W(\d)$/);
+            if (match) {
+              const [, year, month, week] = match;
+              return `Tuần ${week}/${month}/${year}`;
+            }
+            return value;
+            } else {
+            const [year, month] = value.split("-")
+            return `${month}/${year}`
+            }
+          }}
+          style={{ fill: "#64748b", fontWeight: 500, fontSize: 13 }}
+          />
+          <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          width={80}
+          tickFormatter={v => v.toLocaleString() + " VND"}
+          style={{ fill: "#64748b", fontWeight: 500, fontSize: 13 }}
+          />
+          <ChartTooltip
+          content={
+            <ChartTooltipContent
+            className="w-[150px]"
+            nameKey="revenue"
+            labelFormatter={(value) => {
+              if (activeChart === "week") {
+              const [year, month, w] = value.split(/-|W/)
+              return `Tuần ${w}/${month}/${year}`
+              } else {
+              const [year, month] = value.split("-")
+              return `Tháng ${month}/${year}`
+              }
+            }}
+            />
+          }
+          />
+          <Bar
+          dataKey="revenue"
+          fill={chartConfig[activeChart].color}
+          radius={[8, 8, 0, 0]}
+          barSize={32}
+          />
+        </BarChart>
+        </ChartContainer>
+      )}
       </CardContent>
     </Card>
   )

@@ -57,47 +57,55 @@ const OrderPerProductSection: React.FC = () => {
 
   return (
     <section>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(5, 1fr)",
-          gap: 8,
-          fontWeight: "bold",
-          marginBottom: 8,
-        }}
-      >
-        <div>ID</div>
-        <div>Tên sản phẩm</div>
-        <div>Giá</div>
-        <div>Tồn kho</div>
-        <div>Số đơn hàng</div>
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+        <tr className="bg-gradient-to-r from-green-700 to-green-900 text-white">
+          <th className="py-3 px-4 text-left font-semibold rounded-tl-lg">ID</th>
+          <th className="py-3 px-4 text-left font-semibold">Tên sản phẩm</th>
+          <th className="py-3 px-4 text-left font-semibold">Giá</th>
+          <th className="py-3 px-4 text-left font-semibold">Tồn kho</th>
+          <th className="py-3 px-4 text-left font-semibold rounded-tr-lg">Số đơn hàng</th>
+        </tr>
+          </thead>
+          <tbody>
+        {products && products.length > 0 ? (
+          products.map((p) => (
+            <tr
+          key={p.productID}
+          className="hover:bg-green-50 transition"
+            >
+          <td className="py-2 px-4 font-mono text-gray-700">{p.productID}</td>
+          <td className="py-2 px-4 font-semibold text-gray-900">{p.productName}</td>
+          <td className="py-2 px-4 text-green-700 font-bold">{p.productPrice?.toLocaleString()}₫</td>
+          <td className={`py-2 px-4 ${p.quantityAvailable < 5 ? "bg-red-100 text-red-700 font-bold rounded" : "text-gray-700"}`}>
+            {p.quantityAvailable}
+          </td>
+          <td className={`py-2 px-4 ${p.orderCount > 10 ? "bg-green-100 text-green-800 font-bold rounded" : "text-gray-700"}`}>
+            {p.orderCount}
+          </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={5} className="py-4 px-4 text-center text-gray-400">
+          Không có sản phẩm nào.
+            </td>
+          </tr>
+        )}
+          </tbody>
+        </table>
       </div>
-      {products &&
-        products.length > 0 &&
-        products.map((p) => (
-          <div
-            key={p.productID}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)",
-              gap: 8,
-              alignItems: "center",
-              borderBottom: "1px solid #eee",
-              padding: "4px 0",
-            }}
-          >
-            <div>{p.productID}</div>
-            <div>{p.productName}</div>
-            <div>{p.productPrice?.toLocaleString()}₫</div>
-            <div>{p.quantityAvailable}</div>
-            <div>{p.orderCount}</div>
-          </div>
-        ))}
       <div className="mt-4 flex justify-end">
         <button
-          className="bg-primary px-2 py-2 text-white rounded-md mb-2 cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 hover:cursor-pointer bg-gradient-to-r from-green-700 to-green-900 text-white rounded-full shadow-lg hover:from-green-800 hover:to-green-950 transition font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
           onClick={handleExportExcel}
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" fill="#21A366" />
+            <path d="M7 8l2.5 4L7 16" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M13 8h4M13 12h4M13 16h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
           Xuất Excel danh sách sản phẩm
         </button>
       </div>

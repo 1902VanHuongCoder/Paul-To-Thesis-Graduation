@@ -6,12 +6,16 @@ import {
   updateOrder,
   deleteOrder,
   getOrdersByUserID,
+  getTopUsersByOrders,
 } from "../controllers/orderController";
 
 const router = express.Router();
 
 // GET all orders
 router.get("/", getAllOrders);
+
+// GET top 5 users by orders
+router.get("/statistic/top-users", getTopUsersByOrders);
 
 // GET a specific order by ID
 router.get("/:orderID", getOrderById);

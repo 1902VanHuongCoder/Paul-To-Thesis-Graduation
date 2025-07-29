@@ -10,7 +10,7 @@ import {
   Delivery,
 } from "../models";
 import InventoryTransaction from "../models/InventoryTransaction";
-import { Transaction } from "sequelize";
+import { fn, col } from "sequelize";
 import { io } from "../server";
 
 // GET all orders
@@ -321,6 +321,40 @@ export const deleteOrder = async (
   } catch (error) {
     await t?.rollback();
     console.error("Error deleting order:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Top 5 users with most orders
+export const getTopUsersByOrders = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Group orders by userID, count orders, and include user info
+    const topUsers = await Order.findAll({
+      attributes: ["userID", [fn("COUNT", col("orderID")), "orderCount"]],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["userID", "username", "email", "avatar"],
+        },
+      ],
+      group: [
+        "userID",
+        "user.userID",
+        "user.username",
+        "user.email",
+        "user.avatar",
+      ],
+      order: [[fn("COUNT", col("orderID")), "DESC"]],
+      limit: 5,
+    });
+
+    res.status(200).json(topUsers);
+  } catch (error) {
+    console.error("Error fetching top users by orders:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -20,12 +20,16 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+    const pathname = usePathname();
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    console.log("Current user in context:", user);
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem("user");
+        if(pathname.includes("dashboard")) {
+            localStorage.removeItem("admin");
+        }
         router.push("/"); // Redirect to login page
         toast.success("Đăng xuất thành công!");
     };
@@ -33,8 +37,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Check for user data in localStorage or cookie
         const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+        const storedAdmin = localStorage.getItem("admin");
+
+        if (pathname.includes("dashboard") && storedAdmin) {
+
+            setUser(JSON.parse(storedAdmin));
+        } else {
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
         }
     }, []);
 

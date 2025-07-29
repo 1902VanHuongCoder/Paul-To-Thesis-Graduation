@@ -24,7 +24,16 @@ type Product = {
 export async function fetchProducts() {
   const res = await fetch(`${baseUrl}/api/product`);
   if (!res.ok) throw new Error("Failed to fetch products");
-  return res.json();
+  const data = await res.json();
+  return data;
+}
+
+export async function fetchProductsNotExpired() {
+  const res = await fetch(`${baseUrl}/api/product/not-expired`);
+  if (!res.ok) throw new Error("Failed to fetch not expired products");
+  const data = await res.json();
+  console.log("Fetched not expired products:", data);
+  return data;
 }
 
 export async function fetchProductByName(productName: string) {
@@ -74,8 +83,11 @@ export async function deleteProduct(productId: string) {
   const res = await fetch(`${baseUrl}/api/product/${productId}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error("Failed to delete product");
-  return res.ok;
+  const data = await res.json();
+  return {
+    status: res.status,
+    message: data.message
+  };
 }
 
 export async function fetchTopSellingProducts() {

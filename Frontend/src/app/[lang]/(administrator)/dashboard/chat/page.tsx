@@ -5,6 +5,7 @@ import { MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { addNewMessage, fetchConversations, loadChatMessages, markMessagesAsRead } from "@/lib/chat-apis";
 import socket from "@/lib/others/socket-client";
+import { useSearchParams } from "next/navigation";
 
 interface User {
   userID: string;
@@ -44,7 +45,10 @@ export default function ChatPage() {
   const [conversationUserBelongs, setConversationUserBelongs] = useState<ConversationList[]>([]);
   const { user } = useUser();
 
-  const [joinedConversationID, setJoinedConversationID] = useState<string | null>(null);
+  // Get conversationID from ULR params 
+  const urlParams = useSearchParams();
+  const conversationID = urlParams.get("conversationID");
+  const [joinedConversationID, setJoinedConversationID] = useState<string | null>(conversationID);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);

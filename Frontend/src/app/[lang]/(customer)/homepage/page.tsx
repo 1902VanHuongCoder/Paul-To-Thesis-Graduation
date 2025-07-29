@@ -6,7 +6,7 @@ import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
 import removeDuplicates from "@/lib/others/remove-duplicate";
 import Head from "next/head";
-import { fetchProducts } from "@/lib/product-apis";
+import {  fetchProductsNotExpired } from "@/lib/product-apis";
 import { fetchCategories } from "@/lib/category-apis";
 import { fetchProductsByTag, fetchTags } from "@/lib/product-tag-apis";
 import { increaseNoAccess } from "@/lib/statistic-apis";
@@ -121,7 +121,6 @@ const Homepage = () => {
             return;
         }
         setListOfTagID(uniqueArr);
-        console.log(uniqueArr);
         const fetchProductIDContainTagID = async () => {
             const [response] = await Promise.all([
                 fetchProductsByTag(uniqueArr)
@@ -196,7 +195,7 @@ const Homepage = () => {
             const [categoriesData, tagsData, productsData] = await Promise.all([
                 fetchCategories(),
                 fetchTags(),
-                fetchProducts(),
+                fetchProductsNotExpired(),
             ]);
             setCategories(categoriesData);
             setTags(tagsData);

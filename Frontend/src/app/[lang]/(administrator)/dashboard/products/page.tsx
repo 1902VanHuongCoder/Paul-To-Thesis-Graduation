@@ -62,6 +62,7 @@ interface Product {
     subcategoryID: number;
     images: string[];
     rating: number;
+    expiredAt: Date | null;
     updatedAt: string;
     createdAt: string;
 }
@@ -80,6 +81,7 @@ export default function ProductsPage() {
     const [originFilter, setOriginFilter] = useState("");
     const [ratingFilter, setRatingFilter] = useState("");
     const [sortField, setSortField] = useState("");
+    const [expiredFilter, setExpiredFilter] = useState("all"); // New state for expired filter
     const [sortOrder,] = useState("asc");
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -126,7 +128,12 @@ export default function ProductsPage() {
             const matchesCategory = !categoryFilter || categoryFilter === "df" || String(product.categoryID) === categoryFilter;
             const matchesOrigin = !originFilter || originFilter === "df" || String(product.originID) === originFilter;
             const matchesRating = !ratingFilter || ratingFilter === "df" || product.rating === Number(ratingFilter);
-            return matchesName && matchesCategory && matchesOrigin && matchesRating;
+            const matchesExpired =
+                expiredFilter === "all" ||
+                (expiredFilter === "no-expiration" && !product.expiredAt) ||
+                (expiredFilter === "expired" && product.expiredAt !== null && product.expiredAt < new Date()) ||
+                (expiredFilter === "not-expired" && product.expiredAt !== null && product.expiredAt >= new Date());
+            return matchesName && matchesCategory && matchesOrigin && matchesRating && matchesExpired;
         })
         .sort((a, b) => {
             if (!sortField) return 0;
@@ -164,11 +171,12 @@ export default function ProductsPage() {
             await deleteMultipleImages(allImageUrls);
         }
         // 3. Delete product
-        const res = await deleteProduct(String(productID));
-        if (res) {
+        const {status, message} = await deleteProduct(String(productID));
+        if (status === 200) {
             setProducts((prev) => prev.filter((p) => p.productID !== productID));
+            toast.success(message);
         } else {
-            toast.error("Xóa sản phẩm thất bại. Vui lòng thử lại.");
+            toast.error(`${message}`);
         }
         setDeletingId(null);
     };
@@ -256,7 +264,26 @@ export default function ProductsPage() {
                         </Select>
                 </div>
             </div>
-
+            {/* Select section to filter products by expiration data */}
+            <div className="mb-6">
+                <div className="flex items-center gap-2">
+                    <span className="text-sm">Lọc sản phẩm hết hạn:</span>
+                    <Select value={expiredFilter} onValueChange={setExpiredFilter}>
+                        <SelectTrigger className="w-44" aria-label="Expiration Filter">
+                            <SelectValue placeholder="Tất cả sản phẩm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectLabel>Tất cả sản phẩm</SelectLabel>
+                                <SelectItem value="all">Tất cả sản phẩm</SelectItem>
+                                <SelectItem value="not-expired">Sản phẩm chưa hết hạn</SelectItem>
+                                <SelectItem value="expired">Sản phẩm đã hết hạn</SelectItem>
+                                <SelectItem value="no-expiration">Không có hạn sử dụng</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
             <Table className="w">
                 <TableCaption>{loading ? "Loading products..." : products.length === 0 ? "No products found." : null}</TableCaption>
                 <TableHeader>

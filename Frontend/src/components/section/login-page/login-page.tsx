@@ -71,15 +71,23 @@ export default function LoginForm({ open, setOpen, setOpenSignUpForm }: {
                 return;
             }
             setUser(userData);
-            if (rememberMe) {
-                localStorage.setItem("user", JSON.stringify(userData));
+            if (rememberMe ) {
+                if(role === "adm") {
+                    localStorage.setItem("admin", JSON.stringify(userData));
+                } else {
+                    localStorage.setItem("user", JSON.stringify(userData));
+                }
             } else {
-                localStorage.removeItem("user");
+                if(role === "adm") {
+                    localStorage.removeItem("admin");
+                } else {
+                    localStorage.removeItem("user");
+                }
             }
             if (role === "adm") {
                 router.push("/vi/dashboard");
-                toast.success("Đăng nhập thành công!");
             }
+            toast.success("Đăng nhập thành công!");
             setOpen(false);
         } catch {
             setErrorMsg("Đăng nhập thất bại. Vui lòng thử lại sau");

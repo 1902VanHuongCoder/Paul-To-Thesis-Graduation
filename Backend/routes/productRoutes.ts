@@ -12,12 +12,16 @@ import {
   getTopSellingProducts,
   getPoorSellingProducts,
   getProductsOrderCount,
+  getProductsHaveNotExpired,
 } from "../controllers/productController";
 
 const router = express.Router();
 
 // GET all products
 router.get("/", getAllProducts);
+
+// GET products have not expired
+router.get("/not-expired", getProductsHaveNotExpired);
 
 // GET products by product name
 router.get("/name", getProductByName);

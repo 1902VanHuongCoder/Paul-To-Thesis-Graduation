@@ -226,3 +226,14 @@ export const checkRecoveryCode = async (email: string, code: string) => {
   const data = await res.json();
   return data;
 }
+
+export const getTopUsersByOrders = async () => {
+  const res = await fetch(`${baseUrl}/api/order/statistic/top-users`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch top users by orders");
+  }
+
+  const data = await res.json();
+  return data;
+}

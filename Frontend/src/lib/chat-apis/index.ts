@@ -133,6 +133,7 @@ export const createConversation = async ({
       throw new Error("Failed to create conversation");
     }
     const data = await response.json();
+    console.log("Conversation created:", data); 
     return data.conversation;
   } catch (error) {
     console.error("Error creating conversation:", error);
