@@ -11,6 +11,8 @@ import DashboardCategoryPieChart from '@/components/ui/chart/dashboard-category-
 import { fetchAllOrders } from '@/lib/order-apis';
 import { getAllUsers } from '@/lib/user-apis';
 import { getAccessStats } from '@/lib/statistic-apis';
+import TopSellingProductSection from '@/components/section/top-selling-product/top-selling-product';
+import OrderPerProductSection from '@/components/section/order-per-product/order-per-product';
 
 export interface DeliveryMethod {
     deliveryID: number;
@@ -71,6 +73,7 @@ const Page = () => {
     const [, setPrevAccess] = useState(0);
     const [accessPercent, setAccessPercent] = useState(0);
     const [accessIsIncrease, setAccessIsIncrease] = useState(true);
+    const [showOrderCount, setShowOrderCount] = useState(false);
 
     useEffect(() => {
         async function fetchRevenue() {
@@ -242,6 +245,18 @@ const Page = () => {
                     </CardFooter>
                 </Card>
             </div>
+            <div> 
+                {/* Top selling section */}
+                <div>
+                    <h2 className="text-4xl font-bold text-primary mt-6 mb-4">Sản phẩm bán chạy/bán chậm</h2>
+                    <TopSellingProductSection />
+                </div>
+                <div>
+                    <button className='bg-primary px-2 py-2 text-white rounded-md mb-2 cursor-pointer' onClick={() => setShowOrderCount(!showOrderCount)}>Hiển thị số đơn hàng trên sản phẩm </button>
+                    {showOrderCount && <OrderPerProductSection />}
+                </div>
+            </div>
+            <h2 className="text-4xl font-bold text-primary mt-6 mb-4">Thống kê khác</h2>
             <div className="min-h-[100vh] grid rounded-xl md:min-h-min mt-6 bg-white grid-rows-3 gap-4">
                 <div className='grid grid-cols-[1fr_16px_1fr]'>
                     <NewsCommentRatingPieChart />

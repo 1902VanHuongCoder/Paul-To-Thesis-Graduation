@@ -77,3 +77,21 @@ export async function deleteProduct(productId: string) {
   if (!res.ok) throw new Error("Failed to delete product");
   return res.ok;
 }
+
+export async function fetchTopSellingProducts() {
+  const res = await fetch(`${baseUrl}/api/product/statistic/top-selling`);
+  if (!res.ok) throw new Error("Failed to fetch top selling products");
+  return res.json();
+}
+
+export async function fetchPoorSellingProducts() {
+  const res = await fetch(`${baseUrl}/api/product/statistic/poor-selling`);
+  if (!res.ok) throw new Error("Failed to fetch poor selling products");
+  return res.json();
+}
+
+export async function fetchProductsOrderCount() {
+  const res = await fetch(`${baseUrl}/api/product/statistic/order-count`);
+  if (!res.ok) throw new Error("Failed to fetch products order count");
+  return res.json();
+}

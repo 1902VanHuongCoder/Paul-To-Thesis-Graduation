@@ -397,3 +397,133 @@ export const getProductByBoxBarcode = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+
+// Get top 5 selling products based on the number of orders containing each product
+export const getTopSellingProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Find top 5 products by number of orders (count distinct orderID for each productID)
+    const topProducts = await OrderProduct.findAll({
+      attributes: [
+        "productID",
+        [
+          // Count distinct orderID for each productID
+          OrderProduct.sequelize!.fn("COUNT", OrderProduct.sequelize!.col("orderID")),
+          "orderCount"
+        ]
+      ],
+      group: ["productID"],
+      order: [[OrderProduct.sequelize!.literal("orderCount"), "DESC"]],
+      limit: 5,
+      include: [
+        {
+          model: Product,
+          as: "product",
+        },
+      ],
+    });
+
+    console.log("Top selling products:", topProducts);
+    res.status(200).json(topProducts);
+  } catch (error) {
+    console.error("Error fetching top selling products:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Get poor selling products based on the number of orders containing each product and the products that have not been ordered
+export const getPoorSellingProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Find products that have never been ordered
+    const poorSellingProducts = await Product.findAll({
+      where: {
+        productID: {
+          [Op.notIn]: OrderProduct.sequelize!.fn("DISTINCT", OrderProduct.sequelize!.col("productID"))
+        }
+      },
+    });
+
+    // If poor selling products are lower than 5, fetch the top 5 products with the least orders
+    if (poorSellingProducts.length < 5) {
+      const topPoorSellingProducts = await OrderProduct.findAll({
+        attributes: [
+          "productID",
+          [
+            OrderProduct.sequelize!.fn("COUNT", OrderProduct.sequelize!.col("orderID")),
+            "orderCount"
+          ]
+        ],
+        group: ["productID"],
+        order: [[OrderProduct.sequelize!.literal("orderCount"), "ASC"]],
+        limit: 5 - poorSellingProducts.length,
+        include: [
+          {
+            model: Product,
+            as: "product",
+          },
+        ],
+      });
+
+      // Combine both results
+      res.status(200).json([...poorSellingProducts, ...topPoorSellingProducts]);
+      return;
+    }
+
+    res.status(200).json(poorSellingProducts);
+  } catch (error) {
+    console.error("Error fetching poor selling products:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+}
+
+
+
+// Statistics the number of orders per each product (return all products with their order count)
+import OrderProduct from "../models/OrderProduct";
+
+export const getProductsOrderCount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Get all products
+    const products = await Product.findAll({
+      order: [["productID", "ASC"]],
+    });
+
+    // For each product, count the number of distinct orders containing it
+    const orderCounts = await OrderProduct.findAll({
+      attributes: [
+        "productID",
+        [OrderProduct.sequelize!.fn("COUNT", OrderProduct.sequelize!.col("orderID")), "orderCount"],
+      ],
+      group: ["productID"],
+    });
+
+    // Map productID to orderCount
+    const orderCountMap: Record<number, number> = {};
+    orderCounts.forEach((item: any) => {
+      orderCountMap[item.productID] = parseInt(item.get("orderCount"), 10);
+    });
+
+    // Attach orderCount to each product
+    const productsWithOrderCount = products.map((product: any) => {
+      const productJson = product.toJSON();
+      return {
+        ...productJson,
+        orderCount: orderCountMap[product.productID] || 0,
+      };
+    });
+
+    res.status(200).json(productsWithOrderCount);
+  } catch (error) {
+    console.error("Error fetching products with order count:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
