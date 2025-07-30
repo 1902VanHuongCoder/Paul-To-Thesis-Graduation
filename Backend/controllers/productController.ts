@@ -12,21 +12,43 @@ import {
 import InventoryTransaction from "../models/InventoryTransaction";
 import { Op } from "sequelize";
 
-
-
 export const getAllProducts = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  console.log("Fetching all products...");
   try {
-    // Sort products by createdAt in descending order (latest first)
+    // Only return products that have not expired or null expiredAt
     const products = await Product.findAll({
       order: [["createdAt", "DESC"]],
     });
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+export const getProductsHaveNotExpired = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Fetch products that have not expired or have null expiredAt
+    const products = await Product.findAll({
+      where: {
+        expiredAt: {
+          [Op.or]: [
+            { [Op.gt]: new Date() }, // Not expired
+            { [Op.is]: null }, // No expiration date
+          ],
+        },
+        isShow: true,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching non-expired products:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
@@ -166,6 +188,8 @@ export const updateProduct = async (
     diseaseIDs,
   } = req.body;
 
+  console.log("Request body:", req.body);
+
   try {
     const product = await Product.findByPk(productID);
 
@@ -191,19 +215,22 @@ export const updateProduct = async (
       descriptionImages,
       description,
       unit,
-      isShow,
+      isShow: isShow,
       expiredAt,
       diseases: diseaseIDs,
     });
 
     // If quantityAvailable changed, create an 'update' inventory transaction
-    if (typeof quantityAvailable === 'number' && oldQuantity !== quantityAvailable) {
+    if (
+      typeof quantityAvailable === "number" &&
+      oldQuantity !== quantityAvailable
+    ) {
       await InventoryTransaction.create({
         productID: product.productID,
         quantityChange: quantityAvailable - oldQuantity,
-        transactionType: 'update',
+        transactionType: "update",
         note: `Cập nhật sản phẩm ${product.productID}`,
-        performedBy: performedBy || 'system',
+        performedBy: performedBy || "system",
       });
     }
 
@@ -238,20 +265,36 @@ export const deleteProduct = async (
     const product = await Product.findByPk(productID);
 
     if (!product) {
-      res.status(404).json({ message: "Product not found" });
+      res.status(404).json({ message: "Sản phẩm không tồn tại" });
       return;
     }
 
     // Delete related records in ProductTag and ProductAttribute
     await ProductTag.destroy({ where: { productID: productID } });
 
+    // Decrement the count of the selected category
+    if (product.categoryID) {
+      await Category.decrement("count", {
+        by: 1,
+        where: { categoryID: product.categoryID },
+      });
+    }
+
     // Delete the product
     await product.destroy();
 
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting product:", error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(204).json({ message: "Sản phẩm đã được xóa thành công" });
+  } catch (error: any) {
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      res.status(400).json({
+        message:
+          "Không thể xóa sản phẩm vì thông tin của nó đang được sử dụng trong đơn hàng. Vui lòng xóa hoặc cập nhật các đơn hàng liên quan trước.",
+      });
+    } else {
+      res
+        .status(500)
+        .json({ message: "Đã xảy ra lỗi khi xóa sản phẩm. Hãy thử lại." });
+    }
   }
 };
 
@@ -329,29 +372,36 @@ export const updateListOfProducts = async (
   }
 
   try {
-    const updatePromises = products.map(async (product: {productID: number, quantityAvailable: number, note: string, performedBy: string}) => {
-      // Find the existing product to get the old quantity
-      const existing = await Product.findByPk(product.productID);
-      if (!existing) return;
-      const oldQty = existing.quantityAvailable;
-      const newQty = product.quantityAvailable;
-      const quantityChange = newQty - oldQty;
-      // Update product quantity
-      await Product.update(
-        { quantityAvailable: newQty },
-        { where: { productID: product.productID } }
-      );
-      // Only create transaction if quantity actually changed
-      if (quantityChange !== 0) {
-        await InventoryTransaction.create({
-          productID: product.productID,
-          quantityChange,
-          transactionType: "import",
-          performedBy: product.performedBy,
-          note: product.note,
-        });
+    const updatePromises = products.map(
+      async (product: {
+        productID: number;
+        quantityAvailable: number;
+        note: string;
+        performedBy: string;
+      }) => {
+        // Find the existing product to get the old quantity
+        const existing = await Product.findByPk(product.productID);
+        if (!existing) return;
+        const oldQty = existing.quantityAvailable;
+        const newQty = product.quantityAvailable;
+        const quantityChange = newQty - oldQty;
+        // Update product quantity
+        await Product.update(
+          { quantityAvailable: newQty },
+          { where: { productID: product.productID } }
+        );
+        // Only create transaction if quantity actually changed
+        if (quantityChange !== 0) {
+          await InventoryTransaction.create({
+            productID: product.productID,
+            quantityChange,
+            transactionType: "import",
+            performedBy: product.performedBy,
+            note: product.note,
+          });
+        }
       }
-    });
+    );
 
     await Promise.all(updatePromises);
 
@@ -387,6 +437,148 @@ export const getProductByBoxBarcode = async (
     res.status(200).json(product);
   } catch (error) {
     console.error("Error fetching product by box barcode:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Get top 5 selling products based on the number of orders containing each product
+export const getTopSellingProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Find top 5 products by number of orders (count distinct orderID for each productID)
+    const topProducts = await OrderProduct.findAll({
+      attributes: [
+        "productID",
+        [
+          // Count distinct orderID for each productID
+          OrderProduct.sequelize!.fn(
+            "COUNT",
+            OrderProduct.sequelize!.col("orderID")
+          ),
+          "orderCount",
+        ],
+      ],
+      group: ["productID"],
+      order: [[OrderProduct.sequelize!.literal("orderCount"), "DESC"]],
+      limit: 5,
+      include: [
+        {
+          model: Product,
+          as: "product",
+        },
+      ],
+    });
+
+    console.log("Top selling products:", topProducts);
+    res.status(200).json(topProducts);
+  } catch (error) {
+    console.error("Error fetching top selling products:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Get poor selling products based on the number of orders containing each product and the products that have not been ordered
+export const getPoorSellingProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Find products that have never been ordered
+    const poorSellingProducts = await Product.findAll({
+      where: {
+        productID: {
+          [Op.notIn]: OrderProduct.sequelize!.fn(
+            "DISTINCT",
+            OrderProduct.sequelize!.col("productID")
+          ),
+        },
+      },
+    });
+
+    // If poor selling products are lower than 5, fetch the top 5 products with the least orders
+    if (poorSellingProducts.length < 5) {
+      const topPoorSellingProducts = await OrderProduct.findAll({
+        attributes: [
+          "productID",
+          [
+            OrderProduct.sequelize!.fn(
+              "COUNT",
+              OrderProduct.sequelize!.col("orderID")
+            ),
+            "orderCount",
+          ],
+        ],
+        group: ["productID"],
+        order: [[OrderProduct.sequelize!.literal("orderCount"), "ASC"]],
+        limit: 5 - poorSellingProducts.length,
+        include: [
+          {
+            model: Product,
+            as: "product",
+          },
+        ],
+      });
+
+      // Combine both results
+      res.status(200).json([...poorSellingProducts, ...topPoorSellingProducts]);
+      return;
+    }
+
+    res.status(200).json(poorSellingProducts);
+  } catch (error) {
+    console.error("Error fetching poor selling products:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Statistics the number of orders per each product (return all products with their order count)
+import OrderProduct from "../models/OrderProduct";
+
+export const getProductsOrderCount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Get all products
+    const products = await Product.findAll({
+      order: [["productID", "ASC"]],
+    });
+
+    // For each product, count the number of distinct orders containing it
+    const orderCounts = await OrderProduct.findAll({
+      attributes: [
+        "productID",
+        [
+          OrderProduct.sequelize!.fn(
+            "COUNT",
+            OrderProduct.sequelize!.col("orderID")
+          ),
+          "orderCount",
+        ],
+      ],
+      group: ["productID"],
+    });
+
+    // Map productID to orderCount
+    const orderCountMap: Record<number, number> = {};
+    orderCounts.forEach((item: any) => {
+      orderCountMap[item.productID] = parseInt(item.get("orderCount"), 10);
+    });
+
+    // Attach orderCount to each product
+    const productsWithOrderCount = products.map((product: any) => {
+      const productJson = product.toJSON();
+      return {
+        ...productJson,
+        orderCount: orderCountMap[product.productID] || 0,
+      };
+    });
+
+    res.status(200).json(productsWithOrderCount);
+  } catch (error) {
+    console.error("Error fetching products with order count:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

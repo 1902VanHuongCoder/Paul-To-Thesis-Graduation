@@ -59,11 +59,11 @@ export const updateOrigin = async (req: Request, res: Response): Promise<void> =
     const origin = await Origin.findByPk(id);
 
     if (!origin) {
-      res.status(404).json({ message: "Origin not found" });
+      res.status(404).json({ message: "Xuất xứ không tồn tại" });
       return;
     }
     await origin.update({ originName, originImage });
-    res.status(200).json({ message: "Origin updated successfully", origin });
+    res.status(200).json({ message: "Cập nhật xuất xứ thành công", origin });
   } catch (error) {
     console.error("Error updating origin:", error);
     res.status(500).json({ error: (error as Error).message });
@@ -78,15 +78,20 @@ export const deleteOrigin = async (req: Request, res: Response): Promise<void> =
     const origin = await Origin.findByPk(id);
 
     if (!origin) {
-      res.status(404).json({ message: "Origin not found" });
+      res.status(404).json({ message: "Xuất xứ không tồn tại" });
       return;
     }
 
     // Delete the origin
     await origin.destroy();
-    res.status(204).send();
-  } catch (error) {
+    res.status(200).json({ message: "Xóa xuất xứ thành công" });
+  } catch (error: any) {
     console.error("Error deleting origin:", error);
-    res.status(500).json({ error: (error as Error).message });
-  }
-};
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      res.status(400).json({
+        message: "Không thể xóa xuất xứ vì thông tin của nó đang được sử dụng trong sản phẩm. Vui lòng xóa hoặc cập nhật các sản phẩm liên quan trước."
+      });
+    } else {
+      res.status(500).json({ message: "Đã xảy ra lỗi khi xóa xuất xứ. Hãy thử lại." });
+    }
+  }}

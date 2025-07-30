@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer/drawer";
 import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
-import formatVND from "@/lib/format-vnd";
-import { useDictionary } from "@/contexts/dictonary-context";
+import formatVND from "@/lib/others/format-vnd";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -39,23 +38,23 @@ export default function ShoppingCart() {
 
     // Contexts 
     const { cart, updateCart, setCart, removeFromCart } = useShoppingCart();
-    const { dictionary: d, lang } = useDictionary();
 
     // State variables
     const [open, setOpen] = React.useState(false);
+    const debounceTimer = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
     // Function to handle changing product quantity 
     const handleChangeProductQuantity = (productID: number, quantity: number) => {
         // Find the current product
         const product = cart.products.find(p => p.productID === productID);
         if (!product) {
-            toast.error(d?.shoppingCartProductNotFound || "Sản phẩm không tìm thấy");
+            toast.error("Sản phẩm không tìm thấy");
             return;
         };
 
         // Check if the new quantity is valid
         if (quantity < 1) {
-            toast.error(d?.shoppingCartQuantityError || "Số lượng sản phẩm không thể nhỏ hơn 1");
+            toast.error("Số lượng sản phẩm không thể nhỏ hơn 1");
             return;
         };
 
@@ -73,12 +72,19 @@ export default function ShoppingCart() {
             return p;
         });
 
-        // Update the cart state and call the updateCart function
+        // Update the cart state
         setCart({
             ...cart,
             products: updatedProducts
         });
-        updateCart(cart.cartID, productID, quantity);
+
+        // Debounce the updateCart API call
+        if (debounceTimer.current[productID]) {
+            clearTimeout(debounceTimer.current[productID]);
+        }
+        debounceTimer.current[productID] = setTimeout(() => {
+            updateCart(cart.cartID, productID, quantity);
+        }, 500); // 500ms debounce
     };
 
     // Calculate total payment 
@@ -132,7 +138,7 @@ export default function ShoppingCart() {
                 {/* Header */}
                 <DrawerHeader className="flex items-center w-full flex-row justify-between border-b pb-4">
                     <DrawerTitle className="text-lg font-bold">
-                        <p className="uppercase">{d?.shoppingCartTitle ? d.shoppingCartTitle : "Giỏ hàng"} ({cart.products?.length ? cart.products?.length : 0})</p>
+                        <p className="uppercase">Giỏ hàng ({cart.products?.length ? cart.products?.length : 0})</p>
                         <p className="text-gray-400 text-sm font-semibold opacity-70">Nhấn phím <b className="text-black">CTRL + M</b> để mở nhanh giỏ hàng</p>
                     </DrawerTitle>
                     <DrawerClose className="text-gray-500 hover:text-black">
@@ -184,36 +190,36 @@ export default function ShoppingCart() {
                                 <X size={16} />
                             </button>
                         </div>
-                    )) : <span>{d?.shoppingCartEmpty || "Bạn chưa thêm sản phẩm nào vào giỏ hàng."}</span>}
+                    )) : <span>Giỏ hàng của bạn đang trống.</span>}
                 </div>
 
                 {/* Footer */}
                 <DrawerFooter className="border-t pt-4">
 
                     <div className="flex items-center justify-between mb-4">
-                        <span className="text-lg font-semibold">{d?.shoppingCartTotal ? d.shoppingCartTotal : "Tổng cộng"}: </span>
+                        <span className="text-lg font-semibold">Tổng cộng: </span>
                         <span className="text-xl font-bold text-primary">{formatVND(totalPayment)} <span className="text-sm">VND</span></span>
                     </div>
                     <div className="flex flex-col gap-2">
                         <button
-                            disabled={!cart.products} // Disable if no products in cart
+                            disabled={cart && cart.products ? cart.products.length === 0 : false}
                             onClick={() => {
                                 setOpen(false); // Close the drawer
-                                router.push(`/${lang}/homepage/checkout`);
+                                router.push(`/vi/homepage/checkout`);
                             }}
                             className="w-full py-2 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary">
-                            {d?.shoppingCartCheckout ? d.shoppingCartCheckout : "Thanh toán"}
+                            Thanh toán
                         </button>
                         
                         <button
-                            disabled={!cart.products} // Disable if no products in cart
+                            disabled={ cart && cart.products ? cart.products.length === 0 : false}
                             onClick={
                                 () => {
                                     setOpen(false); // Close the drawer
-                                    router.push(`/${lang}/homepage/shopping-cart`);
+                                    router.push(`/vi/homepage/shopping-cart`);
                                 }
                             } className="w-full py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-200 disabled:hover:text-black">
-                            {d?.shoppingCartDetailsButton ? d.shoppingCartDetailsButton : "Xem chi tiết đơn hàng"}
+                            Xem chi tiết đơn hàng
                         </button>
                     </div>
                 </DrawerFooter>

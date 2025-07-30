@@ -3,12 +3,12 @@
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
 import { Breadcrumb } from "@/components";
-import { useDictionary } from "@/contexts/dictonary-context";
 import toast from "react-hot-toast";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
 import { Button } from "@/components/ui/button/button";
+import { addNewShippingAddress, deleteShippingAddress, getShippingAddressesByUserID, setAddressAsDefault } from "@/lib/shipping-address-apis";
+import { fetchDistrictList, fetchProvinceList, fetchWardList } from "@/lib/address-apis";
 
 interface ShippingAddress {
     shippingAddressID: number;
@@ -20,7 +20,6 @@ interface ShippingAddress {
 export default function UserProfilePage() {
     // Contexts 
     const { user, logout } = useUser(); // User context to get user info and logout function
-    const { dictionary: d } = useDictionary(); // Dictionary context to get dictionary items
 
     // State variables
     const [shippingAddresses, setShippingAddresses] = useState<ShippingAddress[]>([]); // List of shipping addresses
@@ -51,13 +50,8 @@ export default function UserProfilePage() {
             // Check if user is logged in
             if (!user?.userID) return;
             try {
-                const res = await fetch(`${baseUrl}/api/shipping-address/user/${user.userID}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setShippingAddresses(data);
-                } else {
-                    setShippingAddresses([]);
-                }
+                const data = await getShippingAddressesByUserID(user.userID);
+                setShippingAddresses(data);
 
             } catch {
                 setShippingAddresses([]);
@@ -71,10 +65,16 @@ export default function UserProfilePage() {
 
     // Address API for add address form
     useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const data = await fetchProvinceList();
+                setProvinces(data);
+            } catch (error) {
+                console.error("Error fetching provinces:", error);
+            }
+        };
         if (showAddForm) {
-            fetch("https://provinces.open-api.vn/api/?depth=1")
-                .then(res => res.json())
-                .then(data => setProvinces(data));
+            fetchProvinces();
         }
     }, [showAddForm]);
 
@@ -86,10 +86,16 @@ export default function UserProfilePage() {
             return;
         }
         const selected = provinces.find(p => p.name === form.province);
+        const fetchDistricts = async (provinceCode: string) => {
+            try {
+                const data = await fetchDistrictList(provinceCode);
+                setDistricts(data);
+            } catch (error) {
+                console.error("Error fetching districts:", error);
+            }
+        };
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/p/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setDistricts(data.districts || []));
+            fetchDistricts(selected.code);
         }
     }, [form.province, provinces]);
 
@@ -100,25 +106,37 @@ export default function UserProfilePage() {
             return;
         }
         const selected = districts.find(d => d.name === form.district);
+        const fetchWards = async (districtCode: string) => {
+            try {
+                const data = await fetchWardList(districtCode);
+                setWards(data);
+            } catch (error) {
+                console.error("Error fetching wards:", error);
+            }
+        };
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/d/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setWards(data.wards || []));
+            fetchWards(selected.code);
         }
     }, [form.district, districts]);
 
     // Function to set a shopping address as default 
     const handleSetDefault = async (shippingAddressID: number) => {
+        if(!user){
+            toast.error("Bạn cần đăng nhập để thực hiện thao tác này.");
+            return;
+        }
         try {
-            await fetch(`${baseUrl}/api/shipping-address/${user?.userID}/${shippingAddressID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isDefault: true }),
+            await setAddressAsDefault({
+                shippingAddressID,
+                userID: user.userID,
             });
-            
-            // After setting default, refetch addresses
-            const res = await fetch(`${baseUrl}/api/shipping-address/user/${user?.userID}`);
-            const data = await res.json();
+            const data = shippingAddresses.map(addr => {
+                if( addr.shippingAddressID === shippingAddressID) {
+                    return { ...addr, isDefault: true };
+                }else {
+                    return { ...addr, isDefault: false };
+                }
+            });            
             setShippingAddresses(data); 
         } catch (error) {
             console.error("Error setting default address:", error);
@@ -129,25 +147,20 @@ export default function UserProfilePage() {
     // Function to handle adding a new address
     const handleAddAddress = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) {
+            toast.error("Bạn cần đăng nhập để thêm địa chỉ.");
+            return;
+        }
         setLoadingForm(true);
         setFormMsg("");
         try {
             const address = `${form.detailAddress}, ${form.ward}, ${form.district}, ${form.province}`;
-            const res = await fetch(`${baseUrl}/api/shipping-address`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID: user?.userID,
-                    address,
-                    phone: form.phone,
-                    isDefault: form.isDefault,
-                }),
+            await addNewShippingAddress({
+                userID: user.userID,
+                address,
+                phone: form.phone,
+                isDefault: form.isDefault,
             });
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || "Thêm địa chỉ thất bại");
-            }
-            setFormMsg("Thêm địa chỉ thành công!");
             setShowAddForm(false);
             setForm({
                 province: "",
@@ -157,6 +170,7 @@ export default function UserProfilePage() {
                 phone: "",
                 isDefault: false,
             });
+            setFormMsg("Thêm địa chỉ thành công!");
         } catch (error) {
             console.error("Error adding address:", error);
             setFormMsg(error instanceof Error ? error.message : "Đã xảy ra lỗi khi thêm địa chỉ.");
@@ -167,21 +181,20 @@ export default function UserProfilePage() {
 
     // Function to handle deleting an address
     const handleDeleteAddress = async (shippingAddressID: number) => {
+        if(!user) {
+            toast.error("Bạn cần đăng nhập để xóa địa chỉ.");
+            return;
+        }
         if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
         try {
-            const res = await fetch(`${baseUrl}/api/shipping-address/${user?.userID}/${shippingAddressID}`, {
-                method: "DELETE",
-            });
-            if (!res.ok) {
-                throw new Error("Xóa địa chỉ thất bại");
-            }
-            
+            await deleteShippingAddress(shippingAddressID, user.userID);
             // Refetch addresses
             setLoadingAddresses(true);
-            const data = await fetch(`${baseUrl}/api/shipping-address/user/${user?.userID}`);
-            setShippingAddresses(await data.json());
+            const data = await getShippingAddressesByUserID(user.userID);
+            setShippingAddresses(data);
         } catch (err) {
             console.log(err);
+            toast.error("Xóa địa chỉ thất bại, hãy thử lại sau.");
         }
     }
 
@@ -196,7 +209,7 @@ export default function UserProfilePage() {
 
     return (
         <div className="px-6 py-10">
-            <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Tài khoản của bạn" }]} />
+            <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Tài khoản của bạn" }]} />
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col items-center space-y-4">
                     <Avatar className="size-24 border-2 border-primary/30">

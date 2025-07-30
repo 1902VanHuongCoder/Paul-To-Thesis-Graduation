@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
-import { baseUrl } from "@/lib/base-url";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog/dialog";
 import toast from "react-hot-toast";
 import { useLoading } from "@/contexts/loading-context";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { checkRecoveryCode, updateUserPassword } from "@/lib/user-apis";
 
 export default function CreateNewPassword({ open, setOpen, email }: { open: boolean; setOpen: (open: boolean) => void, email?: string }) {
     const [userID, setUserID] = useState("");
@@ -49,14 +49,9 @@ export default function CreateNewPassword({ open, setOpen, email }: { open: bool
         toast.promise(
             new Promise(async (resolve, reject) => {
                 try {
-                    const res = await fetch(`${baseUrl}/api/users/check-recovery-code`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ code, email }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) {
-                        throw new Error(data.message || data.error || "Mã xác nhận không hợp lệ hoặc đã hết hạn.");
+                    const data = await checkRecoveryCode(email || "", code);
+                    if (!data) {
+                        throw new Error("Mã xác nhận không hợp lệ hoặc đã hết hạn.");
                     } else {
                         setUserID(data.userID);
                         setStep("password");
@@ -91,16 +86,17 @@ export default function CreateNewPassword({ open, setOpen, email }: { open: bool
             return;
         }
         toast.promise(
-            fetch(`${baseUrl}/api/users/${userID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: newPassword }),
-            }).then(async (res) => {
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.message || data.error || "Không thể đặt lại mật khẩu.");
-                } else {
+            new Promise(async (resolve, reject) => {
+                try {
+                    const data = await updateUserPassword(newPassword, userID);
+                    if (!data) {
+                        throw new Error("Không thể đặt lại mật khẩu.");
+                    }
                     setStep("done");
+                    resolve("Đặt lại mật khẩu thành công!");
+                } catch (err) {
+                    console.error("Error setting new password:", err);
+                    reject(err);
                 }
             }),
             {

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useUser } from "@/contexts/user-context";
@@ -36,7 +36,6 @@ export const Card = ({
     const [flyAnim, setFlyAnim] = useState<{ x: number; y: number } | null>(null);
     const [flyImage, setFlyImage] = useState<string>("");
 
-    // Memoize handlers for performance
     const handleAddToCart = React.useCallback((e?: React.MouseEvent) => {
         if (!user) {
             toast.error("Bạn cần đăng nhập để thực hiện thao tác này.");

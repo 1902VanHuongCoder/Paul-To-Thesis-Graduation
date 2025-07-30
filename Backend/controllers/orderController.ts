@@ -10,7 +10,7 @@ import {
   Delivery,
 } from "../models";
 import InventoryTransaction from "../models/InventoryTransaction";
-import { Transaction } from "sequelize";
+import { fn, col } from "sequelize";
 import { io } from "../server";
 
 // GET all orders
@@ -73,7 +73,8 @@ export const getOrdersByUserID = async (req:Request, res: Response) => {
     const { userID } = req.params; 
     try {
        const orders = await Order.findAll({
-        where: {userID}
+         where: { userID },
+         order: [['createdAt', 'DESC']]
        });
        if(orders.length > 0){
         res.status(200).json(orders);
@@ -107,6 +108,8 @@ export const createOrder = async (
     deliveryCost,
     status,
   } = req.body;
+
+  console.log(req.body);
 
   const discountValue = req.body.discount?.discountValue || 0;
   const t = await Order.sequelize?.transaction();
@@ -197,7 +200,7 @@ export const createOrder = async (
 
       // Emit order notification to all admins, this allow them to know that a new order has been created 
       io.emit("order-notification", {
-        userName : newOrder.fullName,
+        userName: newOrder.fullName,
         createdAt: newOrder.createdAt,
       });
       
@@ -318,6 +321,40 @@ export const deleteOrder = async (
   } catch (error) {
     await t?.rollback();
     console.error("Error deleting order:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Top 5 users with most orders
+export const getTopUsersByOrders = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Group orders by userID, count orders, and include user info
+    const topUsers = await Order.findAll({
+      attributes: ["userID", [fn("COUNT", col("orderID")), "orderCount"]],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["userID", "username", "email", "avatar"],
+        },
+      ],
+      group: [
+        "userID",
+        "user.userID",
+        "user.username",
+        "user.email",
+        "user.avatar",
+      ],
+      order: [[fn("COUNT", col("orderID")), "DESC"]],
+      limit: 5,
+    });
+
+    res.status(200).json(topUsers);
+  } catch (error) {
+    console.error("Error fetching top users by orders:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

@@ -41,7 +41,7 @@ const ToTopButton: React.FC = React.memo(function ToTopButton() {
         <button
             onClick={scrollToTop}
             onKeyDown={handleKeyDown}
-            className={`z-100 fixed bottom-23 right-7 p-3 rounded-full bg-secondary hover:bg-primary text-white shadow-lg hover:shadow-primary/60 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/70 transition-all ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+            className={`z-49 fixed bottom-23 right-7 p-3 rounded-full bg-secondary hover:bg-primary text-white shadow-lg hover:shadow-primary/60 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/70 transition-all ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             aria-label="Lên đầu trang"
             tabIndex={isVisible ? 0 : -1}
             type="button"

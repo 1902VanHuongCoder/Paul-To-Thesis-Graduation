@@ -25,19 +25,16 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import Gapcursor from '@tiptap/extension-gapcursor'
-import { baseUrl } from "@/lib/base-url";
 import { Tag } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea/textarea";
 import { Button } from "@/components/ui/button/button";
 import { useUser } from "@/contexts/user-context";
 import NoImage from "@public/images/rice-and-leaf.png";
+import { isToxicComment } from "@/lib/others/prevent-toxic-comment";
+import toast from "react-hot-toast";
+import { createNewsComment, dislikeNewsComment, fetchNewsCommentsByNewsID, likeNewsComment } from "@/lib/news-comment-apis";
+import { fetchNews } from "@/lib/news-apis";
 
-interface Author {
-    username: string;
-    userID: string;
-    email: string;
-    avatar: string | null; // Assuming avatar can be a URL or null
-}
 
 interface Tag {
     tagName: string;
@@ -49,11 +46,18 @@ interface Comment {
     userID: string;
     newsID: number;
     content: string;
-    commentAt: string;
     likeCount: number;
     dislikeCount: number;
-    status: "active" | "deleted";
-    user_comments?: Author; // Optional, if you want to include user details
+    commentAt: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    user_comments: {
+        username: string;
+        userID: number;
+        email: string;
+        avatar?: string;
+    };
 }
 
 interface NewsDetail {
@@ -78,7 +82,7 @@ interface NewsDetail {
 export default function NewsDetailPage() {
     // Get newsID from URL parameters
     const { newsID } = useParams(); // Get newsID from URL parameters
-    
+
     // Router
     const router = useRouter();
 
@@ -88,6 +92,7 @@ export default function NewsDetailPage() {
 
     // State variables
     const [news, setNews] = useState<NewsDetail | null>(null); // Current news detail
+    const [comments, setComments] = useState<Comment[]>([]); // Comments for the current news
     const [otherNews, setOtherNews] = useState<NewsDetail[]>([]); // List of other news items
     const [loading, setLoading] = useState(true); // Loading state to show a loading message while fetching data
     const [newComment, setNewComment] = useState(""); // New comment content
@@ -124,29 +129,36 @@ export default function NewsDetailPage() {
     }
     );
 
+
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newComment.trim() || !news || !user) return; // Ensure there's content and news is loaded
+        if (!newComment.trim() || !news || !user) return; // Ensure there's content and news is loade
+        const userAlreadyCommented = comments.some(comment => comment.userID === user.userID);
+        if (userAlreadyCommented) {
+            toast.error("Bạn đã bình luận về bài viết này rồi!");
+            return;
+        }
         setSubmitting(true);
         try {
+            if (isToxicComment(newComment.trim())) {
+                toast.error("Bình luận của bạn chứa từ ngữ không phù hợp!");
+                return;
+            }
             // Post new comment to the API
-            await fetch(`${baseUrl}/api/news-comment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID: user.userID, // Assuming you have user context
-                    newsID: news.newsID,
-                    content: newComment,
-                }),
-            });
-
-            // Refetch comments (or optimistically update)
-            const res = await fetch(`${baseUrl}/api/news-comment/news/${news.newsID}`);
-            const comments = await res.json();
-            setNews((prev) => prev ? { ...prev, comments } : prev);
-            setNewComment("");
-            commentInputRef.current?.focus(); // Reset input and focus it
+            const res = await createNewsComment(
+                news.newsID,
+                user.userID,
+                newComment.trim(),
+            )
+            if (res) {
+                toast.success("Bình luận đã được gửi thành công!");
+                setNewComment(""); // Clear the comment input
+                commentInputRef.current?.focus(); // Focus the comment input again
+                setComments((prev) => [
+                    res, ...prev
+                ]);
+            }
         } catch (err) {
             console.error("Failed to submit comment:", err);
         } finally {
@@ -156,55 +168,61 @@ export default function NewsDetailPage() {
 
     // Handle like and dislike actions for comments
     const handleLikeComment = async (commentID: number) => {
-        try {
-            await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ action: "like" }),
-            })
-            // Refetch comments (or optimistically update)
-            const res = await fetch(`${baseUrl}/api/news-comment/news/${news?.newsID}`);
-            const comments = await res.json();
-            setNews((prev) => prev ? { ...prev, comments } : prev);
+        if (!news) return;
+        const existingComment = comments.map(c => {
+            if (c.commentID === commentID) {
+                return { ...c, likeCount: c.likeCount + 1 };
+            }
+            return c;
+        })
+        setComments(existingComment);
 
+        try {
+            const res = await likeNewsComment(commentID);
+            if (!res) {
+                toast.error("Có lỗi khi thích bình luận này! Vui lòng thử lại sau.");
+                return;
+            }
         } catch (error) {
             console.log(error);
         }
     }
 
     const handleDislikeComment = async (commentID: number) => {
+        if (!news) return;
+        const existingComment = comments.map(c => {
+            if (c.commentID === commentID) {
+                return { ...c, dislikeCount: c.dislikeCount + 1 };
+            }
+            return c;
+        });
+        setComments(existingComment);
         try {
-            await fetch(`${baseUrl}/api/news-comment/${commentID}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ action: "dislike" }),
-            });
-            // Refetch comments (or optimistically update)
-            const res = await fetch(`${baseUrl}/api/news-comment/news/${news?.newsID}`);
-            const comments = await res.json();
-            setNews((prev) => prev ? { ...prev, comments } : prev);
+            const res = await dislikeNewsComment(commentID);
+            if (!res) {
+                toast.error("Có lỗi khi không thích bình luận này! Vui lòng thử lại sau.");
+                return;
+            }
         } catch (error) {
             console.log(error);
         }
+    }
+
+    const handleDeleteComment = (commentID: number) => {
+        if (!news) return;
+        const updatedComments = comments.filter(c => c.commentID !== commentID);
+        setComments(updatedComments);
     }
 
     // Fetch news detail and other news when newsID changes
     useEffect(() => {
         const fetchNewsDetail = async () => {
             try {
-                const res = await fetch(`${baseUrl}/api/news/${newsID}`);
-                const data = await res.json();
-                setNews(data);
-                console.log("Fetched news detail:", data);
-                // Fetch other news (excluding current)
-                const resOther = await fetch(`${baseUrl}/api/news`);
-                const allNews = await resOther.json();
+                const allNews = await fetchNews();
+                const currentNews = allNews.find((n: NewsDetail) => n.newsID === Number(newsID));
+                setNews(currentNews || null);
                 setOtherNews(allNews.filter((n: NewsDetail) => n.newsID !== Number(newsID)));
-                editor?.commands.setContent(JSON.parse(data.content));
+                editor?.commands.setContent(JSON.parse(currentNews?.content || "{}"));
             } catch (error) {
                 console.error("Failed to fetch news detail:", error);
                 setNews(null);
@@ -212,20 +230,27 @@ export default function NewsDetailPage() {
                 setLoading(false);
             }
         };
-        if (newsID) fetchNewsDetail();
+        const fetchComments = async () => {
+            if (!newsID) return;
+            try {
+                const comments = await fetchNewsCommentsByNewsID(Number(newsID));
+                setComments(comments);
+            } catch (error) {
+                console.error("Failed to fetch comments:", error);
+            }
+        }
+        if (newsID) {
+            fetchNewsDetail();
+            fetchComments();
+        }
     }, [newsID, editor]);
 
     if (loading) return <ContentLoading />;
     if (!news) return <div>Bài đăng không tồn tại.</div>;
-
-    // Format breadcrumb title
-    // const firstWord = news && news.title.split(" ")[0][0].toUpperCase() + news.title.split(" ")[0].slice(1).toLowerCase() || ""; 
-    // const breadcrumbTitle = news && firstWord + " " + news.title.split(" ").slice(1).join(" ").toLowerCase() || "Tin tức";
-    
     return (
         <div className="py-10 px-6">
             <Breadcrumb
-                
+
                 items={[
                     { label: "Trang chủ", href: "/" },
                     { label: "Tin tức", href: `/${lang}/homepage/news` },
@@ -276,8 +301,8 @@ export default function NewsDetailPage() {
                                 key={item.newsID}
                                 className="p-4 border rounded hover:bg-gray-100 cursor-pointer flex gap-4"
                             >
-                                <div className="flex-shrink-0 w-20 h-20"> 
-                                    
+                                <div className="flex-shrink-0 w-20 h-20">
+
                                     <NextImage
                                         width={100}
                                         height={100}
@@ -303,48 +328,49 @@ export default function NewsDetailPage() {
                     </div>
                 </div>
             </div>
-            <hr className="my-8"/>
+            <hr className="my-8" />
             {/* Comment Section */}
-            <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Bình luận về bài viết</h2>
+            <div className="mt-8 max-w-7xl mx-auto">
+                <h2 className="text-4xl font-semibold mb-4">Bình luận về bài viết</h2>
                 <form onSubmit={handleCommentSubmit} className="mb-6 flex flex-col gap-2 items-end">
                     <Textarea
                         ref={commentInputRef}
-                        className=""
+                        className="min-h-[200px]"
                         placeholder="Nhập bình luận của bạn..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
                         disabled={submitting}
+                        rows={8}
                     />
                     <Button
                         type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded w-fit cursor-pointer "
+                        className="bg-primary text-white px-4 py-2 rounded w-fit cursor-pointer "
                         disabled={submitting || !newComment.trim()}
                     >
                         {submitting ? "Đang gửi bình luận..." : "Gửi bình luận"}
                     </Button>
                 </form>
                 <div className="space-y-6">
-                    {news?.comments && news.comments.length > 0 ? (
-                        news.comments
-                            .filter(c => c.status === "active")
-                            .map((comment, index) => (
-                                <CommentItem
-                                    index={index}
-                                    commentsLength={news.comments.length}
-                                    userID={comment.userID}
-                                    key={comment.commentID}
-                                    avatar={comment.user_comments?.avatar || NoImage}
-                                    name={comment.user_comments?.username || `User ${comment.userID}`}
-                                    date={new Date(comment.commentAt).toLocaleDateString()}
-                                    comment={comment.content}
-                                    likeCount={comment.likeCount}
-                                    dislikeCount={comment.dislikeCount}
-                                    onLike={() => handleLikeComment(comment.commentID)}
-                                    onDislike={() => handleDislikeComment(comment.commentID)}
-                                    reFetchComments={() => {}}
-                                />
-                            ))
+                    {news && comments.length > 0 ? (
+                        comments.map((comment, index) => (
+                            <CommentItem
+                                commentID={comment.commentID}
+                                index={index}
+                                commentsLength={comments.length}
+                                userID={comment.userID}
+                                key={comment.commentID}
+                                avatar={comment.user_comments?.avatar || NoImage}
+                                name={comment.user_comments?.username || `Người dùng ${comment.userID}`}
+                                date={new Date(comment.commentAt).toLocaleDateString()}
+                                comment={comment.content}
+                                likeCount={comment.likeCount}
+                                dislikeCount={comment.dislikeCount}
+                                onLike={() => handleLikeComment(comment.commentID)}
+                                onDislike={() => handleDislikeComment(comment.commentID)}
+                                reFetchComments={() => handleDeleteComment(comment.commentID)}
+                                type="news"
+                            />
+                        ))
                     ) : (
                         <div className="text-gray-500">Chưa có bình luận nào cho bài đăng này.</div>
                     )}

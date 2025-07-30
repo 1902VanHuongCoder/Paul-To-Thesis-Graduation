@@ -1,9 +1,8 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import {
     Dialog,
-    DialogTrigger,
+    // DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogTitle,
@@ -14,13 +13,14 @@ import {
 import { Input } from "@/components/ui/input/input";
 import Button from "../../ui/button/button-brand";
 import { X } from "lucide-react";
-import { baseUrl } from "@/lib/base-url";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "@/lib/firebase-config";
+import { auth } from "@/lib/others/firebase-config";
 import { useUser } from "@/contexts/user-context";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select/select";
 import { Label } from "@radix-ui/react-label";
 import toast from "react-hot-toast";
+import { googleLogin, register } from "@/lib/user-apis";
+import { fetchDistrictList, fetchProvinceList, fetchWardList } from "@/lib/address-apis";
 
 export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: boolean, setOpen: (open: boolean) => void, setOpenLoginForm: (open: boolean) => void }) {
     const { setUser } = useUser();
@@ -48,9 +48,11 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
 
     // Fetch provinces
     useEffect(() => {
-        fetch("https://provinces.open-api.vn/api/?depth=1")
-            .then(res => res.json())
-            .then(data => setProvinces(data));
+        const fetchProvinces = async () => {
+            const data = await fetchProvinceList();
+            setProvinces(data);
+        };
+        fetchProvinces();
     }, []);
 
     // Fetch districts when province changes
@@ -62,9 +64,11 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
         }
         const selected = provinces.find(p => p.name === province);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/p/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setDistricts(data.districts || []));
+            const fetchDistricts = async () => {
+                const data = await fetchDistrictList(selected.code);
+                setDistricts(data);
+            };
+            fetchDistricts();
         }
     }, [province, provinces]);
 
@@ -76,9 +80,11 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
         }
         const selected = districts.find(d => d.name === district);
         if (selected) {
-            fetch(`https://provinces.open-api.vn/api/d/${selected.code}?depth=2`)
-                .then(res => res.json())
-                .then(data => setWards(data.wards || []));
+            const fetchWards = async () => {
+                const data = await fetchWardList(selected.code);
+                setWards(data);
+            };
+            fetchWards();
         }
     }, [district, districts]);
 
@@ -102,37 +108,28 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
             // generate 4 random number
             const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
             const userID = `USR${day}${month}${year}${randomNumber}L`;
-            const res = await fetch(`${baseUrl}/api/users/signup`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID,
-                    username,
-                    email,
-                    password,
-                    role: "cus",
-                    shippingAddress: {
-                        address: `${detailAddress}, ${ward}, ${district}, ${province}`,
-                        phone,
-                        isDefault: true,
-                    },
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || "Đăng ký thất bại");
-            } else {
-                toast.success("Đăng ký thành công! Vui lòng đăng nhập");
-                setUsername("");
-                setEmail("");
-                setPassword("");
-                setConfirmPassword("");
-                setPhone("");
-                setProvince("");
-                setDistrict("");
-                setWard("");
-                setDetailAddress("");
+            const res = await register({
+                userID,
+                username,
+                email,
+                password,
+                role: "cus",
+            }, `${detailAddress}, ${ward}, ${district}, ${province}`, phone, true);
+            if(res.message){
+                setErrorMsg(res.message);
+                return;
             }
+            toast.success("Đăng ký thành công! Vui lòng đăng nhập");
+            setUsername("");
+            setEmail("");
+            setPassword("");
+            setConfirmPassword("");
+            setPhone("");
+            setProvince("");
+            setDistrict("");
+            setWard("");
+            setDetailAddress("");
+
         } catch (err) {
             console.error("Error during registration:", err);
             setErrorMsg("Có lỗi xảy ra. Vui lòng thử lại");
@@ -159,39 +156,27 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
             const userID = `USR${day}${month}${year}P`;
 
             // Send info to backend
-            const res = await fetch(`${baseUrl}/api/users/google`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID,
-                    username,
-                    email,
-                    avatar,
-                    providerID,
-                }),
+            const data = await googleLogin({
+                userID,
+                username,
+                email,
+                avatar,
+                providerID,
             });
-
-
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || data.error || "Đăng ký Google thất bại.");
-            } else {
-                console.log("Google login success:", data);
-                setUser({
-                    userID: data.user.userID,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                });
-                localStorage.setItem("user", JSON.stringify({
-                    userID: data.user.userID,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                }));
-            }
+            setUser({
+                userID: data.user.userID,
+                username: data.user.username,
+                email: data.user.email,
+                avatar: data.user.avatar,
+                token: data.token,
+            });
+            localStorage.setItem("user", JSON.stringify({
+                userID: data.user.userID,
+                username: data.user.username,
+                email: data.user.email,
+                avatar: data.user.avatar,
+                token: data.token,
+            }));
         } catch (error) {
             console.error("Google login error:", error);
             setErrorMsg("Google login failed. Please try again.");
@@ -200,11 +185,11 @@ export default function SignUpForm({ open, setOpen, setOpenLoginForm }: { open: 
 
     return (
         <Dialog open={open} onOpenChange={setOpen} >
-            <DialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button variant="normal" size="sm" className="py-3">
+            {/* <DialogTrigger asChild onClick={() => setOpen(true)}> */}
+                {/* <Button variant="normal" size="sm" className="py-3">
                     Đăng ký
-                </Button>
-            </DialogTrigger>
+                </Button> */}
+            {/* </DialogTrigger> */}
             <DialogContent className="max-h-screen sm:max-w-6xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Đăng ký</DialogTitle>

@@ -1,9 +1,8 @@
 "use client";
-import { baseUrl } from "@/lib/base-url";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useDictionary } from "./dictonary-context";
 import { useUser } from "./user-context";
+import { addProductToCart, clearShoppingCart, fetchCartByCustomerID, removeProductFromShoppingCart, updateShoppingCart } from "@/lib/shopping-cart-apis";
 
 export interface CartItem {
     quantity: number;
@@ -48,7 +47,6 @@ export function useShoppingCart() {
 }
 
 export function ShoppingCartProvider({ children }: { children: React.ReactNode }) {
-    const { dictionary: d } = useDictionary();
     const { user } = useUser();
     const [cart, setCart] = useState<Cart>({
         cartID: 0,
@@ -58,9 +56,7 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     const fetchCart = async (customerID: string) => {
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart/${customerID}`);
-            if (!res.ok) throw new Error("Failed to fetch cart");
-            const data = await res.json();
+            const data = await fetchCartByCustomerID(customerID);
             setCart(data);
         } catch (error) {
             console.error("Fetch cart error:", error);
@@ -69,31 +65,31 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
     };
 
     const addToCart = async (productID: number, quantity: number) => {
+        if (!user) {
+            toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng");
+            return;
+        }
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productID, customerID: user?.userID, quantity: quantity }),
-            });
-            if (!res.ok) throw new Error("Failed to add to cart");
-            toast.success(d?.toastAddToCartSuccess || "Thêm vào giỏ hàng thành công");
-            if (user) { fetchCart(user?.userID); }
-            return await res.json();
+            const data = await addProductToCart(productID, user.userID, quantity);
+            fetchCart(user.userID);
+            toast.success("Thêm vào giỏ hàng thành công");
+            return data;
         } catch (error) {
+            toast.error("Thêm vào giỏ hàng thất bại!");
             console.error("Add to cart error:", error);
-            toast.error(d?.toastAddToCartError || "Thêm vào giỏ hàng thất bại");
             throw error;
         }
     };
+
     const updateCart = async (cartID: number, productID: number, quantity: number) => {
+        if (!user) {
+            // toast.error("Bạn cần đăng nhập để cập nhật giỏ hàng");
+            return;
+        }
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart/${cartID}/product/${productID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ quantity }),
-            });
-            if (!res.ok) throw new Error("Failed to update cart");
-            return await res.json();
+            const data = await updateShoppingCart(cartID, productID, quantity);
+            fetchCart(user.userID);
+            return data;
         } catch (error) {
             console.error("Update cart error:", error);
             throw error;
@@ -101,34 +97,33 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
     }
 
     const removeFromCart = async (productID: number, cartID: number) => {
+        if (!user) {
+            // toast.error("Bạn cần đăng nhập để xoá sản phẩm khỏi giỏ hàng");
+            return;
+        }
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart/${cartID}/product/${productID}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) throw new Error("Failed to remove from cart");
-            return res.json();
-
+            const data = await removeProductFromShoppingCart(cartID, productID);
+            fetchCart(user.userID);
+            return data;
         } catch (error) {
             console.error("Remove from cart error:", error);
             throw error;
         }
-
     };
 
     const clearCart = async () => {
+        if (!user) {
+            toast.error("Bạn cần đăng nhập để xóa giỏ hàng");
+            return;
+        }
         try {
-            const res = await fetch(`${baseUrl}/api/shopping-cart/customer/${user?.userID}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-            });
-            if (!res.ok) throw new Error("Failed to clear cart");
+            await clearShoppingCart(user.userID);
             setCart({
                 cartID: 0,
                 totalQuantity: 0,
                 products: [],
             });
+            toast.success("Đã xóa tất cả sản phẩm khỏi giỏ hàng");
         } catch (error) {
             console.error("Clear cart error:", error);
             throw error;
@@ -137,7 +132,7 @@ export function ShoppingCartProvider({ children }: { children: React.ReactNode }
 
     useEffect(() => {
         if (user) {
-            fetchCart(user?.userID);
+            fetchCart(user.userID);
         } else {
             return;
         }

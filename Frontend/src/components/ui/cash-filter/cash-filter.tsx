@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Slider } from "@/components/ui/slider/slider";
-import formatVND from "@/lib/format-vnd";
+import formatVND from "@/lib/others/format-vnd";
 
 interface CashFilterProps {
   minPrice?: number;

@@ -73,14 +73,13 @@ export const deleteNewsComment = async (
   try {
     const comment = await NewsComment.findByPk(commentID);
     if (!comment) {
-      res.status(404).json({ message: "Comment not found" });
-    } else {
-      comment.status = "deleted";
-      await comment.save();
-      res.status(200).json({ message: "Comment deleted" });
-    }
+      res.status(404).json({ message: "Bình luận không tồn tại" });
+      return;
+    } 
+    await comment.destroy();
+    res.status(200).json({ message: "Xóa bình luận thành công" });
   } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: "Lỗi khi xóa bình luận" });
   }
 };
 

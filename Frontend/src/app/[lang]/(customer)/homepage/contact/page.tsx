@@ -1,5 +1,3 @@
-"use client";
-
 import { Breadcrumb } from "@/components";
 import ContactForm from "@/components/ui/contact-form/contact-form";
 import darkLogo from "@public/images/dark+logo.png";

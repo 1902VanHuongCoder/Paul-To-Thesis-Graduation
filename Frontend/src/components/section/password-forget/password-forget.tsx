@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { X } from "lucide-react";
-import { baseUrl } from "@/lib/base-url";
+import { baseUrl } from "@/lib/others/base-url";
 import toast from "react-hot-toast";
 
 export default function PasswordForgetDialog({ open, setOpen, email, setEmail, setOpenCreateNewPass }: { open: boolean, setOpen: (open: boolean) => void, email: string, setEmail: (email: string) => void, setOpenCreateNewPass: (open: boolean) => void }) {

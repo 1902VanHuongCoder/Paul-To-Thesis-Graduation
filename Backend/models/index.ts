@@ -65,6 +65,7 @@ Origin.hasMany(Product, {
 Tag.belongsToMany(Product, { through: ProductTag, foreignKey: "tagID" });
 Product.belongsToMany(Tag, { through: ProductTag, foreignKey: "productID" });
 
+
 Order.belongsToMany(Product, {
   through: OrderProduct,
   foreignKey: "orderID",
@@ -75,6 +76,10 @@ Product.belongsToMany(Order, {
   foreignKey: "productID",
   as: "orders",
 });
+
+// Fix: Add association for eager loading OrderProduct -> Product
+OrderProduct.belongsTo(Product, { foreignKey: "productID", as: "product" });
+Product.hasMany(OrderProduct, { foreignKey: "productID", as: "orderProducts" });
 
 Order.belongsTo(User, { foreignKey: "userID", as: "user" });
 Order.belongsTo(Delivery, { foreignKey: "deliveryID", as: "delivery" });

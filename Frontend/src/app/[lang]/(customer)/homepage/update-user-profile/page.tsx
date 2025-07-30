@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { baseUrl } from "@/lib/base-url";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
 import { Breadcrumb, ContentLoading } from "@/components";
-import { useDictionary } from "@/contexts/dictonary-context";
 import Image from "next/image";
-import { deleteOneImage, uploadAvatar } from "@/lib/upload-images";
+import { deleteOneImage, uploadAvatar } from "@/lib/others/upload-images";
 import { Eye, EyeOff } from "lucide-react";
 import PasswordForgetDialog from "@/components/section/password-forget/password-forget";
 import CreateNewPassword from "@/components/section/password-forget/create-newpass";
 import toast from "react-hot-toast";
+import { checkPassword, getUserInfo, updateUserProfile } from "@/lib/user-apis";
+import { useUser } from "@/contexts/user-context";
 
 interface UserProfile {
     userID: string;
@@ -27,9 +27,7 @@ export default function UpdateUserProfilePage() {
     // Search params
     const param = useSearchParams();
     const userID = param.get("userID") || "";
-
-    // Contexts 
-    const { dictionary: d } = useDictionary(); // Dictionary for translations
+    const {setUser: setUserContext} = useUser(); // Get setUser from user context
 
     // State variables
     const [user, setUser] = useState<UserProfile | null>(null); // User profile data
@@ -51,7 +49,6 @@ export default function UpdateUserProfilePage() {
     const [showNewPassword, setShowNewPassword] = useState(false); // Show/Hide new password
     const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Show/Hide confirm password
     const fileInputRef = useRef<HTMLInputElement>(null); // Reference to file input for avatar upload
-
     const [emailToGetConfirmCode, setEmailToGetConfirmCode] = useState(""); // Email for password reset confirmation code
     const [openForgetPassword, setOpenForgetPassword] = useState(false); // State to control the visibility of the password forget dialog
     const [openCreateNewPass, setOpenCreateNewPass] = useState(false); // State to control the visibility of the create new password dialog
@@ -60,10 +57,9 @@ export default function UpdateUserProfilePage() {
     useEffect(() => {
         if (!userID) return;
         setLoading(true);
-        fetch(`${baseUrl}/api/users/${userID}`)
-            .then(res => res.json())
-            .then(data => {
-                console.log("Fetched user data:", data);
+        const fetchUser = async () => {
+            try {
+                const data = await getUserInfo(userID);
                 setUser(data);
                 setForm(f => ({
                     ...f,
@@ -72,9 +68,15 @@ export default function UpdateUserProfilePage() {
                     avatar: data.avatar || "",
                 }));
                 setAvatarPreview(data.avatar || "");
-            })
-            .catch(() => setErrorMsg("Không thể tải thông tin người dùng"))
-            .finally(() => setLoading(false));
+            } catch (error) {
+                console.error("Error fetching user info:", error);
+                setErrorMsg("Không thể tải thông tin người dùng, hãy thử lại sau.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUser();
     }, [userID]);
 
     // Handle input change
@@ -95,20 +97,10 @@ export default function UpdateUserProfilePage() {
     const confirmOldPassword = async (): Promise<boolean> => {
         setConfirmingPassword(true);
         try {
-            const res = await fetch(`${baseUrl}/api/users/confirm-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userID,
-                    password: form.oldPassword,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
+            const isValid = await checkPassword(form.oldPassword, userID);
+            if (!isValid) {
                 setErrorMsg("Mật khẩu cũ không chính xác, vui lòng thử lại.");
                 return false;
-            } else {
-                console.log("Success message", data.message);
             }
             return true;
         } catch {
@@ -158,29 +150,27 @@ export default function UpdateUserProfilePage() {
             const ok = await confirmOldPassword();
             if (!ok) {
                 setSubmitting(false);
+                setErrorMsg("Xác nhận mật khẩu cũ không chính xác, vui lòng thử lại.");
                 return;
             }
         }
 
         try {
             // Update user info
-            const res = await fetch(`${baseUrl}/api/users/${userID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: form.username,
-                    email: form.email,
-                    avatar: avatarUrl,
-                    password: form.newPassword || null,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setErrorMsg(data.message || "Cập nhật thông tin người dùng thất bại, hãy thử lại!");
-                throw new Error(data.message || data.error || "Cập nhật thất bại");
+            const data = await updateUserProfile(
+                form.username,
+                form.email,
+                avatarUrl,
+                form.newPassword || null,
+                userID
+            );
+            if (!data) {
+                setErrorMsg("Cập nhật thông tin người dùng thất bại, hãy thử lại!");
+                throw new Error("Cập nhật thất bại");
             }
             toast.success("Cập nhật thông tin thành công!");
-            setUser(data.user);
+            console.log("User profile updated successfully:", data);
+            setUserContext(data.user);
             setForm(f => ({
                 ...f,
                 oldPassword: "",
@@ -200,17 +190,17 @@ export default function UpdateUserProfilePage() {
 
     return (
         <div className="px-6 py-10">
-            <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
+            <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Cập nhật thông tin người dùng" }]} />
             <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">Cập nhật hồ sơ người dùng</h1>
             <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden border border-gray-200 bg-white shadow-lg mt-10">
                 <div className="w-full h-[200px] flex flex-col justify-end p-6 bg-linear-210 from-green-600 via-green-500 to-secondary">
                     {/* Avatar */}
                     <div className="flex items-center gap-x-4">
-                        <div className="w-25 h-25 flex-shrink-0 bg-white rounded-full overflow-hidden">
+                        <div className="w-30 h-30 flex-shrink-0 bg-white rounded-full overflow-hidden">
                             {avatarPreview ? (<Image
                                 width={80}
                                 height={80}
-                                src={avatarPreview || "/avatar.png"}
+                                src={avatarPreview}
                                 alt="avatar"
                                 className="w-full h-full object-cover"
                             />) : (
@@ -260,14 +250,15 @@ export default function UpdateUserProfilePage() {
                     {/* Email */}
                     {user && !user.providerID && (
                         <div>
-                            <label className="block mb-1 text-gray-500 text-sm">Email</label>
+                            <label className="block mb-1 text-gray-500 text-sm">Email (Không cho phép thay đổi email)</label>
                             <Input
-                                className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                                className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white opacity-60"
                                 name="email"
                                 type="email"
                                 value={form.email}
                                 onChange={handleChange}
                                 required
+                                readOnly 
                             />
                         </div>
                     )}

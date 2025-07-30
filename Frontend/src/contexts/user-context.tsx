@@ -1,4 +1,5 @@
 "use client";
+import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -6,8 +7,8 @@ interface User {
     userID: string;
     username: string;
     email: string;
-    avatar?: string;
-    token?: string;
+    avatar: string;
+    token: string;
 }
 
 interface UserContextType {
@@ -19,19 +20,32 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+    const pathname = usePathname();
+    const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem("user");
-        toast.success("Logged out successfully");
+        if(pathname.includes("dashboard")) {
+            localStorage.removeItem("admin");
+        }
+        router.push("/"); // Redirect to login page
+        toast.success("Đăng xuất thành công!");
     };
 
     useEffect(() => {
         // Check for user data in localStorage or cookie
         const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+        const storedAdmin = localStorage.getItem("admin");
+
+        if (pathname.includes("dashboard") && storedAdmin) {
+
+            setUser(JSON.parse(storedAdmin));
+        } else {
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
         }
     }, []);
 

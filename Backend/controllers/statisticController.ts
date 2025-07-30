@@ -21,7 +21,6 @@ export const incrementAccessCount = async (req: Request, res: Response): Promise
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1; // JS months are 0-based
-    console.log(`Incrementing access count for ${year}-${month}`);
     let stat = await Statistic.findOne({ where: { year, month } });
     if (!stat) {
       stat = await Statistic.create({ year, month, accessCount: 1 });

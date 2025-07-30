@@ -1,19 +1,15 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useDictionary } from "@/contexts/dictonary-context";
-import { Breadcrumb, Button } from "@/components";
+import { Breadcrumb} from "@/components";
 import { useCheckout } from "@/contexts/checkout-context";
 import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
+import Link from "next/link";
 export default function CashReturnPage() {
   const { checkoutData } = useCheckout();
-  const { dictionary: d } = useDictionary();
-  const router = useRouter();
-
   return (
     <div className="min-h-[60vh] py-10 px-6">
-      <Breadcrumb items={[{ label: d?.navHomepage || "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]}/>
+      <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]} />
       <div className="text-center flex flex-col items-center justify-center gap-y-2 mx-auto max-w-4xl">
         <motion.svg
           initial="hidden"
@@ -56,16 +52,16 @@ export default function CashReturnPage() {
           />
         </motion.svg>
         <h1 className="text-4xl font-bold text-green-600 mb-2">
-          {d?.cashReturnSuccessConfirm || "Đặt hàng thành công!"}
+          {"Đặt hàng thành công!"}
         </h1>
-        <p className="mb-2">{d?.cashReturnSuccessMessage || "Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn sẽ được xử lý sớm nhất."}</p>
+        <p className="mb-2">{"Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn sẽ được xử lý sớm nhất."}</p>
         <div className="relative overflow-hidden rounded p-4 my-4 w-full max-w-4xl mx-auto border-[2px] border-dashed border-gray-300">
           <div className="flex mb-4 ">
             <Image src={darkLogo} alt="Logo" className="w-auto h-10" />
           </div>
           <div className="h-[10px] w-[10px] bg-gray-300 rounded-full absolute right-5 top-5"></div>
           <div className="text-gray-300 text-7xl absolute opacity-20 -z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[880px] -rotate-45">NFEAM HOUSE</div>
-          <h2 className="text-2xl font-semibold mb-4 uppercase">{d?.cashReturnOrderDetails || "Chi tiết đơn hàng"}</h2>
+          <h2 className="text-2xl font-semibold mb-4 uppercase">{"Chi tiết đơn hàng"}</h2>
           <div className="flex flex-col items-start gap-y-4">
             {checkoutData?.orderID && (
               <div>
@@ -125,13 +121,12 @@ export default function CashReturnPage() {
             </div>
           )}
         </div>
-        <Button
-          variant="primary"
-          className=""
-          onClick={() => router.push("/")}
+        <Link
+          href="/"
+          className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-dark transition-colors duration-300"
         >
-          {d?.cashReturnHomeButton || "Về trang chủ"}
-        </Button>
+          {"Về trang chủ"}
+        </Link>
       </div>
     </div>
   );

@@ -4,7 +4,9 @@ import React from "react";
 import Image, { StaticImageData } from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/contexts/user-context";
-import { baseUrl } from "@/lib/base-url";
+import { deleteNewsComment } from "@/lib/news-comment-apis";
+import { deleteProductComment } from "@/lib/product-comment-apis";
+import toast from "react-hot-toast";
 // import { baseUrl } from "@/configs/base-url";
 interface CommentItemProps {
     index: number;
@@ -23,6 +25,7 @@ interface CommentItemProps {
     currentUserID?: string;
     onDelete?: () => void;
     reFetchComments: () => void;
+    type: "product" | "news";
 }
 
 export default function CommentItem({
@@ -40,6 +43,7 @@ export default function CommentItem({
     onLike,
     onDislike,
     reFetchComments,
+    type,
 }: CommentItemProps & { onLike?: () => void; onDislike?: () => void }) {
     // Contexts 
     const { user } = useUser();
@@ -63,17 +67,49 @@ export default function CommentItem({
     // Handler for deleting the comment
     const handleDelete = async () => {
         if (!commentID) return;
-        if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
-        try {
-            await fetch(`${baseUrl}/api/comment/${commentID}`, { method: "DELETE" });
-
-            // Refetch comments or update state in parent component
-            reFetchComments();
-            alert("Xóa bình luận thành công!");
-        } catch (err) {
-            alert("Xóa bình luận thất bại!");
-            console.error("Error deleting comment:", err);
-        }
+        toast((t) => (
+            <span>
+                Bạn có chắc muốn xóa bình luận này?
+                <div className="mt-2 flex gap-2 justify-end">
+                    <button
+                        className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                if (type === "product") {
+                                    const { status, message } = await deleteProductComment(commentID);
+                                    if (status === 200) {
+                                        toast.success(message, { position: "top-center" });
+                                        reFetchComments();
+                                    } else {
+                                        toast.error(message, { position: "top-center" });
+                                    }
+                                } else if (type === "news") {
+                                    const { status, message } = await deleteNewsComment(commentID);
+                                    if (status === 200) {
+                                        toast.success(message, { position: "top-center" });
+                                        reFetchComments();
+                                    } else {
+                                        toast.error(message, { position: "top-center" });
+                                    }
+                                }
+                            } catch (err) {
+                                toast.error("Xóa bình luận thất bại!", { position: "top-center" });
+                                console.error("Error deleting comment:", err);
+                            }
+                        }}
+                    >
+                        Xóa
+                    </button>
+                    <button
+                        className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        onClick={() => toast.dismiss(t.id)}
+                    >
+                        Hủy
+                    </button>
+                </div>
+            </span>
+        ), { duration: 8000, position: "top-center" });
     };
 
     return (
@@ -81,14 +117,33 @@ export default function CommentItem({
             {/* User Info */}
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                    <div className="w-[50px] h-[50px] flex-shrink-0 border rounded-full overflow-hidden border-gray-300">
-                        <Image
-                            src={avatar}
-                            alt={`${name}'s avatar`}
-                            width={40}
-                            height={40}
-                            className="rounded-full w-full h-full object-contain"
-                        />
+                    <div className="w-[50px] h-[50px] flex-shrink-0 border rounded-full overflow-hidden border-gray-300 flex items-center justify-center bg-gray-100">
+                        {avatar ? (
+                            <Image
+                                src={avatar}
+                                alt={`${name}'s avatar`}
+                                width={40}
+                                height={40}
+                                className="rounded-full w-full h-full object-contain"
+                            />
+                        ) : (
+                            // User icon fallback (Lucide User icon)
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={32}
+                                height={32}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="text-gray-400"
+                            >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx={12} cy={7} r={4} />
+                            </svg>
+                        )}
                     </div>
                     <div>
                         <p className="font-bold text-gray-800">{name}</p>
@@ -119,52 +174,55 @@ export default function CommentItem({
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
-                        onClick={handleLikeClick}
-                        aria-label="Like"
-                    >
-                        <ThumbsUp size={18} />
-                        <span>Like</span>
-                        <span className="ml-1 text-xs">{likeCount}</span>
-                        <AnimatePresence>
-                            {likeAnim && (
-                                <motion.span
-                                    initial={{ opacity: 1, y: 0, scale: 1 }}
-                                    animate={{ opacity: 0, y: -40, scale: 0.5 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
-                                >
-                                    <ThumbsUp size={28} className="text-green-500 drop-shadow-lg " fill="var(--color-green-500)" />
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </button>
-                    <button
-                        className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
-                        onClick={handleDislikeClick}
-                        aria-label="Dislike"
-                    >
-                        <ThumbsDown size={18} />
-                        <span>Dislike</span>
-                        <span className="ml-1 text-xs">{dislikeCount}</span>
-                        <AnimatePresence>
-                            {dislikeAnim && (
-                                <motion.span
-                                    initial={{ opacity: 1, y: 0, scale: 1 }}
-                                    animate={{ opacity: 0, y: 40, scale: 0.5 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
-                                >
-                                    <ThumbsDown size={28} className="text-red-500 drop-shadow-lg" fill="var(--color-red-500)" />
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </button>
-                    
+                <div className={`flex gap-2`}>
+                    <div className={`flex items-center gap-2 ${user && user.userID === userID ? 'hidden' : ''}`}>
+                        <button
+                            className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
+                            onClick={handleLikeClick}
+                            aria-label="Like"
+                        >
+                            <ThumbsUp size={18} />
+                            <span>Like</span>
+                            <span className="ml-1 text-xs">{likeCount}</span>
+                            <AnimatePresence>
+                                {likeAnim && (
+                                    <motion.span
+                                        initial={{ opacity: 1, y: 0, scale: 1 }}
+                                        animate={{ opacity: 0, y: -40, scale: 0.5 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                    >
+                                        <ThumbsUp size={28} className="text-green-500 drop-shadow-lg " fill="var(--color-green-500)" />
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </button>
+                        <button
+                            className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
+                            onClick={handleDislikeClick}
+                            aria-label="Dislike"
+                        >
+                            <ThumbsDown size={18} />
+                            <span>Dislike</span>
+                            <span className="ml-1 text-xs">{dislikeCount}</span>
+                            <AnimatePresence>
+                                {dislikeAnim && (
+                                    <motion.span
+                                        initial={{ opacity: 1, y: 0, scale: 1 }}
+                                        animate={{ opacity: 0, y: 40, scale: 0.5 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                    >
+                                        <ThumbsDown size={28} className="text-red-500 drop-shadow-lg" fill="var(--color-red-500)" />
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </button>
+
+                    </div>
+
                     {user && user.userID === userID && (
                         <button
                             className="text-red-500 hover:underline hover:cursor-pointer"

@@ -1,9 +1,8 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { baseUrl } from "@/lib/base-url";
 import toast from "react-hot-toast";
-import { useDictionary } from "./dictonary-context";
 import { useUser } from "./user-context";
+import { addToWishlistList, fetchWishlistByCustomerID, removeFromWishlistList } from "@/lib/wishlist-apis";
 
 export interface Product {
   productID: number;
@@ -42,67 +41,48 @@ export function useWishlist() {
 }
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
-  const {dictionary:d} = useDictionary();
-  const {user} = useUser(); 
+  const { user } = useUser();
   const [wishlists, setWishlist] = useState<WishlistItem[]>([]);
 
   const fetchWishlist = async (customerID: string) => {
-    const res = await fetch(`${baseUrl}/api/wishlist/${customerID}`);
-    const data = await res.json();
+    const data = await fetchWishlistByCustomerID(customerID);
     setWishlist(data);
   };
 
   const addToWishlist = async (customerID: string, productID: number) => {
     try {
-      const res = await fetch(`${baseUrl}/api/wishlist`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerID, productID }),
-      });
-      if (res.ok) {
-        await fetchWishlist(customerID);
-        toast.success(d?.wishlistAddToWishlistSuccess || "Đã thêm vào danh sách yêu thích");
-      }else{
-        toast('Đã tồn tại trong danh sách yêu thích', {
-          // clap icon: '👏',
-          icon: '👏',
-          style: {
-            borderRadius: '10px',
-            background: '#333',
-            color: '#fff',
-          },
-        })
-      }
-    }catch (error) { 
+      const { message } = await addToWishlistList(customerID, productID);
+      await fetchWishlist(customerID);
+      toast.success(message);
+    } catch (error) {
       console.error("Error adding to wishlist:", error);
-      toast.error(d?.wishlistAddToWishlistError || "Lỗi khi thêm vào danh sách yêu thích");
+      toast.error("Lỗi khi thêm vào danh sách yêu thích");
     }
   };
 
   const removeFromWishlist = async (customerID: string, productID: number) => {
-    const res = await fetch(`${baseUrl}/api/wishlist`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customerID, productID }),
-    });
-    if (res.ok) {
+    try {
+      await removeFromWishlistList(customerID, productID);
       await fetchWishlist(customerID);
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
     }
   };
 
   const clearWishlist = async (customerID: string) => {
-    const res = await fetch(`${baseUrl}/api/wishlist/clear/${customerID}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
+    try {
+      await clearWishlist(customerID);
       setWishlist([]);
+    } catch (error) {
+      console.error("Error clearing wishlist:", error);
+      toast.error("Lỗi khi xóa toàn bộ danh sách yêu thích");
     }
   };
 
   useEffect(() => {
-    if(user?.userID) {
-      fetchWishlist(user?.userID);
-    } 
+    if (user) {
+      fetchWishlist(user.userID);
+    }
   }, [user]);
 
   return (

@@ -4,10 +4,10 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerClose, DrawerHeader } from 
 import { Input } from "@/components/ui/input/input";
 import { XIcon, MicIcon } from "lucide-react";
 import { DialogDescription, Title } from "@radix-ui/react-dialog";
-import { baseUrl } from "@/lib/base-url";
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/contexts/dictonary-context";
 import { Button } from "../button/button";
+import { fetchProductByName } from "@/lib/product-apis";
 
 interface Product {
     productID: number;
@@ -73,9 +73,9 @@ const SearchForm: React.FC = React.memo(function SearchForm() {
     // Handle view product details
     const handleViewProduct = React.useCallback(() => {
         if (!selectedProductID) return;
-        router.push(`/${lang}/homepage/product-details/${selectedProductID}`);
+        router.push(`/vi/homepage/product-details/${selectedProductID}`);
         setOpenSearch(false);
-    }, [router, lang, selectedProductID]);
+    }, [router, selectedProductID]);
 
     // Debounced fetch for suggestions
     useEffect(() => {
@@ -85,13 +85,17 @@ const SearchForm: React.FC = React.memo(function SearchForm() {
         }
         setLoadingSuggest(true);
         const timeout = setTimeout(() => {
-            fetch(`${baseUrl}/api/product/name?name=${encodeURIComponent(search)}`)
-                .then(res => res.ok ? res.json() : [])
-                .then(data => {
+           const fetchSuggestions = async () => {
+                try {
+                    const data = await fetchProductByName(search);
                     setSuggestions(Array.isArray(data) ? data.map((p: Product) => ({ productName: p.productName, productID: String(p.productID) })) : []);
-                })
-                .catch(() => setSuggestions([]))
-                .finally(() => setLoadingSuggest(false));
+                } catch (error) {
+                    console.error("Error fetching suggestions:", error);
+                } finally {
+                    setLoadingSuggest(false);
+                }
+            }
+            fetchSuggestions();
         }, 300);
         return () => clearTimeout(timeout);
     }, [search]);

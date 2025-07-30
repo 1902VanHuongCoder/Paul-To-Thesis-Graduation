@@ -15,11 +15,12 @@ import TableCell from '@tiptap/extension-table-cell';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog/dialog';
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { baseUrl } from "@/lib/base-url";
 import { Breadcrumb } from "@/components";
 import { CircleAlert, Eye } from "lucide-react";
 import NextLink from 'next/link';
 import { useDiagnoseContext } from '@/contexts/diagnose-context';
+import { detectRiceDisease, getDiseaseDetails } from "@/lib/detect-rice-disease-apis";
+import { fetchProducts } from "@/lib/product-apis";
 
 type Disease = {
   diseaseID?: number;
@@ -28,14 +29,13 @@ type Disease = {
   ricePathogen?: string;
   symptoms?: string;
   images?: string[];
-  // Add other fields as needed
 };
 
 type Product = {
   productID: string;
   productName: string;
   productImage: string;
-  diseases: string[]; // Array of disease IDs or names
+  diseases: string[];
   images: string[];
   productPrice: number;
   unit: string;
@@ -60,7 +60,7 @@ export default function DetectRiceDiseaseDemo() {
       TableHeader,
       TableCell,
     ],
-    content: selectedDisease?.symptoms ? selectedDisease.symptoms : '<p>Loading...</p>',
+    content: selectedDisease?.symptoms ? selectedDisease.symptoms : '<p>Đang tải...</p>',
     editable: false,
     immediatelyRender: false,
   });
@@ -71,13 +71,13 @@ export default function DetectRiceDiseaseDemo() {
       editor.commands.setContent(selectedDisease.symptoms);
     }
   }, [selectedDisease, editor]);
+
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<{ class: string; confidence: number } | null>(null);
-  // const [allProbs, setAllProbs] = useState<Array<[string, number]>>([]);
-  // const [processedImg, setProcessedImg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+
   type DiseaseDetail = {
     diseaseID?: number;
     diseaseName?: string;
@@ -91,13 +91,10 @@ export default function DetectRiceDiseaseDemo() {
 
   const { result: contextResult, setResult: setDiagnoseResult } = useDiagnoseContext();
   const [diseaseDetails, setDiseaseDetails] = useState<DiseaseDetail[]>(contextResult ? contextResult : []);
-  console.log(diseaseDetails);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [productsForDisease, setProductsForDisease] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [, setSelectedDiseaseID] = useState<string | number | undefined>(undefined);
-
-
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -114,40 +111,38 @@ export default function DetectRiceDiseaseDemo() {
     setLoading(true);
     setError(null);
     setResult(null);
-    // setProcessedImg(null);
-    // setAllProbs([]);
     setDiseaseDetails([]);
+
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const res = await fetch("http://127.0.0.1:8000/predict", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-      console.log(data);
-      // Expecting: { predicted_class: string, all_probs: [ [class, prob], ... ], processed_image }
+      const data = await detectRiceDisease(file);
       if (data && data.predicted_class && data.all_probs && data.all_probs.length > 0) {
         setResult({ class: data.predicted_class, confidence: data.all_probs[0][1] });
-        // setAllProbs(data.all_probs);
-        // if (data.processed_image) setProcessedImg(data.processed_image);
-        // Fetch disease details for each predicted class
         const diseaseEnNames = data.all_probs.map(([diseaseEnName]: [string, number]) => diseaseEnName);
         const details = await Promise.all(
           diseaseEnNames.map(async (enName: string) => {
-            const res = await fetch(`${baseUrl}/api/disease/private/by-en-name/${enName}`);
-            if (res.ok) return await res.json();
+            const data = await getDiseaseDetails(enName);
+            if (data) {
+              return {
+                diseaseID: data.diseaseID,
+                diseaseName: data.diseaseName,
+                diseaseEnName: data.diseaseEnName,
+                ricePathogen: data.ricePathogen,
+                symptoms: data.symptoms,
+                images: data.images || [],
+              };
+            }
             return null;
           })
         );
-        setDiseaseDetails(details.filter(Boolean));
-        setDiagnoseResult(details);
+        setDiseaseDetails(details.filter(d => d !== null));
+        setDiagnoseResult(details.filter(d => d !== null) as DiseaseDetail[]);
       } else {
-        setError("Invalid API response");
+        setError("Không thể nhận diện bệnh lúa. Vui lòng thử lại với ảnh khác.");
       }
     } catch (err) {
-      setError("Lỗi kết nối API hoặc dự đoán.");
+      setError("Lỗi khi nhận diện bệnh lúa. Vui lòng thử lại sau.");
       console.log(err);
     } finally {
       setLoading(false);
@@ -156,17 +151,12 @@ export default function DetectRiceDiseaseDemo() {
 
   // Fetch products by diseaseID
   const handleViewProducts = async (diseaseID: number) => {
-    console.log("Fetching products for disease ID:", diseaseID);
     if (!diseaseID) return;
     setLoadingProducts(true);
     setSelectedDiseaseID(diseaseID);
+
     try {
-      // Fetch all products, filter by diseases includes diseaseID
-      const res = await fetch(`${baseUrl}/api/product`);
-      if (!res.ok) throw new Error('API error');
-      const allProducts = await res.json();
-      console.log("Fetch products"); 
-      console.log(allProducts);
+      const allProducts = await fetchProducts();
       // Currently, the value of disease property is '[1,2,3,4,5]' 
       const filtered = allProducts.filter((p: Product) => {
         // diseases property is a JSON string, e.g. '[1,2,3,4,5]'
@@ -183,9 +173,9 @@ export default function DetectRiceDiseaseDemo() {
         // diseaseID can be string or number, so compare loosely
         return diseaseArr.map(String).includes(String(diseaseID));
       });
-      console.log(filtered);
       setProductsForDisease(filtered);
       setProductDialogOpen(true);
+
     } catch (err) {
       console.error("Error fetching products:", err);
       setProductsForDisease([]);
@@ -277,37 +267,8 @@ export default function DetectRiceDiseaseDemo() {
           {diseaseDetails.length > 1 && result && !error && (
             <div className="text-gray-500 flex gap-x-2 bg-yellow-100 p-2 rounded-md"><span><CircleAlert /></span> <span>Vui lòng kiểm tra xem có bệnh nào dưới đây trùng với thiệt hại trên cây lúa của bạn không</span></div>
           )}
-          { 
+          {
             <div className="mt-6">
-              {/* <div className="flex items-center gap-4 mb-4">
-                <div className="bg-primary/10 px-4 py-2 rounded-lg text-primary font-bold text-lg shadow">
-                  <span>Disease: {result.class}</span>
-                </div>
-                <div className="bg-green-100 px-4 py-2 rounded-lg text-green-700 font-bold text-lg shadow">
-                  <span>Confidence: {(result.confidence * 100).toFixed(2)}%</span>
-                </div>
-              </div> */}
-              {/* {allProbs.length > 0 && (
-                <div className="mb-6">
-                  <div className="font-semibold mb-2 text-gray-700">All Predictions:</div>
-                  <table className="w-full text-sm border rounded-xl overflow-hidden shadow">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left px-3 py-2 font-semibold text-gray-600">Disease</th>
-                        <th className="text-left px-3 py-2 font-semibold text-gray-600">Confidence (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allProbs.map(([disease, prob]) => (
-                        <tr key={disease} className="hover:bg-primary/5">
-                          <td className="px-3 py-2">{disease}</td>
-                          <td className="px-3 py-2">{(prob * 100).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )} */}
               {/* Show fetched disease details */}
               {diseaseDetails.length > 0 && (
                 <div className="mt-6">

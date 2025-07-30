@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       "www.congtyhai.com",
       "shadcnblocks.com",
       "res.cloudinary.com",
-      "lh3.googleusercontent.com"
+      "lh3.googleusercontent.com",
     ],
   },
   // next.config.ts
@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
       { source: "/", destination: "/vi/homepage", permanent: false },
       // Only redirect if NOT starting with /vi or /en
     ];
+  },
+  devIndicators: {
+    buildActivity: false, // Hides the build activity indicator
+    buildActivityPosition: "bottom-right", // Optional: customize position if buildActivity is true
   },
 };
 

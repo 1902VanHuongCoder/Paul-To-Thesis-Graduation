@@ -13,7 +13,9 @@ export const getAllUsers = async (
   res: Response
 ): Promise<void> => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      order: [["createdAt", "DESC"]],
+    });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -80,7 +82,7 @@ export const localSignUp = async (
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(409).json({ message: "Địa chỉ email đã tồn tại rồi" });
+      res.status(409).json({ message: "Đã có tài khoản với email này, vui lòng sử dụng đăng ký với email khác." });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
@@ -203,11 +205,13 @@ export const updateUser = async (
 
     // Handle password update
     if (password) {
+      console.log("Updating password for user:", userID);
       user.password = await bcrypt.hash(password, 10);
     }
 
     await user.save();
-    res.status(200).json({ message: "Địa chỉ email đã tồn tại rồi.", user });
+    console.log("User updated successfully:", user);
+    res.status(200).json({ message: "Cập nhật người dùng thành công.", user });
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ error: (error as Error).message });
@@ -350,13 +354,19 @@ export const deleteUser = async (
     // Then delete the user
     const user = await User.findByPk(userID);
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "Người dùng không tồn tại." });
       return;
     }
     await user.destroy();
-    res.status(200).json({ message: "User account deleted successfully" });
-  } catch (error) {
+    res.status(200).json({ message: "Xóa tài khoản thành công." });
+  } catch (error: any) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ error: (error as Error).message });
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      res.status(400).json({
+        message: "Không thể xóa người dùng vì thông tin của họ đang được sử dụng trong đơn hàng. Vui lòng xóa hoặc cập nhật các đơn hàng liên quan trước."
+      });
+    } else {
+      res.status(500).json({ message: "Đã xảy ra lỗi khi xóa người dùng. Hãy thử lại." });
+    }
   }
 };

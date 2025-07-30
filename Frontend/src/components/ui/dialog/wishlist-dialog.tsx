@@ -12,9 +12,8 @@ import {
 } from "@/components/ui/dialog/dialog";
 import Button from "@/components/ui/button/button-brand";
 import { X } from "lucide-react";
-import formatVND from "@/lib/format-vnd";
-import formatDate from "@/lib/format-date";
-import { useDictionary } from "@/contexts/dictonary-context";
+import formatVND from "@/lib/others/format-vnd";
+import formatDate from "@/lib/others/format-date";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
 import { DialogDescription } from "@radix-ui/react-dialog";
@@ -54,7 +53,6 @@ export default function WishlistDialog({
     const router = useRouter();
 
     // Contexts
-    const { dictionary: d, lang } = useDictionary(); // Dictionary context to get the text in different languages
     const { user } = useUser(); // User context to get the current user information
     
     // State variables
@@ -75,11 +73,11 @@ export default function WishlistDialog({
             <DialogContent className="p-0 rounded-md max-h-screen border-0 overflow-hidden font-sans bg-white min-w-2xl">
                 {/* Header */}
                 <div className="relative bg-primary text-white flex flex-col justify-start items-start px-6 py-6 -translate-y-1">
-                    <DialogTitle>{d?.wishlistDialogTitle || "Danh sách yêu thích"} ({wishlists.length < 10 ? 
+                    <DialogTitle>{"Danh sách yêu thích"} ({wishlists.length < 10 ? 
                         `0${wishlists.length}` : wishlists.length    
                 })</DialogTitle>
                     <DialogDescription className="text-sm text-white hidden">
-                        {d?.wishlistDialogDescription || "Bạn có thể thêm chúng vào giỏ hàng hoặc xóa khỏi danh sách này."}
+                        {"Bạn có thể thêm chúng vào giỏ hàng hoặc xóa khỏi danh sách này."}
                     </DialogDescription>
                     <DialogClose asChild className="text-white hover:text-white absolute top-4 right-3">
                         <X size={20} />
@@ -125,11 +123,11 @@ export default function WishlistDialog({
                                     variant="primary"
                                     onClick={() => onAddToCart(item.product.productID, user?.userID || '')}
                                 >
-                                    {d?.wishlistDialogAddToCart || "Thêm vào giỏ hàng"}
+                                    {"Thêm vào giỏ hàng"}
                                 </Button>
                             </div>
                         </div>
-                    )) : <span> {d?.wishlishDialogEmpty || "Chưa có sản phẩm nào trong danh sách yêu thích"}</span>}
+                    )) : <span> {"Chưa có sản phẩm nào trong danh sách yêu thích"}</span>}
                 </div>
 
                 {/* Footer */}
@@ -137,23 +135,23 @@ export default function WishlistDialog({
                     <button
                         disabled={wishlists.length === 0}
                         onClick={() => {
-                            router.push(`/${lang}/homepage/wishlists`);
+                            router.push(`/vi/homepage/wishlists`);
                             setOpen(false);
                         }}
                         className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {d?.wishlistDialogOpenWishlistPageLink || "MỞ TRANG DANH SÁCH YÊU THÍCH"}
+                        {"MỞ TRANG DANH SÁCH YÊU THÍCH"}
                     </button>
                     <DialogClose asChild>
 
                         <button
                             onClick={() => {
                                 setOpen(false);
-                                router.push(`/${lang}/homepage`);
+                                router.push(`/vi/homepage`);
                             }}
                             className="text-green-700 underline hover:text-green-800 text-sm cursor-pointer"
                         >
-                            {d?.wishlistDialogContinueShopping || "TIẾP TỤC MUA SẮM"}
+                            {   "TIẾP TỤC MUA SẮM"}
                         </button>
                     </DialogClose>
                 </DialogFooter>

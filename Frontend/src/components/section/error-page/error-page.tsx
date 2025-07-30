@@ -18,10 +18,9 @@ export default function ErrorPage() {
 
       {/* Error Message Section */}
       <div className="mt-4">
-        <h2 className="text-2xl font-bold text-gray-800 uppercase">404 - Page Not Found</h2>
+        <h2 className="text-2xl font-bold text-gray-800 uppercase">404 - Không tìm thấy trang</h2>
         <p className="mt-2 text-gray-600">
-          The page you are looking for might have been removed, had its name changed, or is
-          temporarily unavailable.
+          Trang bạn đang tìm kiếm có thể đã bị xóa, đã thay đổi tên, hoặc tạm thời không khả dụng.
         </p>
       </div>
 

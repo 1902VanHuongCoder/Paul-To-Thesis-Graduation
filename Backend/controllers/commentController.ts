@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Comment from "../models/Comment";
 import { User } from "../models";
+import Product from "../models/Product";
 
 // GET all comments
 export const getAllComments = async (req: Request, res: Response): Promise<void> => {
@@ -70,6 +71,15 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
       status,
     });
 
+    // Recalculate product rating after new comment
+    const allComments = await Comment.findAll({
+      where: { productID },
+      attributes: ["rating"],
+    });
+    const ratings = allComments.map((c: any) => c.rating).filter((r: number) => typeof r === "number");
+    const avgRating = ratings.length > 0 ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 5;
+    await Product.update({ rating: Math.round(avgRating) }, { where: { productID } });
+
     res.status(201).json(newComment);
   } catch (error) {
     console.error("Error creating comment:", error);
@@ -107,20 +117,19 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
   const { commentID } = req.params;
 
-  console.log("Deleting comment with ID:", commentID);
   try {
     const comment = await Comment.findByPk(commentID);
 
     if (!comment) {
-      res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Bình luận không tồn tại!" });
       return;
     }
 
     await comment.destroy();
-    res.status(204).send();
+    res.status(200).json({ message: "Bình luận đã được xóa thành công!" });
   } catch (error) {
     console.error("Error deleting comment:", error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: "Lỗi khi xóa bình luận" });
   }
 };
 

@@ -5,8 +5,10 @@ import { Product, InventoryTransaction } from "../models";
 // GET all inventory transactions
 export const getAllInventoryTransactions = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Sort by createdAt in descending order
     const transactions = await InventoryTransaction.findAll({
       include: [{ model: Product, as: "product" }],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(transactions);
   } catch (error) {

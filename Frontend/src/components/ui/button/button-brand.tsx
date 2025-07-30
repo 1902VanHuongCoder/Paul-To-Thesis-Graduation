@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"; // Helper to combine class names
+import { cn } from "@/lib/others/utils"; // Helper to combine class names
 import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

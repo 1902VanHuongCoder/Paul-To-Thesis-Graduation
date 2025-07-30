@@ -4,7 +4,7 @@ import Image from "next/image"
 import lightlogo from "@public/images/light+logo.png";
 import grazzvector from "@public/vectors/Grazz+vector.png";
 import Link from "next/link";
-import formatDate from "@/lib/format-date";
+import formatDate from "@/lib/others/format-date";
 import { fetchNews } from "@/lib/news-apis";
 
 type News = {
@@ -20,8 +20,7 @@ type News = {
     updatedAt: string;
 };
 
-
-export const Footerdemo = () => {
+export const Footer = () => {
     // Contexts
 
     const [news, setNews] = React.useState<News[]>([]);
@@ -37,18 +36,17 @@ export const Footerdemo = () => {
 
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans" aria-label="Site footer">
-            <div className="absolute -top-1 md:-top-3 overflow-hidden w-full h-fit" aria-hidden="true">
+            <div className="absolute -top-1 md:-top-4 overflow-hidden w-full h-fit" aria-hidden="true">
                 <Image src={grazzvector} width={800} height={1000} alt="Decorative grass vector" className="w-full h-full object-cover" priority />
             </div>
             <div className="container px-4 py-12 w-full mx-auto">
                 <div className="flex flex-col gap-y-4 md:flex-row items-start md:items-center justify-between border-b-[1px] border-dashed border-white/40 pb-8">
-                    <Link href="/" aria-label={"Trang chủ"}>
+                    <Link href="/" aria-label={"Trang chủ"} className="w-[200px] h-auto">
                         <Image 
                             src={lightlogo} 
                             width={200} 
                             height={200} 
-                            style={{ height: 'auto' }} 
-                            className="w-[200px] h-auto" 
+                            className="w-full h-full object-cover" 
                             alt={"NFeamHouse logo"} 
                             priority 
                         />
@@ -146,4 +144,4 @@ export const Footerdemo = () => {
     );
 };
 
-export default Footerdemo 
+export default Footer

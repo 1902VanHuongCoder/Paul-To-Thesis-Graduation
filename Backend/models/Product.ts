@@ -21,7 +21,7 @@ class Product extends Model {
   rating!: number;
   isShow: boolean = true;
   unit!: string;
-  expiredAt: Date | null = null;
+  expiredAt!: Date | null;
   quantityPerBox!: number;
   diseases!: number[]
 }

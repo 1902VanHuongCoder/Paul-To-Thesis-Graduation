@@ -2,15 +2,16 @@
 import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Hero, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton } from "@/components";
 import { Funnel } from "lucide-react";
 import React, { useEffect, useCallback } from "react";
-import { baseUrl } from "@/lib/base-url";
 import { useLoading } from "@/contexts/loading-context";
 import { motion, AnimatePresence } from "framer-motion";
-import removeDuplicates from "@/lib/remove-duplicate";
+import removeDuplicates from "@/lib/others/remove-duplicate";
 import Head from "next/head";
-import { fetchProducts } from "@/lib/product-apis";
+import {  fetchProductsNotExpired } from "@/lib/product-apis";
 import { fetchCategories } from "@/lib/category-apis";
-import { fetchTags } from "@/lib/product-tag-apis";
+import { fetchProductsByTag, fetchTags } from "@/lib/product-tag-apis";
 import { increaseNoAccess } from "@/lib/statistic-apis";
+import { useUser } from "@/contexts/user-context";
+
 interface Category {
     categoryDescription: string,
     categoryID: number,
@@ -44,6 +45,7 @@ interface Tag {
 
 const Homepage = () => {
     const { setLoading } = useLoading();
+    const { user } = useUser();
     const [showFilterKit, setShowFilterKit] = React.useState(false);
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [tags, setTags] = React.useState<Tag[]>([]);
@@ -52,7 +54,6 @@ const Homepage = () => {
     const [productView, setProductView] = React.useState("grid");
     const [productsAfterFilter, setProductsAfterFilter] = React.useState<Product[]>([]);
     const [listOfTagID, setListOfTagID] = React.useState<number[]>([]);
-
     const displayModeProps = {
         totalResults: productsAfterFilter.length,
         currentPage: 1,
@@ -69,7 +70,7 @@ const Homepage = () => {
         },
         {
             value: "asc",
-            label:  "Giá tăng dần",
+            label: "Giá tăng dần",
         },
         {
             value: "desc",
@@ -87,7 +88,6 @@ const Homepage = () => {
         return productsAfterFilter.slice(start, start + displayModeProps.resultsPerPage);
     }, [productsAfterFilter, currentPage, displayModeProps.resultsPerPage]);
 
-    // Memoize filter handlers for performance
     const handleCategoryFilter = useCallback((categoryID: number) => {
         const filteredProducts = products.filter((product) => product.categoryID === categoryID);
         setProductsAfterFilter(filteredProducts);
@@ -98,7 +98,7 @@ const Homepage = () => {
         const filteredProducts = products.filter((product) => {
             if (product.productPriceSale > 0) {
                 return product.productPriceSale >= min && product.productPriceSale <= max;
-            } 
+            }
             const price = product.productPrice;
             return price >= min && price <= max;
         });
@@ -107,34 +107,57 @@ const Homepage = () => {
     }, [products]);
 
     const handleTagFilter = useCallback((tagID: number) => {
-        const listOfTagIDTemp = [...listOfTagID, tagID];
-        const uniqueArr = removeDuplicates(listOfTagIDTemp);
+        let uniqueArr: number[];
+        if (listOfTagID.includes(tagID)) {
+            // Remove tagID if it exists
+            uniqueArr = listOfTagID.filter(id => id !== tagID);
+        } else {
+            // Add tagID if it doesn't exist
+            uniqueArr = removeDuplicates([...listOfTagID, tagID]);
+        }
+        if (uniqueArr.length === 0) {
+            setProductsAfterFilter(products);
+            setListOfTagID([]);
+            return;
+        }
         setListOfTagID(uniqueArr);
         const fetchProductIDContainTagID = async () => {
-            try {
-                const response = await fetch(`${baseUrl}/api/product-tag`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    }, body: JSON.stringify({ tagIDs: uniqueArr })
-                });
-                const data = await response.json();
-                const filteredProducts = products.filter((product) => data.productIDs.includes(product.productID));
-                setProductsAfterFilter(filteredProducts);
-            } catch (error) {
-                console.error("Error fetching product's IDs contain belong to tagID:", error);
-            }
+            const [response] = await Promise.all([
+                fetchProductsByTag(uniqueArr)
+            ]);
+            const filteredProducts = products.filter((product) => response.productIDs.includes(product.productID));
+            setProductsAfterFilter(filteredProducts);
         }
         fetchProductIDContainTagID();
     }, [listOfTagID, products]);
 
     const sortByPriceAsc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => a.productPrice - b.productPrice)
+        const sortedProducts = [...products].sort((a, b) => {
+            if (a.productPriceSale > 0 && b.productPriceSale > 0) {
+                return a.productPriceSale - b.productPriceSale;
+            } else if (a.productPriceSale > 0 && b.productPriceSale === 0) {
+                return a.productPriceSale - b.productPrice;
+            } else if (a.productPriceSale === 0 && b.productPriceSale > 0) {
+                return a.productPrice - b.productPriceSale;
+            } else {
+                return a.productPrice - b.productPrice;
+            }
+        })
         return sortedProducts;
     }
 
     const sortByPriceDesc = (products: Product[]) => {
-        const sortedProducts = [...products].sort((a, b) => b.productPrice - a.productPrice)
+        const sortedProducts = [...products].sort((a, b) => {
+            if (a.productPriceSale > 0 && b.productPriceSale > 0) {
+                return b.productPriceSale - a.productPriceSale;
+            } else if (a.productPriceSale > 0 && b.productPriceSale === 0) {
+                return b.productPriceSale - a.productPrice;
+            } else if (a.productPriceSale === 0 && b.productPriceSale > 0) {
+                return b.productPrice - a.productPriceSale;
+            } else {
+                return b.productPrice - a.productPrice;
+            }
+        })
         return sortedProducts;
     }
 
@@ -169,19 +192,15 @@ const Homepage = () => {
     useEffect(() => {
         const fetchAll = async () => {
             setLoading(true);
-            try {
-                const [categoriesData, tagsData, productsData] = await Promise.all([
-                    fetchCategories(),
-                    fetchTags(),
-                    fetchProducts(),
-                ]);
-                setCategories(categoriesData);
-                setTags(tagsData);
-                setProducts(productsData);
-                setProductsAfterFilter(productsData);
-            } catch (error) {
-                console.error(error);
-            }
+            const [categoriesData, tagsData, productsData] = await Promise.all([
+                fetchCategories(),
+                fetchTags(),
+                fetchProductsNotExpired(),
+            ]);
+            setCategories(categoriesData);
+            setTags(tagsData);
+            setProducts(productsData);
+            setProductsAfterFilter(productsData);
             setLoading(false);
         };
         fetchAll();
@@ -195,7 +214,7 @@ const Homepage = () => {
         <>
             <Head>
                 <title>{"NFeam House - Trang chủ"}</title>
-                <meta name="description" content={ "NFeam House - Nền tảng nông nghiệp thông minh, cung cấp giải pháp quản lý, tư vấn, và kết nối cho nhà nông hiện đại."} />
+                <meta name="description" content={"NFeam House - Nền tảng nông nghiệp thông minh, cung cấp giải pháp quản lý, tư vấn, và kết nối cho nhà nông hiện đại."} />
             </Head>
             <main className="relative mx-auto" aria-label="Nội dung chính trang chủ">
                 {/* Hero */}
@@ -208,7 +227,14 @@ const Homepage = () => {
                         <CategoryFilter categories={categories} onCategorySelect={handleCategoryFilter} />
                         <CashFilter onFilter={handleCashFilter} />
                         <NewestProduct products={products} />
-                        <TagFilter tags={tags} onTagSelect={handleTagFilter} />
+                        <TagFilter
+                            tags={tags}
+                            onTagSelect={handleTagFilter}
+                            onClear={() => {
+                                setListOfTagID([]);
+                                setProductsAfterFilter(products);
+                            }}
+                        />
                         <Button
                             variant="normal"
                             className="w-full mt-4 flex items-center justify-center gap-x-2 md:hidden"
@@ -272,7 +298,7 @@ const Homepage = () => {
                         />
                     </section>
                 </section>
-                <ChatBot />
+                {user && <ChatBot  />}
                 <ParterCarousel />
                 <ToTopButton />
             </main>

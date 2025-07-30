@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductDetails from "@/components/section/product-details/product-details";
-import { baseUrl } from "@/lib/base-url";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -16,14 +15,15 @@ import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
-import { AddToCartPanel, Breadcrumb, Button, CommentItem, ContentLoading } from "@/components";
+import { AddToCartPanel, Breadcrumb, CommentItem, ContentLoading } from "@/components";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/section/carousel/carousel";
 import { useDictionary } from "@/contexts/dictonary-context";
-import { Star } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/user-context";
 import { motion } from "framer-motion";
 import Card from "@/components/ui/card/card";
+import { dislikeComment, fetchCommentByProductID, likeComment } from "@/lib/product-comment-apis";
+import { fetchProductById, fetchProducts } from "@/lib/product-apis";
 
 interface Category {
   categoryID: number;
@@ -100,10 +100,6 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null); // Product details
   const [loading, setLoading] = useState(true); // Loading state 
   const [comments, setComments] = useState<ProductComment[]>([]); // Comments for the product
-  const [newComment, setNewComment] = useState(""); // New comment input
-  const [newRating, setNewRating] = useState(5); // New rating input (default 5 stars)
-  const [submitting, setSubmitting] = useState(false); // Submitting state for comment form
-  const commentInputRef = useRef<HTMLInputElement>(null); // Reference to comment input field
 
   const [currentTab, setCurrentTab] = useState("description"); // Current tab for product details (description, reviews, etc.)
   // --- Use a triggerRef after product info for AddToCartPanel visibility ---
@@ -130,7 +126,7 @@ export default function ProductDetailsPage() {
       TableHeader,
       TableCell,
     ],
-    content: '<p>Loading...</p>', // Initial content while loading
+    content: '<p>Đang tải...</p>', // Initial content while loading
     editable: false,
     immediatelyRender: false, // Fix SSR hydration warning
   });
@@ -147,45 +143,6 @@ export default function ProductDetailsPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle comment submission
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || !productID) return; // Prevent submission if comment is empty or productID is not available
-    setSubmitting(true);
-    try {
-      // Check if user is logged in
-      if (!user) {
-        toast.error("Bạn cần đăng nhập để bình luận.");
-        return;
-      }
-      const userID = user.userID
-      await fetch(`${baseUrl}/api/comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userID,
-          productID: Number(productID),
-          content: newComment,
-          rating: newRating,
-          status: "active",
-        }),
-      });
-
-      // Refetch comments
-      const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
-      const data = await res.json();
-
-      setComments(data.filter((c: ProductComment) => c.status === "active")); // Only set to show active comments
-      setNewComment("");
-      setNewRating(5);
-      commentInputRef.current?.focus();
-    } catch (err) {
-      console.error("Error submitting comment:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   // Like/dislike handlers 
   const handleLike = async (commentID: number) => {
     if (!user) {
@@ -193,17 +150,13 @@ export default function ProductDetailsPage() {
       return;
     }
     try {
-      await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "like" }),
-      });
+      await likeComment(commentID);
+      // Refetch comments
+      fetchComments();
     } catch (error) {
       console.error("Error liking comment:", error);
       toast.error("Lỗi khi thích bình luận.");
     }
-    // Refetch comments
-    fetchComments();
   };
 
   const handleDislike = async (commentID: number) => {
@@ -212,32 +165,25 @@ export default function ProductDetailsPage() {
       return;
     }
     try {
-      await fetch(`${baseUrl}/api/comment/reaction/${commentID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "dislike" }),
-      });
+      await dislikeComment(commentID);
+      // Refetch comments
+      fetchComments();
     } catch (error) {
       console.error("Error disliking comment:", error);
       toast.error("Lỗi khi không thích bình luận.");
     }
-    fetchComments();
   };
 
   // Fetch comments for the product
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch(`${baseUrl}/api/comment/product/${productID}`);
-      if (!res.ok) {
+      const data = await fetchCommentByProductID(Number(productID));
+
+      if (!Array.isArray(data)) {
         setComments([]);
-        return;
-      };
-      if(res.status === 201) {
-        setComments([]);
-        return;
       }
-      const data = await res.json();
-      setComments(data.filter((c: ProductComment) => c.status === "active"));
+
+      setComments(data);
     } catch (error) {
       setComments([]);
       console.error("Error fetching comments:", error);
@@ -248,9 +194,11 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${baseUrl}/api/product/${productID}`);
-        if (!res.ok) throw new Error("Failed to fetch product");
-        const data = await res.json();
+        const data = await fetchProductById(productID);
+        if (!data) {
+          setProduct(null);
+          return;
+        }
         setProduct(data);
         editor?.commands.setContent(JSON.parse(data.description));
       } catch (error) {
@@ -269,12 +217,15 @@ export default function ProductDetailsPage() {
 
   // Fetch all products for relative carousel
   useEffect(() => {
-    fetch(`${baseUrl}/api/product`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchProducts();
         setAllProducts(data);
-      })
-      .catch(() => setAllProducts([]));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   // Filter products with the same subcategory, exclude current product
@@ -331,7 +282,7 @@ export default function ProductDetailsPage() {
                     {product?.description && <EditorContent editor={editor} className="tiptap-editor" />}
                   </div>
                 ) : (
-                  <div className="mt-12 flex flex-col justify-between ">
+                  <div className="mt-12 flex flex-col justify-between">
                     <div>
                       <h2 className="text-4xl font-semibold">Bình luận</h2>
                       <div className="space-y-6 py-6 mb-[150px]">
@@ -353,6 +304,7 @@ export default function ProductDetailsPage() {
                               onDislike={() => handleDislike(comment.commentID)}
                               reFetchComments={fetchComments}
                               rating={comment.rating}
+                              type="product"
                             />
                           ))
                         ) : (
@@ -360,7 +312,7 @@ export default function ProductDetailsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
+                    {/* <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
                       <form onSubmit={handleCommentSubmit} className="flex flex-col gap-y-4">
                         <div className="flex items-start gap-2">
                           <span className="font-medium">Đánh giá:</span>
@@ -398,7 +350,7 @@ export default function ProductDetailsPage() {
                           </Button>
                         </div>
                       </form>
-                    </div>
+                    </div> */}
 
                   </div>)
               }

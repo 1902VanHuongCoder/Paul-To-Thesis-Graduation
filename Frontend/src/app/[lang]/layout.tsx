@@ -11,6 +11,7 @@ import { WishlistProvider } from "@/contexts/wishlist-context";
 import { CheckoutProvider } from "@/contexts/checkout-context";
 import { UserProvider } from "@/contexts/user-context";
 import { DiagnoseProvider } from "@/contexts/diagnose-context";
+import { ChatProvider } from "@/contexts/chat-context";
 
 const nunito = Nunito_Sans({
     variable: "--font-nunito",
@@ -50,7 +51,9 @@ export default function LangLayout({
                                 <WishlistProvider>
                                     <CheckoutProvider>
                                         <DiagnoseProvider>
+                                            <ChatProvider>
                                             {children}
+                                            </ChatProvider>
                                         </DiagnoseProvider>
                                     </CheckoutProvider>
                                 </WishlistProvider>

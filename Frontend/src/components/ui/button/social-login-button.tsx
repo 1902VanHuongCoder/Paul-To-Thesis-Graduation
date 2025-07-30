@@ -1,5 +1,5 @@
 "use client";
-import { auth } from "@/lib/firebase-config"; // Adjust the import path as necessary
+import { auth } from "@/lib/others/firebase-config"; // Adjust the import path as necessary
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import gglogo from "@public/images/gg+logo.png";
 import Image from "next/image";

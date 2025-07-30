@@ -10,9 +10,11 @@ interface Tag {
 interface TagFilterProps {
   tags: Tag[];
   onTagSelect?: (tagID: number) => void; // Optional callback for tag selection
+  onClear?: () => void; // Optional callback for clearing selection
 }
 
-export default function TagFilter({ tags, onTagSelect }: TagFilterProps) {
+
+export default function TagFilter({ tags, onTagSelect, onClear }: TagFilterProps) {
   const [selectedTag, setSelectedTag] = React.useState<number[]>([]);
 
   // Memoize handler for performance
@@ -35,6 +37,14 @@ export default function TagFilter({ tags, onTagSelect }: TagFilterProps) {
 
       {/* Tags List */}
       <div className="p-4 flex flex-wrap gap-2" aria-labelledby="tag-filter-heading">
+        <button
+          onClick={onClear}
+          className={`px-4 py-2 text-sm text-green-700 border-[1px] border-primary/50 rounded-full hover:bg-primary hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-green-500 ${!selectedTag.length ? "bg-primary text-white" : "bg-white text-primary"}`}
+          aria-label={`Lọc theo thẻ Tất cả`}
+          tabIndex={0}
+        >
+            Tất cả 
+        </button>
         {tags.slice(0, 10).map((tag) => (
           <button
             key={tag.tagID}

@@ -5,6 +5,7 @@ import {
   createNews,
   updateNews,
   deleteNews,
+  updateNewsViews,
 
 } from "../controllers/newsController";
 
@@ -21,6 +22,9 @@ router.post("/", createNews);
 
 // PUT (update) an existing news article by ID
 router.put("/:newsID", updateNews);
+
+// Update news's views
+router.put("/update-views/:newsID", updateNewsViews);
 
 // DELETE a news article by ID
 router.delete("/:newsID", deleteNews);
