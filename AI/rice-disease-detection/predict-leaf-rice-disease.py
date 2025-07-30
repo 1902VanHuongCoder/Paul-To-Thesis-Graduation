@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # Load YOLO model
-model = YOLO('best_10_epoch.pt')  # Update with your .pt file path
+model = YOLO('detect-leaf-rice-disease-model.pt')  # Update with your .pt file path
 
 # Roboflow client
 CLIENT = InferenceHTTPClient(
