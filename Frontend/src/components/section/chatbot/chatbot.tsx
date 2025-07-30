@@ -191,6 +191,7 @@ const ChatBot = () => {
             setIsLoading(true);
             const conversationID = generateConversationID(user.userID, admins[0].userID, true);
             const participants = admins.map(admin => admin.userID);
+            participants.unshift(user.userID);
             const data = await createConversation({
                 conversationID,
                 conversationName: user.username,

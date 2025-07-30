@@ -3,9 +3,11 @@ import { useUser } from "@/contexts/user-context";
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { addNewMessage, fetchConversations, loadChatMessages, markMessagesAsRead } from "@/lib/chat-apis";
+import { addNewMessage, fetchConversations, loadChatMessages, createConversation, markMessagesAsRead } from "@/lib/chat-apis";
 import socket from "@/lib/others/socket-client";
 import { useSearchParams } from "next/navigation";
+import { getAllAdmins } from "@/lib/user-apis";
+import { Input } from "@/components/ui/input/input";
 
 interface User {
   userID: string;
@@ -41,7 +43,7 @@ interface ConversationList {
 }
 
 export default function ChatPage() {
-  const [conversation, setConversation] = useState<ConversationList | null>(null);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversationUserBelongs, setConversationUserBelongs] = useState<ConversationList[]>([]);
   const { user } = useUser();
 
@@ -52,6 +54,59 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [userID, setUserID] = useState<string>("");
+
+  // State for searching/creating conversation by userID
+  const [searchUserID, setSearchUserID] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Handler to open or create a conversation with a customer by userID
+  const handleOpenChat = async () => {
+    if (!user) {
+      return;
+    }
+    let admins: User[] = [];
+    try {
+      // Get all admins from the backend to create group chat
+      admins = await getAllAdmins();
+    } catch (error) {
+      console.error("Error initializing chat:", error);
+    }
+    setIsLoading(true);
+    const conversationID = generateConversationID(user.userID, userID, true);
+    const participants = [userID, ...admins.map(admin => admin.userID)];
+
+    try {
+      const data = await createConversation({
+        conversationID,
+        conversationName: `Hỗ trợ user ${userID}`,
+        participants,
+        isGroup: true,
+      });
+
+      setConversation(data);
+      setJoinedConversationID(data.conversationID);
+
+      const convs: ConversationList[] = await fetchConversations(user.userID);
+      setConversationUserBelongs(convs);
+
+      // Ensure socket is connected before joining room
+      if (socket && data.conversationID) {
+        if (socket.connected) {
+          socket.emit("join_room", data.conversationID);
+        } else {
+          socket.on("connect", () => {
+            socket.emit("join_room", data.conversationID);
+          });
+        }
+      } else {
+        console.error("Socket connection not established or conversationID missing.");
+      }
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    }
+    setIsLoading(false);
+  };
 
 
   // Listen for incoming messages
@@ -128,56 +183,48 @@ export default function ChatPage() {
     ]);
   };
 
-  // Handle opening chat panel
-  const handleOpenChatPanel = async (conversationID: string, conversationData: ConversationList) => {
-    if (!user) return;
-    setJoinedConversationID(conversationID);
-    setConversation(conversationData);
-    // Join the room (ensure user joins the correct room for real-time updates)
-    if (socket && conversationID) {
-      socket.emit("join_room", conversationID);
+  // Generate conversation ID for user-admin chat
+  const generateConversationID = (userID: string, targetUserID: string, isGroup: boolean) => {
+    const day = new Date().getDay();
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+    // Generate 3 random digits 
+    const randomDigits = Math.floor(Math.random() * 900) + 100;
+    if (isGroup) {
+      return `GRP${userID}${day}${month}${year}${randomDigits}`;
     }
-    // Fetch messages for this conversation
-    try {
-      const data = await loadChatMessages(conversationID);
-      setMessages(data);
-      await markMessagesAsRead(conversationID, user.userID);
-      // Update unread count after marking as read
-      updateUnreadCount();
-    } catch (error) {
-      console.error("Error loading messages:", error);
-      setMessages([]);
-    }
-    // Update UI before
-    const conversationChanged = conversationUserBelongs.map((conv) => {
-      if (conv.conversationID === conversationID) {
-        return { ...conv, conversation: { ...conv.conversation, messages: [] } };
-      }
-      return conv;
-    });
-    setConversationUserBelongs(conversationChanged);
+    return `CON${userID}${targetUserID}${day}${month}${year}${randomDigits}`;
   };
 
-  // Update unread count for chat badge
-  const updateUnreadCount = async () => {
-    if (!user) return;
-    try {
-      const data: ConversationList[] = await fetchConversations(user.userID);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      let count = 0;
-      data.forEach((item) => {
-        if (item.conversation.messages && item.conversation.messages.length > 0) {
-          count += item.conversation.messages.filter(message => !message.isRead && message.senderID !== user.userID).length;
-        }
-      });
-      // If you have a global state for unreadCount, update it here
-      // setUnreadCount(count); // Uncomment if using local state
-      // Optionally, trigger a global event or context update
-    } catch (error) {
-      console.error("Error updating unread count:", error);
-      // setUnreadCount(0); // Uncomment if using local state
-    }
-  };
+  // // Handle opening chat panel
+  // const handleCreateConversation = async () => {
+  //   if (!user) return;
+  //   let admins: User[] = [];
+  //   try {
+  //     // Get all admins from the backend to create group chat
+  //     admins = await getAllAdmins();
+  //   } catch (error) {
+  //     console.error("Error initializing chat:", error);
+  //   }
+  //   const conversationID = generateConversationID(user.userID, "", false);
+  //   const participants = admins.map(admin => admin.userID);
+  //   participants.unshift(user.userID);
+
+  //   console.log("Creating conversation with participants:", participants);
+
+  //   const res = await createConversation({
+  //     conversationID,
+  //     conversationName: user.username,
+  //     participants,
+  //     isGroup: true,
+  //     conversationAvatar: user.avatar,
+  //   });
+
+  //   setJoinedConversationID(res.conversationID);
+  //   const data: ConversationList[] = await fetchConversations(user.userID);
+  //   setConversationUserBelongs(data);
+  // };
+
 
   // Ensure user joins the room on initial load if already in a conversation
   useEffect(() => {
@@ -199,6 +246,7 @@ export default function ChatPage() {
       try {
         const data: ConversationList[] = await fetchConversations(user.userID);
         setConversationUserBelongs(data);
+        console.log("Fetched conversations:", data);
       } catch (error) {
         console.error("Error fetching conversations:", error);
       }
@@ -214,92 +262,162 @@ export default function ChatPage() {
   }, [messages]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <div className="w-full bg-white flex border-[1px] border-gray-300">
-        {/* Sidebar: Danh sách cuộc trò chuyện */}
-        <aside className="w-80 border-r flex flex-col">
-          <div className="p-5 border-b flex items-center gap-2 text-primary-hover font-bold text-xl bg-white">
-            <MessageCircle className="w-7 h-7" /> Trò chuyện
+    <div className="min-h-screen">
+      <div className="flex flex-col items-center">
+        <div className="w-full  bg-white rounded-xl border">
+          {/* Top bar: Create conversation */}
+          <div className="flex gap-2 items-center px-6 py-4 border-b">
+            <input
+              className="flex-1 rounded-md px-3 py-2 text-sm border border-[#0d401c] focus:ring-2 focus:ring-[#278d45] transition"
+              placeholder="Nhập userID khách hàng..."
+              value={userID}
+              onChange={e => setUserID(e.target.value)}
+              disabled={isLoading}
+            />
+            <button
+              className="px-4 py-2 rounded-md text-sm font-semibold shadow disabled:opacity-60 transition"
+              style={{
+                background: "#0d401c",
+                color: "#fff",
+              }}
+              onClick={handleOpenChat}
+              disabled={!userID || isLoading}
+            >
+              {isLoading ? "Đang tải..." : "Mở trò chuyện"}
+            </button>
           </div>
-          <div className="flex-1 overflow-y-auto max-h-screen">
-            {conversationUserBelongs.length > 0 ? (
-              <ul className="pl-0">
-                {conversationUserBelongs.map((conv) => (
-                  <li key={conv.conversationID}>
-                    <button
-                      className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-primary-hover/10 hover:cursor-pointer transition text-left ${joinedConversationID === conv.conversationID ? "bg-primary-hover/10" : ""}`}
-                      onClick={() => handleOpenChatPanel(conv.conversationID, conv)}
-                    >
-                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300 text-white font-bold text-lg">
-                        {conv.conversation.conversationAvatar ? (
-                          <div className="rounded-full h-10 w-10">
-                            <Image src={conv.conversation.conversationAvatar} alt="Avatar" width={400} height={60} className="rounded-full h-full w-full object-cover" />
-                          </div>
-                        ) : (
-                          <MessageCircle className="w-6 h-6" />
-                        )}
-                      </span>
-                      <div className="flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold truncate text-blue-900">{conv.conversation.conversationName}</div>
-                        <p className="text-xs">
-                          {conv.conversation.hostID}
-                        </p>
-                        <div className="text-xs text-gray-600 truncate max-w-[180px]">
-                          {conv.conversation.newestMessage || "Chưa có tin nhắn."}
-                        </div>
-                      </div>
-                      <span className="">{conv.conversation.messages?.length || ''}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="p-5 text-gray-400">Không có cuộc trò chuyện nào.</div>
-            )}
-          </div>
-        </aside>
-        {/* Main Chat Panel */}
-        <main className="flex-1 flex flex-col h-full bg-white">
-          {/* Header */}
-          <div className="p-5 border-b font-semibold text-lg bg-gradient-to-r shadow-sm min-h-[56px] flex items-center">
-            {conversation?.conversation.conversationName || "Chọn một cuộc trò chuyện để bắt đầu"}
-          </div>
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 bg-white max-h-[calc(100vh-64px)]">
-            {messages.length === 0 && <div className="text-gray-400">Chưa có tin nhắn nào.</div>}
-            {messages.length > 0 && messages.map((msg, idx) => (
-              <div
-                key={msg.messageID || Math.random()}
-                className={`mb-3 flex ${msg.senderID === user?.userID ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`rounded-2xl px-4 py-2 max-w-[70%] break-words shadow ${msg.senderID === user?.userID ? "bg-primary-hover text-white" : "bg-gray-200 text-gray-900"}`}
-                >
-                  <span className="block mb-1">{msg.content}</span>
-                  <span className="block text-xs text-right opacity-70">
-                    {msg.sender?.username || msg.senderID} | {new Date(msg.createdAt).toLocaleTimeString()}
-                  </span>
-                </div>
-                {idx === messages.length - 1 && <div ref={messagesEndRef} />}
+          <div className="flex w-full min-h-[600px]">
+            {/* Sidebar: Danh sách cuộc trò chuyện */}
+            <aside className="w-72 border-r flex flex-col bg-[#f6f8f7]">
+              <div className="p-5 border-b flex items-center gap-3 font-bold text-lg bg-white text-[#0d401c]">
+                <MessageCircle className="w-6 h-6" /> Trò chuyện
               </div>
-            ))}
+              {/* Search conversation */}
+              <div className="p-4">
+                <Input
+                  className="border rounded-md px-3 py-2 text-sm w-full focus:ring-2 focus:ring-[#278d45] transition"
+                  style={{
+                    borderColor: "#0d401c",
+                    color: "#0d401c",
+                  }}
+                  placeholder="Tìm kiếm userID khách hàng..."
+                  value={searchUserID}
+                  onChange={e => setSearchUserID(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+                {conversationUserBelongs.length > 0 ? (
+                  <ul className="pl-0">
+                    {(searchUserID
+                      ? conversationUserBelongs.filter(conv => conv.conversation.conversationID.includes(searchUserID))
+                      : conversationUserBelongs
+                    ).map((conv) => (
+                      <li key={conv.conversationID} className="px-2">
+                        <button
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-md mb-2 transition text-left ${joinedConversationID === conv.conversationID
+                            ? "border border-[#278d45] bg-[#eaf7ef]"
+                            : "hover:bg-[#eaf7ef]"
+                            }`}
+                          onClick={async () => {
+                            setJoinedConversationID(conv.conversationID);
+                            if (user) {
+                              try {
+                                await markMessagesAsRead(conv.conversationID, user.userID);
+                                const updatedConvs = await fetchConversations(user.userID);
+                                setConversationUserBelongs(updatedConvs);
+                              } catch (err) {
+                                console.error('Error marking messages as read:', err);
+                              }
+                            }
+                          }}
+                        >
+                          <span className="flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg bg-[#0d401c] text-white">
+                            {conv.conversation.conversationAvatar ? (
+                              <div className="rounded-full h-10 w-10 overflow-hidden border-2 border-white shadow">
+                                <Image src={conv.conversation.conversationAvatar} alt="Avatar" width={40} height={40} className="rounded-full h-full w-full object-cover" />
+                              </div>
+                            ) : (
+                              <MessageCircle className="w-5 h-5" />
+                            )}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold truncate text-[#0d401c]">{conv.conversation.conversationName}</div>
+                            <div className="text-xs text-gray-500 truncate max-w-[150px]">
+                              {conv.conversation.newestMessage || "Chưa có tin nhắn."}
+                            </div>
+                          </div>
+                          {conv.conversation.messages?.length ? (
+                            <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-bold bg-[#278d45] text-white">
+                              {conv.conversation.messages.length}
+                            </span>
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-5 text-gray-400 text-center">Không có cuộc trò chuyện nào.</div>
+                )}
+              </div>
+            </aside>
+            {/* Main Chat Panel */}
+            <main className="flex-1 flex flex-col h-full bg-white">
+              {/* Header */}
+              <div className="p-5 border-b font-semibold text-base bg-white text-[#0d401c] min-h-[56px] flex items-center">
+                {conversation?.conversationName || "Chọn một cuộc trò chuyện để bắt đầu"}
+              </div>
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 bg-white max-h-[calc(100vh-180px)]">
+                {messages.length === 0 && (
+                  <div className="text-gray-400 text-center mt-10">Chưa có tin nhắn nào.</div>
+                )}
+                {messages.length > 0 && messages.map((msg, idx) => (
+                  <div
+                    key={msg.messageID || Math.random()}
+                    className={`mb-4 flex ${msg.senderID === user?.userID ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className="rounded-xl px-4 py-2 max-w-[70%] break-words shadow"
+                      style={{
+                        background: msg.senderID === user?.userID ? "#0d401c" : "#f6f8f7",
+                        color: msg.senderID === user?.userID ? "#fff" : "#0d401c",
+                      }}
+                    >
+                      <span className="block mb-1">{msg.content}</span>
+                      <span className="block text-xs text-right opacity-70">
+                        {msg.sender?.username || msg.senderID} | {new Date(msg.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {idx === messages.length - 1 && <div ref={messagesEndRef} />}
+                  </div>
+                ))}
+              </div>
+              {/* Input */}
+              {joinedConversationID && (
+                <div className="p-4 border-t flex gap-3 bg-white">
+                  <input
+                    className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#278d45] transition text-base bg-white shadow"
+                    style={{
+                      borderColor: "#0d401c",
+                      color: "#0d401c",
+                    }}
+                    placeholder="Nhập tin nhắn..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  />
+                  <button
+                    className="px-6 py-2 rounded-full font-semibold shadow transition text-base bg-[#278d45] text-white"
+                    onClick={handleSendMessage}
+                  >
+                    Gửi
+                  </button>
+                </div>
+              )}
+            </main>
           </div>
-          {/* Input */}
-          {joinedConversationID && (
-            <div className="p-4 border-t flex gap-2 bg-white">
-              <input
-                className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-hover"
-                placeholder="Nhập tin nhắn..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-              />
-              <button className="bg-primary-hover text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-primary-hover transition" onClick={handleSendMessage}>
-                Gửi
-              </button>
-            </div>
-          )}
-        </main>
+        </div>
       </div>
     </div>
   );

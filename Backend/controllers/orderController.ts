@@ -29,6 +29,7 @@ export const getAllOrders = async (
           through: { attributes: ["quantity", "price"] },
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(orders);
   } catch (error) {

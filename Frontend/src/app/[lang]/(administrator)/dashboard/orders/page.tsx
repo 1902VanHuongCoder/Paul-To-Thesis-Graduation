@@ -78,6 +78,8 @@ export default function OrdersPage() {
   const [refresh] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [userName, setUserName] = useState<string>("");
+  const [userPhone, setUserPhone] = useState<string>("");
 
   useEffect(() => {
     const fetchOrdersData = async () => {
@@ -120,6 +122,8 @@ export default function OrdersPage() {
   const filteredOrders = orders
     .filter(order => {
       if (status !== "all" && order.orderStatus !== status) return false;
+      if (userName && !order.fullName.toLowerCase().includes(userName.toLowerCase())) return false;
+      if (userPhone && !order.phone.includes(userPhone)) return false;
       if (month) {
         const orderMonth = new Date(order.createdAt).toISOString().slice(0, 7); // 'YYYY-MM'
         if (orderMonth !== month) return false;
@@ -155,12 +159,34 @@ export default function OrdersPage() {
       <div className="flex flex-wrap items-end mb-6 gap-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
+            <label className="block font-medium mb-1">Tìm kiếm</label>
+            <Input
+              type="text"
+              placeholder="Tìm theo tên khách hàng"
+              value={userName}
+              onChange={e => setUserName(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          {/* Filter by phone number */}
+          <div>
+            <label className="block font-medium mb-1">Số điện thoại</label>
+            <Input
+              type="text"
+              placeholder="Tìm theo số điện thoại"
+              value={userPhone}
+              onChange={e => setUserPhone(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          {/*  */}
+          <div>
             <label className="block font-medium mb-1">Tháng</label>
             <Input
               type="month"
               value={month}
               onChange={e => setMonth(e.target.value)}
-              className="w-48"
+              className="w-48 inline"
             />
           </div>
           <div>

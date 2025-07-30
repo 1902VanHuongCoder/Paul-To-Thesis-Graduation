@@ -28,6 +28,7 @@ import {
 import toast from "react-hot-toast";
 import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
 import formatDate from "@/lib/others/format-date";
+import { useUser } from "@/contexts/user-context";
 
 interface User {
   userID: string;
@@ -42,6 +43,7 @@ interface User {
 
 export default function UsersPage() {
   // const {lang} = useDictionary();
+  const { user: currentUser } = useUser();
   const [users, setUsers] = React.useState<User[]>([])
   const [usernameFilter, setUsernameFilter] = React.useState("")
   const [userIDFilter, setUserIDFilter] = React.useState("")
@@ -205,8 +207,8 @@ export default function UsersPage() {
               </TableCell>
               <TableCell>
                 <button
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${user.isActive ? "bg-green-700 text-white hover:bg-green-200" : "bg-red-100 text-red-700 hover:bg-red-200"}`}
-                  disabled={updatingUserId === user.userID}
+                  disabled={user.role === "adm" && currentUser?.userID === user.userID}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${user.isActive ? "bg-green-700 text-white hover:bg-green-200" : "bg-red-100 text-red-700 hover:bg-red-200"} disabled:opacity-50 hover:cursor-pointer`}
                   onClick={() => handleToggleStatus(user)}
                   title={user.isActive ? "Vô hiệu hóa tài khoản" : "Kích hoạt tài khoản"}
                 >

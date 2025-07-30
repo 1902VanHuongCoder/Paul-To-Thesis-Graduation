@@ -485,34 +485,33 @@ export const getPoorSellingProducts = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Find products that have never been ordered
-    const poorSellingProducts = await Product.findAll({
+    // 1. Find up to 10 products that have never been ordered
+    const neverOrderedProducts = await Product.findAll({
       where: {
         productID: {
-          [Op.notIn]: OrderProduct.sequelize!.fn(
-            "DISTINCT",
-            OrderProduct.sequelize!.col("productID")
-          ),
+          [Op.notIn]: OrderProduct.sequelize!.literal('(SELECT DISTINCT productID FROM order_products)')
         },
       },
+      limit: 10,
     });
 
-    // If poor selling products are lower than 5, fetch the top 5 products with the least orders
-    if (poorSellingProducts.length < 5) {
-      const topPoorSellingProducts = await OrderProduct.findAll({
+    let resultProducts = [...neverOrderedProducts];
+
+    // 2. If less than 10, fill with slowest-selling products (lowest order count, excluding already selected)
+    if (resultProducts.length < 10) {
+      const excludedIDs = resultProducts.map(p => p.productID);
+      // Find products with the lowest order count, excluding those already in neverOrderedProducts
+      const slowProducts = await OrderProduct.findAll({
         attributes: [
           "productID",
-          [
-            OrderProduct.sequelize!.fn(
-              "COUNT",
-              OrderProduct.sequelize!.col("orderID")
-            ),
-            "orderCount",
-          ],
+          [OrderProduct.sequelize!.fn("COUNT", OrderProduct.sequelize!.col("orderID")), "orderCount"],
         ],
+        where: excludedIDs.length > 0 ? {
+          productID: { [Op.notIn]: excludedIDs }
+        } : {},
         group: ["productID"],
         order: [[OrderProduct.sequelize!.literal("orderCount"), "ASC"]],
-        limit: 5 - poorSellingProducts.length,
+        limit: 10 - resultProducts.length,
         include: [
           {
             model: Product,
@@ -520,13 +519,13 @@ export const getPoorSellingProducts = async (
           },
         ],
       });
-
-      // Combine both results
-      res.status(200).json([...poorSellingProducts, ...topPoorSellingProducts]);
-      return;
+      // For slowProducts, return the associated Product instance (for consistent output)
+      const slowProductInstances = slowProducts.map((item: any) => item.product);
+      resultProducts = [...resultProducts, ...slowProductInstances];
     }
 
-    res.status(200).json(poorSellingProducts);
+    // Only return up to 10 products
+    res.status(200).json(resultProducts.slice(0, 10));
   } catch (error) {
     console.error("Error fetching poor selling products:", error);
     res.status(500).json({ error: (error as Error).message });
