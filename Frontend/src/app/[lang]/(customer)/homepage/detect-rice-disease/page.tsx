@@ -186,214 +186,393 @@ export default function DetectRiceDiseaseDemo() {
   };
 
   return (
-    <div className="px-6 py-10 font-sans">
-      <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Chẩn đoán bệnh lúa" }]} />
-      <h1 className="text-2xl font-bold mb-6 mt-6 uppercase text-center">CHẨN ĐOÁN BỆNH DỰA TRÊN LÁ LÚA</h1>
-      <p className="flex items-center gap-2 py-4"><span><CircleAlert /></span><span>Sử dụng hình ảnh lá lúa chất lượng, không bị mờ sẽ giúp hệ thống chẩn đoán chính xác hơn.</span></p>
-      <div className="grid grid-cols-[1fr_1px_1fr] gap-6">
-        <div>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-center gap-4 mb-6"
-            onDragOver={e => { e.preventDefault(); setDragActive(true); }}
-            onDragLeave={e => { e.preventDefault(); setDragActive(false); }}
-            onDrop={e => {
-              e.preventDefault(); setDragActive(false);
-              const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
-              if (files.length > 0) {
-                setFile(files[0]);
-                setResult(null);
-                setError(null);
-                setDiseaseDetails([]);
-              }
-            }}
+    <div className="px-6 py-10 font-sans bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] min-h-screen">
+      <Breadcrumb
+      items={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Chẩn đoán bệnh lúa" },
+      ]}
+      />
+      <h1 className="text-3xl font-extrabold mb-6 mt-8 uppercase text-center tracking-wide text-[#0d401c] drop-shadow-lg">
+      CHẨN ĐOÁN BỆNH DỰA TRÊN LÁ LÚA
+      </h1>
+      <p className="flex gap-2 py-4 bg-[#f8c32c]/20 rounded-lg shadow-sm mb-8 items-center px-4 border-l-4 border-[#f8c32c]">
+      <span>
+        <CircleAlert className="text-[#278d45]" />
+      </span>
+      <span className="text-[#0d401c] font-medium">
+        Sử dụng hình ảnh lá lúa chất lượng, không bị mờ sẽ giúp hệ thống chẩn đoán chính xác hơn.
+      </span>
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1px_1fr] gap-12 mx-auto">
+      {/* Upload Section */}
+      <div>
+        <form
+        onSubmit={handleSubmit}
+        className="flex flex-col items-center gap-6 mb-8"
+        onDragOver={e => { e.preventDefault(); setDragActive(true); }}
+        onDragLeave={e => { e.preventDefault(); setDragActive(false); }}
+        onDrop={e => {
+          e.preventDefault(); setDragActive(false);
+          const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+          if (files.length > 0) {
+          setFile(files[0]);
+          setResult(null);
+          setError(null);
+          setDiseaseDetails([]);
+          }
+        }}
+        >
+        <div
+          className={`w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center transition-all cursor-pointer min-h-[340px] bg-gradient-to-br ${dragActive ? "from-[#f8c32c]/30 to-[#278d45]/20 border-[#f8c32c] shadow-2xl" : "from-white to-[#eaf7ef] border-[#278d45]/30 shadow-lg"} hover:shadow-2xl hover:border-[#278d45]`}
+          onClick={() => document.getElementById("detect-image-input")?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Kéo thả hoặc click để tải ảnh"
+        >
+          <input
+          id="detect-image-input"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+          />
+          {file ? (
+          <div className="relative w-full min-h-[300px] max-h-[500px] rounded-xl overflow-hidden shadow-xl border-2 border-[#278d45]/30 bg-white mb-2 flex items-center justify-center">
+            <Image
+            width={320}
+            height={240}
+            src={URL.createObjectURL(file)}
+            alt="Uploaded"
+            className="w-full h-full object-contain rounded-xl"
+            />
+            <AnimatePresence>
+            {loading && (
+              <motion.div
+          key="scan"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
+              >
+          {/* Enhanced scan animation */}
+          <motion.div
+            className="relative"
+            initial={{ rotate: 0 }}
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+            style={{ width: 140, height: 140 }}
           >
-            <div
-              className={`w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-colors cursor-pointer min-h-[300px] ${dragActive ? "border-primary bg-primary/10" : "border-gray-300 bg-gray-50"}`}
-              onClick={() => document.getElementById("detect-image-input")?.click()}
-              role="button"
-              tabIndex={0}
-              aria-label="Kéo thả hoặc click để tải ảnh"
-            >
-              <input
-                id="detect-image-input"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleFileChange}
+            <svg width="140" height="140" className="block">
+              <defs>
+                <radialGradient id="scanGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#f8c32c" stopOpacity="0.8" />
+            <stop offset="70%" stopColor="#278d45" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#278d45" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient id="scanArc" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f8c32c" />
+            <stop offset="100%" stopColor="#278d45" />
+                </linearGradient>
+              </defs>
+              {/* Outer glowing circle */}
+              <circle
+                cx="70"
+                cy="70"
+                r="60"
+                fill="none"
+                stroke="url(#scanGlow)"
+                strokeWidth="10"
+                style={{ filter: "blur(2.5px)" }}
               />
-              {file ? (
-                <div className="relative w-full min-h-[300px] max-h-[500px] rounded-xl overflow-hidden shadow mb-2">
-                  <Image
-                    width={320}
-                    height={240}
-                    src={URL.createObjectURL(file)}
-                    alt="Uploaded"
-                    className="w-full h-full object-contain rounded-xl"
-                  />
-                  <AnimatePresence>
-                    {loading && (
-                      <motion.div
-                        key="scan"
-                        initial={{ y: -240, opacity: 0.7 }}
-                        animate={{ y: 240, opacity: 0.7 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1.2, repeat: Infinity, repeatType: "loop", ease: "linear" }}
-                        className="absolute left-0 w-full h-8 bg-gradient-to-r from-primary/20 via-primary/60 to-primary/20 rounded-xl pointer-events-none z-10 blur-sm"
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
+              {/* Animated arc */}
+              <motion.circle
+                cx="70"
+                cy="70"
+                r="52"
+                fill="none"
+                stroke="url(#scanArc)"
+                strokeWidth="8"
+                strokeDasharray="80 240"
+                strokeDashoffset="0"
+                initial={{ strokeDashoffset: 0 }}
+                animate={{ strokeDashoffset: 320 }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                style={{ filter: "drop-shadow(0 0 8px #f8c32c88)" }}
+              />
+              {/* Pulsing inner circle */}
+              <motion.circle
+                cx="70"
+                cy="70"
+                r="22"
+                fill="#f8c32c"
+                stroke="#278d45"
+                strokeWidth="3"
+                animate={{ scale: [1, 1.12, 1] }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                style={{ opacity: 0.85, filter: "blur(0.5px)" }}
+              />
+            </svg>
+            {/* Sparkle dots */}
+            <motion.div
+              className="absolute left-1/2 top-1/2"
+              style={{ transform: "translate(-50%, -50%)" }}
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+            >
+              <div className="flex gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#f8c32c] shadow-lg" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#278d45] shadow" />
+                <span className="w-1 h-1 rounded-full bg-[#f8c32c] shadow" />
+              </div>
+            </motion.div>
+          </motion.div>
+          <span className="absolute left-1/2 top-full mt-4 -translate-x-1/2 text-[#278d45] font-bold bg-white/80 px-4 py-2 rounded-xl shadow border border-[#278d45]/20 text-base">
+            Đang quét ảnh...
+          </span>
+              </motion.div>
+            )}
+            </AnimatePresence>
+          </div>
+          ) : (
+          <div className="flex flex-col items-center">
+            <span className="text-[#278d45] text-base mb-2 font-semibold tracking-wide">
+            Kéo thả hoặc click để tải ảnh bệnh lúa
+            </span>
+            <span className="text-xs text-[#0d401c]/70">(Chọn một ảnh)</span>
+            <svg width="64" height="64" fill="none" className="mt-6 mb-2">
+            <rect x="2" y="2" width="60" height="60" rx="16" fill="#f8c32c" stroke="#278d45" strokeWidth="2" />
+            <path d="M32 18v28M18 32h28" stroke="#0d401c" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </div>
+          )}
+        </div>
+        <div className="flex justify-end w-full">
+          <button
+          type="submit"
+          disabled={!file || loading}
+          className="px-10 py-3 rounded-xl bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow-xl hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition-all disabled:opacity-60 disabled:cursor-not-allowed tracking-wide text-lg"
+          >
+          {loading ? (
+            <span className="flex items-center gap-2">
+            <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            Đang chẩn đoán...
+            </span>
+          ) : "Chẩn đoán"}
+          </button>
+        </div>
+        </form>
+      </div>
+      {/* Divider */}
+      <div className="hidden md:block bg-gradient-to-b from-[#f8c32c]/40 to-[#278d45]/20 w-[2px] mx-auto rounded-full" />
+      {/* Result Section */}
+      <div>
+        <div className="flex items-center gap-x-2 mb-4">
+            <svg width="32" height="32" fill="none"><rect x="2" y="2" width="28" height="28" rx="8" fill="#f8c32c" stroke="#278d45" strokeWidth="2" /><path d="M16 9v12M9 16h14" stroke="#0d401c" strokeWidth="2" strokeLinecap="round" /></svg>
+            <span className="ml-2 text-[#0d401c] font-semibold">Kết quả chẩn đoán</span>
+        </div>
+
+        {diseaseDetails.length === 0 && !result && !error && (
+        <div className="text-[#278d45]/60 text-center italic bg-white/90 rounded-xl py-10 shadow-inner border border-[#278d45]/10">
+          Chưa có kết quả chẩn đoán.
+        </div>
+        )}
+        {diseaseDetails.length > 1 && result && !error && (
+        <div className="text-[#278d45] flex gap-x-2 bg-[#f8c32c]/10 p-3 rounded-lg border border-[#f8c32c]/40 mb-4 shadow">
+          <span>
+          <CircleAlert className="text-[#f8c32c]" />
+          </span>
+          <span>
+          Vui lòng kiểm tra xem có bệnh nào dưới đây trùng với thiệt hại trên cây lúa của bạn không
+          </span>
+        </div>
+        )}
+        <div className="mt-8">
+        {/* Show fetched disease details */}
+        {diseaseDetails.length > 0 && (
+          <div className="grid gap-8">
+          {diseaseDetails.map((disease, idx) => (
+            <div
+            key={disease.diseaseID || idx}
+            className="border border-[#278d45]/20 bg-white rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col md:flex-row items-center gap-6"
+            >
+              <div className="flex-shrink-0 w-[120px] h-[120px] bg-white rounded-xl flex items-center justify-center border border-[#278d45]/10 shadow">
+              {disease && disease.images && disease.images.length > 0 ? (
+              <Image
+                key={disease.diseaseID || idx}
+                src={disease.images[0]}
+                alt="Disease"
+                width={110}
+                height={110}
+                className="rounded-lg object-cover border shadow w-full h-full"
+              />
               ) : (
-                <>
-                  <span className="text-gray-500 text-sm mb-2">Kéo thả hoặc click để tải ảnh bệnh lúa</span>
-                  <span className="text-xs text-gray-400">(Chọn một ảnh)</span>
-                </>
+              <span className="text-[#278d45]/40 text-xs">Không có hình ảnh</span>
               )}
             </div>
-            <div className="flex justify-end w-full">
-              <button type="submit" disabled={!file || loading} className="px-6 py-2 rounded-lg bg-primary text-white font-semibold shadow hover:bg-primary/90 transition">
-                {loading ? "Đang chẩn đoán..." : "Chẩn đoán"}
+            <div className="space-y-2 flex-1">
+              <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
+              {disease.diseaseName}
+              </div>
+              <div className="text-sm text-[#278d45]">
+              <b>Tên tiếng Anh:</b> {disease.diseaseEnName}
+              </div>
+              <div className="text-sm text-[#278d45]">
+              <b>Tác nhân:</b> {disease.ricePathogen}
+              </div>
+            </div>
+            <div>
+              <button
+              className="mt-2 px-5 py-2 border-[#278d45]/30 border-[1px] text-[#278d45] rounded-lg hover:bg-[#278d45] hover:text-white hover:cursor-pointer transition flex items-center gap-x-2 font-semibold shadow"
+              onClick={() => {
+                setSelectedDisease(disease);
+                setDialogOpen(true);
+              }}
+              >
+              <span>Xem chi tiết bệnh</span>
+              <span>
+                <Eye />
+              </span>
               </button>
             </div>
-          </form>
-        </div>
-        <div className="bg-gray-200" />
-        <div>
-          <h3 className="text-xl font-semibold text-primary mb-2">Kết quả chẩn đoán</h3>
-          {diseaseDetails.length === 0 && !result && !error && (
-            <div className="text-gray-500 text-center">Chưa có kết quả chẩn đoán.</div>
-          )}
-          {diseaseDetails.length > 1 && result && !error && (
-            <div className="text-gray-500 flex gap-x-2 bg-yellow-100 p-2 rounded-md"><span><CircleAlert /></span> <span>Vui lòng kiểm tra xem có bệnh nào dưới đây trùng với thiệt hại trên cây lúa của bạn không</span></div>
-          )}
-          {
-            <div className="mt-6">
-              {/* Show fetched disease details */}
-              {diseaseDetails.length > 0 && (
-                <div className="mt-6">
-                  <div className="grid gap-6">
-                    {diseaseDetails.map((disease, idx) => (
-                      <div key={disease.diseaseID || idx} className="border rounded-xl p-4">
-                        <div className="flex gap-x-4">
-                          <div className="flex-shrink-0 w-[100px] h-[100px]">
-                            <Image key={disease.diseaseID || idx} src={disease && disease.images && disease.images.length > 0 ? disease.images[0] : "Không có hình ảnh"} alt="Disease" width={80} height={80} className="rounded-lg object-cover border shadow w-full h-full" />
-                          </div>
-                          <div className="space-y-1"> <div className="font-bold text-2xl text-primary uppercase">{disease.diseaseName}</div>
-                            <div className="text-sm text-gray-600"><b>Tên tiếng Anh:</b> {disease.diseaseEnName}</div>
-                            <div className="text-sm text-gray-600"><b>Tác nhân:</b> {disease.ricePathogen}</div></div>
-                        </div>
-                        <div className="flex justify-end">
-                          <button className="mt-2 px-4 py-2 border-gray-200 border-[1px] text-primary rounded-lg hover:bg-primary/90 hover:text-white hover:cursor-pointer transition flex items-center gap-x-2" onClick={() => {
-                            setSelectedDisease(disease);
-                            setDialogOpen(true);
-                          }}><span>Xem chi tiết bệnh</span><span><Eye /></span></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* Disease Details Dialog */}
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-4xl">
-                  <DialogHeader>
-                    <DialogTitle className="uppercase text-center text-2xl">{selectedDisease?.diseaseName || 'Chi tiết bệnh'}</DialogTitle>
-                  </DialogHeader>
-                  <div className="mb-4 space-y-2">
-                    <div className="mb-4 max-w-full flex justify-center gap-x-2">
-                      {selectedDisease?.images && selectedDisease.images.length > 0 ? (
-                        <div className="w-[300px] h-[300px]">
-                          <Image src={selectedDisease.images[0]} alt="Disease" width={80} height={80} className="rounded-lg object-cover border shadow w-full h-full" />
-                        </div>
-                      ) : (
-                        "Không có hình ảnh"
-                      )}
-                    </div>
-                    <div className="">Tên tiếng Anh: <span className="text-xl font-semibold">{selectedDisease?.diseaseEnName}</span></div>
-                    <div className="">Tác nhân: <span className="text-xl font-semibold">{selectedDisease?.ricePathogen}</span></div>
-                  </div>
-                  <div className="prose prose-blue max-w-none tiptap-content mb-8">
-                    {selectedDisease?.symptoms && <EditorContent editor={editor} className="tiptap-editor" />}
-                  </div>
-                  <DialogClose asChild>
-                    <div className="flex gap-x-4">
-                      <button className="mt-2 px-4 py-2 rounded-lg font-semibold border-1 border-gray-400 hover:bg-gray-200 transition w-full hover:cursor-pointer">Đóng</button>
-                      <button
-                        className="mt-2 px-4 py-2 rounded-lg bg-primary text-white font-semibold shadow hover:bg-primary/90 transition w-full hover:cursor-pointer"
-                        onClick={() => {
-                          if (selectedDisease && selectedDisease.diseaseID) {
-                            handleViewProducts(selectedDisease.diseaseID);
-                          }
-                          setDialogOpen(false);
-                        }}
-                      >Xem thuốc</button>
-                    </div>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-              {/* Products Dialog */}
-              <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl">Danh sách sản phẩm liên quan đến bệnh</DialogTitle>
-                    <p className="flex items-center gap-x-2 p-2 bg-yellow-100 rounded-md"><span><CircleAlert /></span><span>Chỉ chọn một sản phẩm để giải quyết vấn đề hiện tại. Khuyến khích sản phẩm ít độc hại cho lúa.</span></p>
-                  </DialogHeader>
-                  {loadingProducts ? (
-                    <div className="text-center py-8">Đang tải sản phẩm...</div>
-                  ) : productsForDisease.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">Không có sản phẩm nào liên quan đến bệnh này.</div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {productsForDisease.map((product, idx) => (
-                        <NextLink href={`/vi/homepage/product-details/${product.productID}`} key={product.productID || idx} className="border rounded-xl p-4 flex gap-x-4 items-center">
-                          <div className="w-[80px] h-[80px] flex-shrink-0">
-                            {product.images && product.images.length > 0 ? (
-                              <Image src={product.images[0]} alt={product.productName} width={80} height={80} className="rounded-lg object-cover border shadow w-full h-full" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">Không có hình ảnh</div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-bold text-lg text-primary">{product.productName}</div>
-                            <div className="text-sm text-gray-600">Giá: {product.productPrice?.toLocaleString()}đ</div>
-                            <div className="text-sm text-gray-600">Đơn vị: {product.unit}</div>
-                          </div>
-                        </NextLink>
-                      ))}
-                    </div>
-                  )}
-                  <DialogClose asChild>
-                    <button className="mt-6 px-4 py-2 rounded-lg font-semibold border-1 border-gray-400 hover:bg-gray-200 transition w-full hover:cursor-pointer">Đóng</button>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-
-
-
-
-
-
-
-
-
-              {/* {processedImg && (
-                <div className="mt-6">
-                  <div className="font-semibold mb-2 text-gray-700">Processed Image:</div>
-                  <Image
-                    width={320}
-                    height={240}
-                    src={`data:image/jpeg;base64,${processedImg}`}
-                    alt="Processed"
-                    className="w-full h-56 object-cover rounded-xl border shadow"
-                  />
-                </div>
-              )} */}
             </div>
-          }
+          ))}
+          </div>
+        )}
+        {/* Disease Details Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogContent className="max-w-4xl bg-gray-100 rounded-2xl shadow-2xl border border-[#278d45]/20">
+          <DialogHeader>
+            <DialogTitle className="uppercase text-center text-2xl text-[#0d401c] font-extrabold tracking-wide">
+            {selectedDisease?.diseaseName || "Chi tiết bệnh"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mb-4 space-y-2">
+            <div className="mb-4 max-w-full flex justify-center gap-x-2">
+            {selectedDisease?.images && selectedDisease.images.length > 0 ? (
+              <div className="w-[320px] h-[320px] rounded-xl overflow-hidden border-2 border-[#278d45]/20 shadow-xl bg-white">
+              <Image
+                src={selectedDisease.images[0]}
+                alt="Disease"
+                width={320}
+                height={320}
+                className="rounded-lg object-cover w-full h-full"
+              />
+              </div>
+            ) : (
+              <div className="w-[320px] h-[320px] flex items-center justify-center text-[#278d45]/40 bg-[#eaf7ef] rounded-xl border">
+              Không có hình ảnh
+              </div>
+            )}
+            </div>
+            <div className="text-[#278d45]">
+            <b>Tên tiếng Anh:</b>{" "}
+            <span className="text-xl font-semibold">{selectedDisease?.diseaseEnName}</span>
+            </div>
+            <div className="text-[#278d45]">
+            <b>Tác nhân:</b>{" "}
+            <span className="text-xl font-semibold">{selectedDisease?.ricePathogen}</span>
+            </div>
+          </div>
+          <div className="prose prose-blue max-w-none tiptap-content mb-8 bg-white/90 rounded-lg p-4 border border-[#278d45]/10">
+            {selectedDisease?.symptoms && <EditorContent editor={editor} className="tiptap-editor" />}
+          </div>
+          <DialogClose asChild>
+            <div className="flex gap-x-4">
+            <button className="mt-2 px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45]">
+              Đóng
+            </button>
+            <button
+              className="mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition w-full hover:cursor-pointer"
+              onClick={() => {
+              if (selectedDisease && selectedDisease.diseaseID) {
+                handleViewProducts(selectedDisease.diseaseID);
+              }
+              setDialogOpen(false);
+              }}
+            >
+              Xem thuốc
+            </button>
+            </div>
+          </DialogClose>
+          </DialogContent>
+        </Dialog>
+        {/* Products Dialog */}
+        <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
+          <DialogContent className="max-w-3xl bg-white rounded-2xl shadow-2xl border border-[#278d45]/20">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-[#0d401c] font-bold">
+            Danh sách sản phẩm liên quan đến bệnh
+            </DialogTitle>
+            <p className="flex items-center gap-x-2 p-2 bg-[#f8c32c]/10 rounded-md border border-[#f8c32c]/30 text-[#278d45]">
+            <span>
+              <CircleAlert className="text-[#f8c32c]" />
+            </span>
+            <span>
+              Chỉ chọn một sản phẩm để giải quyết vấn đề hiện tại. Khuyến khích sản phẩm ít độc hại cho lúa.
+            </span>
+            </p>
+          </DialogHeader>
+          {loadingProducts ? (
+            <div className="text-center py-8 text-[#278d45] font-semibold">
+            Đang tải sản phẩm...
+            </div>
+          ) : productsForDisease.length === 0 ? (
+            <div className="text-center py-8 text-[#0d401c]/60">
+            Không có sản phẩm nào liên quan đến bệnh này.
+            </div>
+          ) : (
+            <div className="grid gap-4">
+            {productsForDisease.map((product, idx) => (
+              <NextLink
+              href={`/vi/homepage/product-details/${product.productID}`}
+              key={product.productID || idx}
+              className="border border-[#278d45]/20 bg-white/95 rounded-xl p-4 flex gap-x-4 items-center shadow hover:shadow-xl transition-all"
+              >
+              <div className="w-[90px] h-[90px] flex-shrink-0 rounded-lg overflow-hidden border border-[#278d45]/10 bg-[#eaf7ef] flex items-center justify-center">
+                {product.images && product.images.length > 0 ? (
+                <Image
+                  src={product.images[0]}
+                  alt={product.productName}
+                  width={90}
+                  height={90}
+                  className="rounded-lg object-cover w-full h-full"
+                />
+                ) : (
+                <div className="w-full h-full flex items-center justify-center text-[#278d45]/40">
+                  Không có hình ảnh
+                </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-lg text-[#0d401c]">{product.productName}</div>
+                <div className="text-sm text-[#278d45]">
+                Giá: {product.productPrice?.toLocaleString()}đ
+                </div>
+                <div className="text-sm text-[#278d45]">Đơn vị: {product.unit}</div>
+              </div>
+              </NextLink>
+            ))}
+            </div>
+          )}
+          <DialogClose asChild>
+            <button className="mt-6 px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45]">
+            Đóng
+            </button>
+          </DialogClose>
+          </DialogContent>
+        </Dialog>
         </div>
       </div>
-      {error && <div className="text-red-500 mt-4 text-center font-semibold">{error}</div>}
+      </div>
+      {error && (
+      <div className="text-[#52320a] mt-8 text-center font-semibold bg-[#f8c32c]/20 border border-[#f8c32c]/40 rounded-xl py-5 max-w-xl mx-auto shadow-lg">
+        {error}
+      </div>
+      )}
     </div>
   );
 }

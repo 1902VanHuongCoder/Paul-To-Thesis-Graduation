@@ -204,7 +204,6 @@ const ChatBot = () => {
             if (socket && data.conversationID) {
                 if (socket.connected) {
                     socket.emit("join_room", data.conversationID);
-                    alert(`Đã vào phòng trò chuyện ${data.conversationID}`);
                 } else {
                     socket.on("connect", () => {
                         socket.emit("join_room", data.conversationID);
