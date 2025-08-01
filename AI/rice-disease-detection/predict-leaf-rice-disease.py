@@ -7,11 +7,15 @@ from PIL import Image
 from io import BytesIO
 import os
 import base64
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add this import
 from inference_sdk import InferenceHTTPClient
 
-app = FastAPI()
+app = FastAPI(title="Rice Disease Detection API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,15 +26,27 @@ app.add_middleware(
 )
 
 # Load YOLO model
-model = YOLO('detect-leaf-rice-disease-model.pt')  # Update with your .pt file path
+model_path = os.getenv("MODEL_PATH", "detect-leaf-rice-disease-model.pt")
+model = YOLO(model_path)
 
 # Roboflow client
+roboflow_api_key = os.getenv("ROBOFLOW_API_KEY", "2TFHpYrdVnE2nrbAeQ8t")
 CLIENT = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
-    api_key="2TFHpYrdVnE2nrbAeQ8t"
+    api_key=roboflow_api_key
 )
 
-target_size = (320, 320)
+target_size_env = int(os.getenv("TARGET_SIZE", "320"))
+target_size = (target_size_env, target_size_env)
+
+# Add health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "rice-disease-detection"}
+
+@app.get("/")
+async def root():
+    return {"message": "Rice Disease Detection API", "version": "1.0.0"}
 
 def segment_leaf(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
