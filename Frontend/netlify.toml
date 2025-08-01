@@ -1,13 +1,18 @@
 [build]
   publish = ".next"
-  command = "npm run build && npm run export"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
 
+# Use Next.js runtime for dynamic routes
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirect all requests to Next.js handler for dynamic routing
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/.netlify/functions/___netlify-handler"
   status = 200
 
 [[headers]]
