@@ -18,16 +18,11 @@ const nextConfig: NextConfig = {
       "lh3.googleusercontent.com",
     ],
   },
-  // next.config.ts
   async redirects() {
     return [
       { source: "/", destination: "/vi/homepage", permanent: false },
       // Only redirect if NOT starting with /vi or /en
     ];
-  },
-  devIndicators: {
-    buildActivity: false, // Hides the build activity indicator
-    buildActivityPosition: "bottom-right", // Optional: customize position if buildActivity is true
   },
 };
 

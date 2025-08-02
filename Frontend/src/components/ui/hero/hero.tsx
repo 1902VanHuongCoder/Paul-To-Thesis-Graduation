@@ -1,3 +1,4 @@
+"use client";
 import { TypewriterText } from '@/components'
 import Image from 'next/image'
 import React from 'react'
@@ -42,13 +43,18 @@ const Hero = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 1 }}
-                    className="absolute inset-0 w-full h-full"
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                    }}
                     aria-hidden="true"
                 >
                     <Image
                         src={heroBackgroundList[bgIndex]}
                         alt={`Ảnh nền ${bgIndex + 1}`}
-                        className="object-cover w-full h-full"
+                        style={{ objectFit: "cover", width: "100%", height: "100%" }}
                         fill
                         priority
                         sizes="100vw"

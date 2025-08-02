@@ -324,7 +324,7 @@ export default function OrderDetailPage() {
           initial={{ y: 120 }}
           animate={reviewingProductID ? { y: 0 } : { y: 120 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 w-full z-49 bg-white rounded-tr-xl rounded-tl-xl shadow-lg border-t border-gray-200"
+          style={{ position: "fixed", bottom: 0, left: 0, width: "100%", zIndex: 49, background: "white", borderTopLeftRadius: "0.75rem", borderTopRightRadius: "0.75rem", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", borderTop: "1px solid #e5e7eb" }}
         >
           {reviewingProductID && (() => {
             const product = order.products.find(p => p.productID === reviewingProductID);

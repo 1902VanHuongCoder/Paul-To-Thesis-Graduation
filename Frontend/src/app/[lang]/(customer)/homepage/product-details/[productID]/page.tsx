@@ -391,9 +391,11 @@ export default function ProductDetailsPage() {
         initial={{ y: 120 }}
         animate={showPanel ? { y: 0 } : { y: 120 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed bottom-0 left-0 w-full z-90 bg-white rounded-tr-xl rounded-tl-xl shadow-[var(--add-to-cart-panel-shadow)] border-t border-gray-200"
+        style={{ position: "fixed", bottom: 0, left: 0, width: "100%", zIndex: 90 }}
       >
-        <AddToCartPanel productImage={product && product.images ? product.images[0] : ""} productName={product.productName} productID={product.productID} />
+        <div className="bg-white rounded-tr-xl rounded-tl-xl shadow-[var(--add-to-cart-panel-shadow)] border-t border-gray-200">
+          <AddToCartPanel productImage={product && product.images ? product.images[0] : ""} productName={product.productName} productID={product.productID} />
+        </div>
       </motion.div>
     </>
   );

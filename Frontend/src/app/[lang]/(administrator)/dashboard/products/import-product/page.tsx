@@ -53,6 +53,7 @@ export default function ImportProductUsingBarcodePage() {
         barcodeBufferRef.current = barcodeBuffer;
     }, [barcodeBuffer]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (/^[0-9]$/.test(e.key)) {

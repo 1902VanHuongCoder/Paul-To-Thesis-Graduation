@@ -271,23 +271,27 @@ const Homepage = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ duration: 0.4 }}
-                                    className={productView === "grid"
-                                        ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
-                                        : "flex flex-col items-start gap-y-6"
-                                    }
+                                    style={{}}
                                 >
-                                    {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
-                                        <Card
-                                            key={product.productID}
-                                            image={product.images[0]}
-                                            title={product.productName}
-                                            discountPrice={product.productPriceSale}
-                                            price={product.productPrice}
-                                            rating={product.rating}
-                                            productID={product.productID}
-                                            productName={product.productName}
-                                        />
-                                    )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
+                                    <div
+                                        className={productView === "grid"
+                                            ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
+                                            : "flex flex-col items-start gap-y-6"
+                                        }
+                                    >
+                                        {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
+                                            <Card
+                                                key={product.productID}
+                                                image={product.images[0]}
+                                                title={product.productName}
+                                                discountPrice={product.productPriceSale}
+                                                price={product.productPrice}
+                                                rating={product.rating}
+                                                productID={product.productID}
+                                                productName={product.productName}
+                                            />
+                                        )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
+                                    </div>
                                 </motion.div>
                             </AnimatePresence>
                         </div>

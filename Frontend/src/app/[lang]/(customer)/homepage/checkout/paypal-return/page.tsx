@@ -19,6 +19,7 @@ export default function PaypalReturnPage() {
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const effectRan = useRef(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (effectRan.current) return;
     effectRan.current = true;

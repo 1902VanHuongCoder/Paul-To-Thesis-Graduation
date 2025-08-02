@@ -146,8 +146,7 @@ export const Card = ({
             </div>
             <AnimatePresence>
                 {flyAnim && (
-                    <motion.img
-                        src={flyImage}
+                    <motion.div
                         initial={{
                             position: 'fixed',
                             left: flyAnim.x,
@@ -166,9 +165,18 @@ export const Card = ({
                         }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.8, ease: 'easeInOut' }}
-                        style={{ pointerEvents: 'none', position: 'fixed' }}
+                        style={{
+                            pointerEvents: 'none',
+                            position: 'fixed',
+                            backgroundImage: `url(${flyImage})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: 12,
+                            width: 50,
+                            height: 50,
+                            zIndex: 9999,
+                        }}
                         onAnimationComplete={() => setFlyAnim(null)}
-                        alt="Fly to cart animation"
                         aria-hidden="true"
                     />
                 )}

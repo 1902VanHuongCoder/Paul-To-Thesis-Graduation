@@ -248,20 +248,23 @@ export default function DetectRiceDiseaseDemo() {
             />
             <AnimatePresence>
             {loading && (
-              <motion.div
+          <motion.div
           key="scan"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
+          style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 10 }}
               >
           {/* Enhanced scan animation */}
-          <motion.div
-            className="relative"
+            <motion.div
             initial={{ rotate: 0 }}
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-            style={{ width: 140, height: 140 }}
+            style={{
+              position: "relative",
+              width: 140,
+              height: 140
+            }}
           >
             <svg width="140" height="140" className="block">
               <defs>
@@ -315,15 +318,37 @@ export default function DetectRiceDiseaseDemo() {
             </svg>
             {/* Sparkle dots */}
             <motion.div
-              className="absolute left-1/2 top-1/2"
-              style={{ transform: "translate(-50%, -50%)" }}
+              style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)"
+              }}
               animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
             >
-              <div className="flex gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#f8c32c] shadow-lg" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#278d45] shadow" />
-                <span className="w-1 h-1 rounded-full bg-[#f8c32c] shadow" />
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+              <span style={{
+                width: "0.5rem",
+                height: "0.5rem",
+                borderRadius: "9999px",
+                background: "#f8c32c",
+                boxShadow: "0 2px 8px #f8c32c88"
+              }} />
+              <span style={{
+                width: "0.375rem",
+                height: "0.375rem",
+                borderRadius: "9999px",
+                background: "#278d45",
+                boxShadow: "0 1px 4px #278d4588"
+              }} />
+              <span style={{
+                width: "0.25rem",
+                height: "0.25rem",
+                borderRadius: "9999px",
+                background: "#f8c32c",
+                boxShadow: "0 1px 4px #f8c32c88"
+              }} />
               </div>
             </motion.div>
           </motion.div>
