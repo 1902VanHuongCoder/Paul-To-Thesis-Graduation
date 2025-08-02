@@ -119,8 +119,9 @@ Product.init(
       defaultValue: 0, // Default value for quantity per box
     },
     diseases: {
-      type: DataTypes.ARRAY(DataTypes.INTEGER), // Assuming diseases is an array of integers
+      type: DataTypes.JSON,
       allowNull: true, // Allow null for products that do not have associated diseases
+      defaultValue: [], // Default to an empty array if no diseases are associated
     },
   },
   {

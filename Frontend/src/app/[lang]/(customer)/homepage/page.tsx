@@ -1,4 +1,5 @@
 "use client";
+// Removed 'use client' for static export compatibility
 import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, DisplayModeSwitcher, Hero, IconButton, NewestProduct, ParterCarousel, SortDropdown, TagFilter, ToTopButton } from "@/components";
 import { Funnel } from "lucide-react";
 import React, { useEffect, useCallback } from "react";

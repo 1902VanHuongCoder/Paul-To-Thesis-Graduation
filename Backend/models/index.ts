@@ -106,7 +106,7 @@ News.belongsTo(User, { foreignKey: "userID", as: "author" });
 User.hasMany(News, { foreignKey: "userID", as: "news" });
 
 User.hasMany(ShippingAddress, {
-  foreignKey: "shippingAddressID",
+  foreignKey: "userID",
   as: "shippingAddresses",
 });
 
