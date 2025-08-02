@@ -6,6 +6,13 @@ dotenv.config(); // Load environment variables from .env file
 import { Sequelize } from "sequelize";
 
 // Create a MySQL connection pool
+console.log(({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
+}))
 const sequelize = new Sequelize(
   process.env.DB_NAME as string,
   process.env.DB_USER as string,
