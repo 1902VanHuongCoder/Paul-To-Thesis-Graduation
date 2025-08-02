@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from "@/contexts/user-context";
-import { useState, useEffect, useRef } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { addNewMessage, fetchConversations, loadChatMessages, createConversation, markMessagesAsRead } from "@/lib/chat-apis";
@@ -42,7 +42,7 @@ interface ConversationList {
   conversation: Conversation;
 }
 
-export default function ChatPage() {
+function ChatPageInner() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversationUserBelongs, setConversationUserBelongs] = useState<ConversationList[]>([]);
   const { user } = useUser();
@@ -420,5 +420,13 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div>Đang tải chat...</div>}>
+      <ChatPageInner />
+    </Suspense>
   );
 }

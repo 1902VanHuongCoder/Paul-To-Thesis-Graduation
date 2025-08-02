@@ -1,7 +1,7 @@
 "use client";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { Breadcrumb, Button } from "@/components";
@@ -9,7 +9,7 @@ import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
 import { createNewOrder } from "@/lib/order-apis";
 
-export default function VNPayReturnPage() {
+function VNPayReturnPageInner() {
   const { setCart } = useShoppingCart();
   const router = useRouter();
   const params = useSearchParams();
@@ -203,5 +203,13 @@ export default function VNPayReturnPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VNPayReturnPage() {
+  return (
+    <Suspense fallback={<div>Đang tải...</div>}>
+      <VNPayReturnPageInner />
+    </Suspense>
   );
 }

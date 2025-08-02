@@ -47,7 +47,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 setUser(JSON.parse(storedUser));
             }
         }
-    }, []);
+    }, [pathname]);
 
     return (
         <UserContext.Provider value={{ user, setUser, logout }}>

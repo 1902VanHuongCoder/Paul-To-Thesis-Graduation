@@ -191,9 +191,15 @@ export default function CommentItem({
                                         animate={{ opacity: 0, y: -40, scale: 0.5 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.5 }}
-                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                        style={{
+                                            position: "absolute",
+                                            left: "50%",
+                                            top: 0,
+                                            transform: "translateX(-50%)",
+                                            zIndex: 10,
+                                        }}
                                     >
-                                        <ThumbsUp size={28} className="text-green-500 drop-shadow-lg " fill="var(--color-green-500)" />
+                                        <ThumbsUp size={28} className="text-green-500 drop-shadow-lg" fill="var(--color-green-500)" />
                                     </motion.span>
                                 )}
                             </AnimatePresence>
@@ -213,7 +219,13 @@ export default function CommentItem({
                                         animate={{ opacity: 0, y: 40, scale: 0.5 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.5 }}
-                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                        style={{
+                                            position: "absolute",
+                                            left: "50%",
+                                            top: 0,
+                                            transform: "translateX(-50%)",
+                                            zIndex: 10,
+                                        }}
                                     >
                                         <ThumbsDown size={28} className="text-red-500 drop-shadow-lg" fill="var(--color-red-500)" />
                                     </motion.span>

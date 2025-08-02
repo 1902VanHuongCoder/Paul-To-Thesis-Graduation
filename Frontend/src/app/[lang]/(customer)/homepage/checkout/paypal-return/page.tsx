@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Breadcrumb } from "@/components";
@@ -11,7 +11,7 @@ import { XCircle } from "lucide-react";
 import Link from "next/link";
 import { createNewOrder } from "@/lib/order-apis";
 
-export default function PaypalReturnPage() {
+function PaypalReturnPageInner() {
   const params = useSearchParams();
   const orderID = params.get("orderID");
   const { checkoutData } = useCheckout();
@@ -19,7 +19,6 @@ export default function PaypalReturnPage() {
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const effectRan = useRef(false);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (effectRan.current) return;
     effectRan.current = true;
@@ -44,8 +43,7 @@ export default function PaypalReturnPage() {
     } else {
       setStatus("fail");
     }
-
-  }, [checkoutData, orderID]);
+  }, [checkoutData, orderID, setCart]);
 
   return (
     <div className="min-h-[60vh] py-10 px-6">
@@ -180,5 +178,13 @@ export default function PaypalReturnPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function PaypalReturnPage() {
+  return (
+    <Suspense fallback={<div>Đang tải...</div>}>
+      <PaypalReturnPageInner />
+    </Suspense>
   );
 }

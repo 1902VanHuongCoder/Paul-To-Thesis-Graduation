@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
@@ -23,7 +23,7 @@ interface UserProfile {
     providerID: string | null;
 }
 
-export default function UpdateUserProfilePage() {
+function UpdateUserProfilePageInner() {
     // Search params
     const param = useSearchParams();
     const userID = param.get("userID") || "";
@@ -356,4 +356,12 @@ export default function UpdateUserProfilePage() {
             <CreateNewPassword email={emailToGetConfirmCode} open={openCreateNewPass} setOpen={setOpenCreateNewPass} />
         </div>
     );
+}
+
+export default function UpdateUserProfilePage() {
+  return (
+    <Suspense fallback={<div>Đang tải...</div>}>
+      <UpdateUserProfilePageInner />
+    </Suspense>
+  );
 }
