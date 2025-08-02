@@ -106,7 +106,7 @@ News.belongsTo(User, { foreignKey: "userID", as: "author" });
 User.hasMany(News, { foreignKey: "userID", as: "news" });
 
 User.hasMany(ShippingAddress, {
-  foreignKey: "shippingAddressID",
+  foreignKey: "userID",
   as: "shippingAddresses",
 });
 
@@ -129,6 +129,7 @@ Wishlist.belongsTo(Product, { foreignKey: "productID", as: "product" });
 News.hasMany(NewsComment, { foreignKey: "newsID", as: "comments" });
 User.hasMany(NewsComment, { foreignKey: "userID", as: "user_comments" });
 NewsComment.belongsTo(User, { foreignKey: "userID", as: "user_comments" });
+NewsComment.belongsTo(News, { foreignKey: "newsID", as: "news" });
 
 Contact.belongsTo(User, { foreignKey: "userID", as: "user" });
 

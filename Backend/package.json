@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "postbuild": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "seed": "ts-node seed-database.ts"
   },
   "engines": {
     "node": ">=18.0.0",

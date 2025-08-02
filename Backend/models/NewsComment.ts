@@ -34,7 +34,7 @@ NewsComment.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "News", // Assuming you have a News model
+        model: "news", // Use lowercase table name
         key: "newsID",
       },
     },
