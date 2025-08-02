@@ -18,5 +18,5 @@
     "resolveJsonModule": true         // Allow importing JSON files
   },
   "include": ["./**/*.ts"],           // Include all TypeScript files
-  "exclude": ["node_modules", "dist"] // Exclude node_modules and output directory
+  "exclude": ["node_modules", "dist", "__tests__"] // Exclude node_modules, output directory, and tests
 }
