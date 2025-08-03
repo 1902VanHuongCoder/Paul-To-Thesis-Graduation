@@ -1,0 +1,34 @@
+{
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 90472,
+    "files": [
+      "static/chunks/472.2c08b965bd9148e2.js"
+    ]
+  },
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 99341,
+    "files": [
+      "static/chunks/9341.a5e04b1003bfe050.js"
+    ]
+  },
+  "app\\vi\\(administrator)\\dashboard\\diseases\\edit-disease\\page.tsx -> @/lib/file-apis": {
+    "id": 16184,
+    "files": []
+  },
+  "components\\ui\\navigation-menu\\navigation.tsx -> @/components/ui/search-form/search-form": {
+    "id": 49414,
+    "files": []
+  },
+  "lib\\others\\dictionaries.ts -> ../../dictionaries/en.json": {
+    "id": 1116,
+    "files": [
+      "static/chunks/1116.44ad18855774d060.js"
+    ]
+  },
+  "lib\\others\\dictionaries.ts -> ../../dictionaries/vi.json": {
+    "id": 88974,
+    "files": [
+      "static/chunks/8974.b3f1304db8010fea.js"
+    ]
+  }
+}
