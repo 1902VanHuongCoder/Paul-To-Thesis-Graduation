@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input/input";
 import { XIcon, MicIcon } from "lucide-react";
 import { DialogDescription, Title } from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { Button } from "../button/button";
 import { fetchProductByName } from "@/lib/product-apis";
 
@@ -32,7 +31,6 @@ interface Suggestion {
 
 const SearchForm: React.FC = React.memo(function SearchForm() {
     const router = useRouter();
-    const { lang } = useDictionary();
     const [search, setSearch] = useState("");
     const [listening, setListening] = useState(false);
     const [openSearch, setOpenSearch] = useState(false);
@@ -129,7 +127,7 @@ const SearchForm: React.FC = React.memo(function SearchForm() {
             const item = suggestions[highlightedIdx];
             setSearch(item.productName);
             setSelectedProductID(item.productID);
-            router.push(`/${lang}/homepage/product-details/${item.productID}`);
+            router.push(`/vi/homepage/product-details/${item.productID}`);
             setOpenSearch(false);
         }
     };
@@ -228,7 +226,7 @@ const SearchForm: React.FC = React.memo(function SearchForm() {
                                             e.preventDefault();
                                             setSearch(item.productName);
                                             setSelectedProductID(item.productID);
-                                            router.push(`/${lang}/homepage/product-details/${item.productID}`);
+                                            router.push(`/vi/homepage/product-details/${item.productID}`);
                                             setOpenSearch(false);
                                         }}
                                     >
