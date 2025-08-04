@@ -1,6 +1,6 @@
 "use client";
 
-import { Footer, Navigation, TopHeader } from "@/components";
+import { ContentLoading, Footer, Navigation, TopHeader } from "@/components";
 import { Toaster } from "react-hot-toast";
 import Head from "next/head";
 import { useEffect } from "react";
@@ -8,11 +8,13 @@ import toast from "react-hot-toast";
 import CustomToast from "@/components/ui/toast/custom-toast";
 import { useChat } from "@/contexts/chat-context";
 import socket from "@/lib/others/socket-client";
+import { useLoading } from "@/contexts/loading-context";
 
 
 const HomepageLayout = ({ children }: { children: React.ReactNode }) => {
     // Initialize socket and join notification rooms
     const { isChatOpen: isOpen } = useChat();
+    const { loading } = useLoading();
     useEffect(() => {
 
         // Join or leave notification room based on path and chat state
@@ -69,6 +71,7 @@ const HomepageLayout = ({ children }: { children: React.ReactNode }) => {
                 <Navigation />
                 {children}
                 <Footer />
+                {loading && <ContentLoading />}
             </div>
         </>
     );
