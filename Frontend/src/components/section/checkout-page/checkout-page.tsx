@@ -169,6 +169,12 @@ export default function CheckoutPage() {
             return;
         }
 
+        // Prevent applying a discount if one is already applied
+        if (checkoutData?.discount && checkoutData.discount.discountID) {
+            toast.error("Bạn đã áp dụng mã giảm giá. Không thể áp dụng thêm.");
+            return;
+        }
+
         try {
             const discountID = promoCode.code;
             const { discount, status, message } = await checkPromotionCode(discountID);
@@ -180,11 +186,10 @@ export default function CheckoutPage() {
                 return;
             }
 
-
             // Calculate discount value
             let discountValue = 0;
 
-            if (totalPayment < discount.minOrderAmount) {
+            if (subtotal < discount.minOrderAmount) {
                 toast.error(`Đơn hàng của bạn không đủ điều kiện để áp dụng mã giảm giá. Giá trị đơn hàng tối thiểu là ${formatVND(discount.minOrderAmount)}.`);
                 return;
             }
@@ -194,9 +199,8 @@ export default function CheckoutPage() {
             }
 
             if (discount.discountPercent) {
-                discountValue = (discount.discountPercent / 100) * totalPayment;
+                discountValue = (discount.discountPercent / 100) * subtotal;
             }
-
 
             if (discount.maxDiscountAmount && discountValue > discount.maxDiscountAmount) {
                 discountValue = discount.maxDiscountAmount;
@@ -290,6 +294,7 @@ export default function CheckoutPage() {
                 toast.error("Đặt hàng thất bại, vui lòng thử lại sau!");
             }
         }
+        
     };
 
     // Fetch delivery methods on mount
@@ -306,9 +311,17 @@ export default function CheckoutPage() {
             }
         }
         fetchDeliveries();
-    }, [])
+            }, [])
 
     // Calculate total payment including products, discounts, delivery method, and delivery cost
+    const subtotal = useMemo(() => {
+        // Calculate total price of products in the cart
+        return cart.products.reduce((total, product) => {
+            const price = product.productPriceSale ? product.productPriceSale : product.CartItem.price;
+            return total + (price * product.CartItem.quantity);
+        }, 0);
+    }, [cart.products]);
+
     const totalPayment = useMemo(() => { // Use useMemo because this calculation can be expensive and we want to avoid recalculating it on every render 
         // Calculate total price of products in the cart 
         const totalPrice = cart.products.reduce((total, product) => {

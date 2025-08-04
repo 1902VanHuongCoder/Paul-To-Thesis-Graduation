@@ -24,3 +24,13 @@
   to = "https://your-backend-url.herokuapp.com/api/:splat"
   status = 200
   force = true
+[build]
+  base = "Frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "18"

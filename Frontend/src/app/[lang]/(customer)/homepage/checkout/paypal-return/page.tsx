@@ -14,7 +14,7 @@ import { createNewOrder } from "@/lib/order-apis";
 export default function PaypalReturnPage() {
   const params = useSearchParams();
   const orderID = params.get("orderID");
-  const { checkoutData } = useCheckout();
+  const { checkoutData, setCheckoutData } = useCheckout();
   const { setCart } = useShoppingCart();
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const effectRan = useRef(false);
@@ -44,7 +44,7 @@ export default function PaypalReturnPage() {
       setStatus("fail");
     }
 
-  }, [checkoutData, orderID]);
+  }, [checkoutData, orderID, setCart, setCheckoutData]);
 
   return (
     <div className="min-h-[60vh] py-10 px-6">

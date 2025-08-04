@@ -1,7 +1,6 @@
 "use client";
 
 import { Breadcrumb, CommentItem, ContentLoading, ToTopButton } from "@/components";
-import { useDictionary } from "@/contexts/dictonary-context";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
@@ -87,7 +86,6 @@ export default function NewsDetailPage() {
     const router = useRouter();
 
     // Contexts 
-    const { lang } = useDictionary(); // Language context to get the current language
     const { user } = useUser(); // User context to get the current user
 
     // State variables
@@ -133,6 +131,10 @@ export default function NewsDetailPage() {
     // Handle comment submit
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if(!user){
+            toast.error("Bạn cần đăng nhập để bình luận!");
+            return;
+        }
         if (!newComment.trim() || !news || !user) return; // Ensure there's content and news is loade
         const userAlreadyCommented = comments.some(comment => comment.userID === user.userID);
         if (userAlreadyCommented) {
@@ -253,7 +255,7 @@ export default function NewsDetailPage() {
 
                 items={[
                     { label: "Trang chủ", href: "/" },
-                    { label: "Tin tức", href: `/${lang}/homepage/news` },
+                    { label: "Tin tức", href: `/vi/homepage/news` },
                     { label: news.title || "Chi tiết bài đăng" }
                 ]}
             />
@@ -318,7 +320,7 @@ export default function NewsDetailPage() {
                                     <Button
                                         variant={"link"}
                                         className="cursor-pointer px-0"
-                                        onClick={() => router.push(`/${lang}/homepage/news/${item.newsID}`)}
+                                        onClick={() => router.push(`/vi/homepage/news/${item.newsID}`)}
                                     >
                                         Xem chi tiết
                                     </Button>

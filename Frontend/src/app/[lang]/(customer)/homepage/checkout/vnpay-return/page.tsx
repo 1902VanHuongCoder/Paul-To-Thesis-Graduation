@@ -60,8 +60,8 @@ export default function VNPayReturnPage() {
     } else {
       toast.error("Đặt hàng thất bại, vui lòng thử lại sau!");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+  }, [isSuccess, setCart]);
 
   return (
     <div className="px-6 py-10 min-h-[60vh]">
