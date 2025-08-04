@@ -5,10 +5,17 @@ import { useCheckout } from "@/contexts/checkout-context";
 import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 export default function CashReturnPage() {
-  const { checkoutData } = useCheckout();
+  const { checkoutData, setCheckoutData } = useCheckout();
+  const router = useRouter();
   return (
-    <div className="min-h-[60vh] py-10 px-6">
+    <div className="min-h-[60vh] py-10 px-6" onClick={(e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setCheckoutData(undefined);
+      router.push("/");
+    }}>
       <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]} />
       <div className="text-center flex flex-col items-center justify-center gap-y-2 mx-auto max-w-4xl">
         <motion.svg

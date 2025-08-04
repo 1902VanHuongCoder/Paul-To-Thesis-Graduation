@@ -64,7 +64,14 @@ export default function VNPayReturnPage() {
   }, [isSuccess, setCart]);
 
   return (
-    <div className="px-6 py-10 min-h-[60vh]">
+    <div className="px-6 py-10 min-h-[60vh]" 
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCheckoutData(null);
+        router.push("/");
+      }}
+    >
       <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]} />
       <div>
         {isSuccess ? (

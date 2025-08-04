@@ -169,19 +169,32 @@ export default function CheckoutPage() {
             return;
         }
 
-        // Prevent applying a discount if one is already applied
-        if (checkoutData?.discount && checkoutData.discount.discountID) {
-            toast.error("Bạn đã áp dụng mã giảm giá. Không thể áp dụng thêm.");
-            return;
+        // Remove previous discount if switching to a new code
+        if (checkoutData?.discount?.discountID && checkoutData.discount.discountID !== promoCode.code) {
+            localStorage.removeItem(`discount_${checkoutData.discount.discountID}_applied_at`);
+            setCheckoutData({
+                ...checkoutData,
+                discount: undefined,
+            });
+        }
+
+        // Prevent applying the same discount code again within 30 days using localStorage
+        const lastApplied = localStorage.getItem(`discount_${promoCode.code}_applied_at`);
+        if (lastApplied) {
+            const lastDate = new Date(lastApplied);
+            const now = new Date();
+            const diffDays = (now.getTime() - lastDate.getTime()) / (1000 * 3600 * 24);
+            if (diffDays < 30) {
+                toast.error("Bạn đã sử dụng mã giảm giá này.");
+                return;
+            }
         }
 
         try {
             const discountID = promoCode.code;
             const { discount, status, message } = await checkPromotionCode(discountID);
 
-            if (status === 200) {
-                toast.success(`Mã giảm giá ${discount.discountPercent}% đã được áp dụng`);
-            } else {
+            if (status !== 200) {
                 toast.error(message);
                 return;
             }
@@ -206,6 +219,9 @@ export default function CheckoutPage() {
                 discountValue = discount.maxDiscountAmount;
             }
 
+            // Save the time this discount code was applied
+            localStorage.setItem(`discount_${discount.discountID}_applied_at`, new Date().toISOString());
+
             setCheckoutData({
                 ...checkoutData,
                 discount: {
@@ -218,6 +234,7 @@ export default function CheckoutPage() {
                 maxDiscount: discount.maxDiscountAmount,
                 discount: discountValue,
             });
+            toast.success(`Áp dụng mã giảm giá thành công!`);
         } catch (error) {
             console.error("Error checking promo code:", error);
             toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
@@ -294,7 +311,7 @@ export default function CheckoutPage() {
                 toast.error("Đặt hàng thất bại, vui lòng thử lại sau!");
             }
         }
-        
+
     };
 
     // Fetch delivery methods on mount
@@ -311,7 +328,7 @@ export default function CheckoutPage() {
             }
         }
         fetchDeliveries();
-            }, [])
+    }, [])
 
     // Calculate total payment including products, discounts, delivery method, and delivery cost
     const subtotal = useMemo(() => {
@@ -530,18 +547,18 @@ export default function CheckoutPage() {
                 <h1 className="text-2xl font-bold mb-2 uppercase text-center">THANH TOÁN</h1>
                 {/* Discount Section */}
                 {/* {promoCode.discount !== 0 ? "" : ( */}
-                    <div className="mt-6 flex items-center mb-4">
-                        <input
-                            type="text"
-                            placeholder={"Nhập mã giảm giá"}
-                            value={promoCode.code}
-                            onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-tl-full rounded-bl-full focus:outline-none focus:ring-1 focus:ring-primary/10"
-                        />
-                        <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="shrink-0 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full py-3.5 bg-primary text-white transition-all">
-                            {"Áp dụng mã giảm giá"}
-                        </Button>
-                    </div>
+                <div className="mt-6 flex items-center mb-4">
+                    <input
+                        type="text"
+                        placeholder={"Nhập mã giảm giá"}
+                        value={promoCode.code}
+                        onChange={(e) => setPromoCode({ ...promoCode, code: e.target.value })}
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-tl-full rounded-bl-full focus:outline-none focus:ring-1 focus:ring-primary/10"
+                    />
+                    <Button onClick={handleCheckPromoCode} variant="normal" size="sm" className="shrink-0 rounded-tl-none rounded-bl-none rounded-tr-full rounded-br-full py-3.5 bg-primary text-white transition-all">
+                        {"Áp dụng mã giảm giá"}
+                    </Button>
+                </div>
                 {/* )} */}
                 {promoCode.maxDiscount > 0 && (
                     <div className="flex text-gray-700 mb-4 justify-end gap-x-2">

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Breadcrumb } from "@/components";
 import { useCheckout } from "@/contexts/checkout-context";
@@ -12,6 +12,7 @@ import Link from "next/link";
 import { createNewOrder } from "@/lib/order-apis";
 
 export default function PaypalReturnPage() {
+  const router = useRouter();
   const params = useSearchParams();
   const orderID = params.get("orderID");
   const { checkoutData, setCheckoutData } = useCheckout();
@@ -47,7 +48,14 @@ export default function PaypalReturnPage() {
   }, [checkoutData, orderID, setCart, setCheckoutData]);
 
   return (
-    <div className="min-h-[60vh] py-10 px-6">
+    <div className="min-h-[60vh] py-10 px-6"
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCheckoutData(undefined);
+        router.push("/");
+      }}
+    >
       <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]} />
       <div className="text-center flex flex-col items-center justify-center gap-y-2 mx-auto max-w-4xl">
         {status === "success" ? (
