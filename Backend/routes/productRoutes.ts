@@ -14,6 +14,7 @@ import {
   getProductsOrderCount,
   getProductsHaveNotExpired,
   getProductsExpiringSoon,
+  batchUpdateProductOrder,
 } from "../controllers/productController";
 
 const router = express.Router();
@@ -39,7 +40,9 @@ router.get("/box-barcode/:boxBarcode", getProductByBoxBarcode);
 // POST a new product
 router.post("/", createProduct);
 
+router.put("/batch-update-order/sort", batchUpdateProductOrder);
 // PUT (update) a product by ID
+
 router.put("/:productID", updateProduct);
 
 // PUT update product's quantity (list of products)
@@ -59,4 +62,5 @@ router.get("/statistic/order-count", getProductsOrderCount);
 
 // GET products that will be expired in 30 days
 router.get("/statistic/will-be-expired", getProductsExpiringSoon);
+
 export default router;

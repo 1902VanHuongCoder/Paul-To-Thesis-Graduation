@@ -115,3 +115,14 @@ export async function fetchProductsWillBeExpired() {
   const data = await res.json();
   return data;
 }
+
+// update product order 
+export async function batchUpdateProductOrder(updates: { productID: number, order: number }[]) {
+  const res = await fetch(`${baseUrl}/api/product/batch-update-order/sort`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error("Failed to batch update product order");
+  return res.ok;
+}

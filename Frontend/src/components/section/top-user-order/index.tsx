@@ -124,6 +124,7 @@ const TopUserOrderSection: React.FC = () => {
 
             )}
             <div className="flex justify-end my-4">
+                {/* Add button to allow user to sort products */}
                 <button
                     className="flex items-center gap-2 px-5 py-2.5 hover:cursor-pointer bg-gradient-to-r from-green-700 to-green-900 text-white rounded-full shadow-lg hover:from-green-800 hover:to-green-950 transition font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                     onClick={handleExportExcel}

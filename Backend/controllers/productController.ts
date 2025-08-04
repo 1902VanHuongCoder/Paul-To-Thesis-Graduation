@@ -27,7 +27,6 @@ export const getAllProducts = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
-
 export const getProductsHaveNotExpired = async (
   req: Request,
   res: Response
@@ -44,7 +43,7 @@ export const getProductsHaveNotExpired = async (
         },
         isShow: true,
       },
-      order: [["createdAt", "DESC"]],
+      order: [["order", "ASC"]], // Sort by product order (small to large)
     });
     res.status(200).json(products);
   } catch (error) {
@@ -113,7 +112,7 @@ export const createProduct = async (
 
   console.log("Request body:", req.body);
 
-  // Generate a order for the product based on the largest product's order value 
+  // Generate a order for the product based on the largest product's order value
   try {
     const maxOrder = await Product.max("order");
     const newOrder = typeof maxOrder === "number" ? maxOrder + 1 : 1;
@@ -494,7 +493,9 @@ export const getPoorSellingProducts = async (
     const neverOrderedProducts = await Product.findAll({
       where: {
         productID: {
-          [Op.notIn]: OrderProduct.sequelize!.literal('(SELECT DISTINCT productID FROM order_products)')
+          [Op.notIn]: OrderProduct.sequelize!.literal(
+            "(SELECT DISTINCT productID FROM order_products)"
+          ),
         },
       },
       limit: 10,
@@ -504,16 +505,25 @@ export const getPoorSellingProducts = async (
 
     // 2. If less than 10, fill with slowest-selling products (lowest order count, excluding already selected)
     if (resultProducts.length < 10) {
-      const excludedIDs = resultProducts.map(p => p.productID);
+      const excludedIDs = resultProducts.map((p) => p.productID);
       // Find products with the lowest order count, excluding those already in neverOrderedProducts
       const slowProducts = await OrderProduct.findAll({
         attributes: [
           "productID",
-          [OrderProduct.sequelize!.fn("COUNT", OrderProduct.sequelize!.col("orderID")), "orderCount"],
+          [
+            OrderProduct.sequelize!.fn(
+              "COUNT",
+              OrderProduct.sequelize!.col("orderID")
+            ),
+            "orderCount",
+          ],
         ],
-        where: excludedIDs.length > 0 ? {
-          productID: { [Op.notIn]: excludedIDs }
-        } : {},
+        where:
+          excludedIDs.length > 0
+            ? {
+                productID: { [Op.notIn]: excludedIDs },
+              }
+            : {},
         group: ["productID"],
         order: [[OrderProduct.sequelize!.literal("orderCount"), "ASC"]],
         limit: 10 - resultProducts.length,
@@ -525,7 +535,9 @@ export const getPoorSellingProducts = async (
         ],
       });
       // For slowProducts, return the associated Product instance (for consistent output)
-      const slowProductInstances = slowProducts.map((item: any) => item.product);
+      const slowProductInstances = slowProducts.map(
+        (item: any) => item.product
+      );
       resultProducts = [...resultProducts, ...slowProductInstances];
     }
 
@@ -587,7 +599,7 @@ export const getProductsOrderCount = async (
   }
 };
 
-// Get all products will be expired in the next 30 days 
+// Get all products will be expired in the next 30 days
 export const getProductsExpiringSoon = async (
   req: Request,
   res: Response
@@ -612,34 +624,27 @@ export const getProductsExpiringSoon = async (
     console.error("Error fetching products expiring soon:", error);
     res.status(500).json({ error: (error as Error).message });
   }
-}
-
+};
 
 // I have just added a new property for Product model called 'order' which is an integer.
 // This property is used to sort products based on their order in the list. This helps admin to push poor or slow selling products to the top of the list.
-export const updateProductOrder = async (
+export const batchUpdateProductOrder = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { productID, order } = req.body;
-
-  if (!productID || typeof order !== "number") {
-    res.status(400).json({ message: "Invalid product ID or order value" });
+  const updates = req.body; // [{ productID, order }, ...]
+  if (!Array.isArray(updates)) {
+    res.status(400).json({ message: "Invalid data format" });
     return;
   }
-
   try {
-    const product = await Product.findByPk(productID);
-    if (!product) {
-      res.status(404).json({ message: "Product not found" });
-      return;
+    for (const { productID, order } of updates) {
+      if (!productID || typeof order !== "number" || order < 1) continue;
+      const product = await Product.findByPk(productID);
+      if (product) await product.update({ order });
     }
-
-    await product.update({ order });
-
-    res.status(200).json({ message: "Product order updated successfully", product });
+    res.status(200).json({ message: "Product orders updated successfully" });
   } catch (error) {
-    console.error("Error updating product order:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };
