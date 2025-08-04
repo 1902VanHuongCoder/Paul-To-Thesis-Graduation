@@ -113,7 +113,11 @@ export const createProduct = async (
 
   console.log("Request body:", req.body);
 
+  // Generate a order for the product based on the largest product's order value 
   try {
+    const maxOrder = await Product.max("order");
+    const newOrder = typeof maxOrder === "number" ? maxOrder + 1 : 1;
+
     // Create the product
     const newProduct = await Product.create({
       barcode, // <-- add barcode
@@ -134,6 +138,7 @@ export const createProduct = async (
       isShow,
       diseases,
       expiredAt,
+      order: newOrder, // Set the order value
     });
 
     // Increment the count of the selected category
@@ -578,6 +583,63 @@ export const getProductsOrderCount = async (
     res.status(200).json(productsWithOrderCount);
   } catch (error) {
     console.error("Error fetching products with order count:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+// Get all products will be expired in the next 30 days 
+export const getProductsExpiringSoon = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const today = new Date();
+    const next30Days = new Date(today);
+    next30Days.setDate(today.getDate() + 30);
+
+    const products = await Product.findAll({
+      where: {
+        expiredAt: {
+          [Op.between]: [today, next30Days],
+        },
+        isShow: true,
+      },
+      order: [["expiredAt", "ASC"]],
+    });
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products expiring soon:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+}
+
+
+// I have just added a new property for Product model called 'order' which is an integer.
+// This property is used to sort products based on their order in the list. This helps admin to push poor or slow selling products to the top of the list.
+export const updateProductOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { productID, order } = req.body;
+
+  if (!productID || typeof order !== "number") {
+    res.status(400).json({ message: "Invalid product ID or order value" });
+    return;
+  }
+
+  try {
+    const product = await Product.findByPk(productID);
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+
+    await product.update({ order });
+
+    res.status(200).json({ message: "Product order updated successfully", product });
+  } catch (error) {
+    console.error("Error updating product order:", error);
     res.status(500).json({ error: (error as Error).message });
   }
 };

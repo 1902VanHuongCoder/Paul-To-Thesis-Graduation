@@ -14,6 +14,7 @@ import { getAccessStats } from '@/lib/statistic-apis';
 import TopSellingProductSection from '@/components/section/top-selling-product/top-selling-product';
 import OrderPerProductSection from '@/components/section/order-per-product/order-per-product';
 import TopUserOrderSection from '@/components/section/top-user-order';
+import WillBeExpiredSection from '@/components/section/will-be-expired';
 
 export interface DeliveryMethod {
     deliveryID: number;
@@ -250,6 +251,9 @@ const Page = () => {
                 <div className="">
                     <TopUserOrderSection />
                 </div>
+            </div>
+            <div>
+                <WillBeExpiredSection />
             </div>
             <div>
                 {/* Top selling section */}

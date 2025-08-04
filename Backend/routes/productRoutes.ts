@@ -13,6 +13,7 @@ import {
   getPoorSellingProducts,
   getProductsOrderCount,
   getProductsHaveNotExpired,
+  getProductsExpiringSoon,
 } from "../controllers/productController";
 
 const router = express.Router();
@@ -56,4 +57,6 @@ router.get("/statistic/poor-selling", getPoorSellingProducts);
 // Stats the number of orders per each product
 router.get("/statistic/order-count", getProductsOrderCount);
 
+// GET products that will be expired in 30 days
+router.get("/statistic/will-be-expired", getProductsExpiringSoon);
 export default router;

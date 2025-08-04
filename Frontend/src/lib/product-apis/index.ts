@@ -107,3 +107,11 @@ export async function fetchProductsOrderCount() {
   if (!res.ok) throw new Error("Failed to fetch products order count");
   return res.json();
 }
+
+// fetch products will be expired in 30 days
+export async function fetchProductsWillBeExpired() {
+  const res = await fetch(`${baseUrl}/api/product/statistic/will-be-expired`);
+  if (!res.ok) throw new Error("Failed to fetch products will be expired");
+  const data = await res.json();
+  return data;
+}

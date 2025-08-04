@@ -264,7 +264,7 @@ export default function OrdersPage() {
                 <Select
                   value={order.orderStatus}
                   onValueChange={v => handleStatusChange(v, order.orderID)}
-                  disabled={order.orderStatus === "completed"}
+                  disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}
                 >
                   <SelectTrigger className="w-30 mt-1 pl-4 focus-visible:ring-0 outline-none">
                     <SelectValue />
@@ -274,7 +274,7 @@ export default function OrdersPage() {
                     <SelectItem value="accepted" disabled={order.orderStatus === "completed"}>Đã xác nhận</SelectItem>
                     <SelectItem value="shipping" disabled={order.orderStatus === "completed"}>Đang giao</SelectItem>
                     <SelectItem value="completed" disabled={order.orderStatus === "completed"}>Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed"}>Đã hủy</SelectItem>
+                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}>Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
