@@ -6,7 +6,12 @@ const background01 = "/images/hero-background-01.png";
 const background02 = "/images/hero-background-02.jpg";
 const background03 = "/images/hero-background-03.jpg";
 const background04 = "/images/hero-background-04.jpg";
-const vector02 = "/vectors/Vector+02.png";
+// const vector02 = "/vectors/Vector+02.png";
+// import background01 from "@public/images/hero-background-01.png";
+// import background02 from "@public/images/hero-background-02.jpg";
+// import background03 from "@public/images/hero-background-03.jpg";
+// import background04 from "@public/images/hero-background-04.jpg";
+// import vector02 from "@public/vectors/Vector+02.png";
 import { Hand } from 'lucide-react';
 
 const Hero = () => {
@@ -71,7 +76,7 @@ const Hero = () => {
                 />
             </div>
             <div className="absolute -bottom-5 md:-bottom-7 left-0 w-full h-auto z-1" aria-hidden="true">
-                <Image src={vector02} alt={"Vector trang trí"} className="mb-4 w-full h-auto" priority />
+                <Image src="/vectors/Vector+02.png" alt={"Vector trang trí"} className="mb-4 w-full h-auto" priority />
             </div>
             <button
                 onClick={handleStopHeroAnimation}
