@@ -2,11 +2,12 @@ import { TypewriterText } from '@/components'
 import Image from 'next/image'
 import React from 'react'
 import toast from 'react-hot-toast';
-import background01 from "@public/images/hero-background-01.png";
-import background02 from "@public/images/hero-background-02.jpg";
-import background03 from "@public/images/hero-background-03.jpg";
-import background04 from "@public/images/hero-background-04.jpg";
-import vector02 from "@public/vectors/Vector+02.png";
+// Use string paths for images in public/
+const background01 = "/images/hero-background-01.png";
+const background02 = "/images/hero-background-02.jpg";
+const background03 = "/images/hero-background-03.jpg";
+const background04 = "/images/hero-background-04.jpg";
+const vector02 = "/vectors/Vector+02.png";
 import { Hand } from 'lucide-react';
 
 const Hero = () => {
