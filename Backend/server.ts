@@ -37,9 +37,9 @@ import { Server } from "socket.io";
 const app = express();
 
 // Enable CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
   "http://localhost:3000",
-  "https://your-netlify-app.netlify.app"
+  "https://deploy-f.netlify.app",
 ];
 
 app.use(
