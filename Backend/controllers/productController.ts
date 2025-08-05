@@ -32,7 +32,7 @@ export const getProductsHaveNotExpired = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Fetch products that have not expired or have null expiredAt
+    // Fetch products that have not expired or have null expiredAt and quantityAvailable > 0
     const products = await Product.findAll({
       where: {
         expiredAt: {
@@ -42,6 +42,9 @@ export const getProductsHaveNotExpired = async (
           ],
         },
         isShow: true,
+        quantityAvailable: {
+          [Op.gt]: 0, // Only products with quantity > 0
+        },
       },
       order: [["order", "ASC"]], // Sort by product order (small to large)
     });

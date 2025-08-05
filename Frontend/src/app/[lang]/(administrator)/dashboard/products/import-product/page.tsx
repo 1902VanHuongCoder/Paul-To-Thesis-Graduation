@@ -52,33 +52,10 @@ export default function ImportProductUsingBarcodePage() {
     useEffect(() => {
         barcodeBufferRef.current = barcodeBuffer;
     }, [barcodeBuffer]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (/^[0-9]$/.test(e.key)) {
-                setBarcodeBuffer(prev => prev + e.key);
-                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
-                bufferTimeout.current = setTimeout(() => {
-                    setBarcodeBuffer("");
-                }, 200);
-            } else if (e.key === "Enter" && barcodeBufferRef.current.length > 0) {
-                setError("");
-                handleScannedBarcode(barcodeBufferRef.current);
-                setBarcodeBuffer("");
-                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
-            } else if (e.key === " ") {
-                setIsBox(prev => !prev);
-                setBarcodeBuffer("");
-                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []); // Only run once on mount
-
+    // Unified barcode processing logic
 
     // Fetch product details by barcode
-    const fetchProduct = async (barcode: string) => {
+    const fetchProduct = React.useCallback(async (barcode: string) => {
         try {
             const product = await importProducts(isBoxRef.current, barcode);
             setProducts(prev => [...prev, product]);
@@ -86,10 +63,9 @@ export default function ImportProductUsingBarcodePage() {
             console.error("Error fetching product:", err);
             setError("Không tìm thấy sản phẩm với mã vạch này. Thử nhập thủ công hoặc kiểm tra lại mã vạch.");
         }
-    }
-
-    // Unified barcode processing logic
-    const handleScannedBarcode = (bc: string) => {
+    }, []);
+    
+    const handleScannedBarcode = React.useCallback((bc: string) => {
         // Always compare only the first 12 digits, trimmed, for both scanned and product barcodes
         const barcode = bc.trim().slice(0, 12);
         if (isBoxRef.current) {
@@ -121,8 +97,36 @@ export default function ImportProductUsingBarcodePage() {
                 fetchProduct(barcode);
             }
         }
-    };
+    }, [fetchProduct]);
 
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (/^[0-9]$/.test(e.key)) {
+                setBarcodeBuffer(prev => prev + e.key);
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+                bufferTimeout.current = setTimeout(() => {
+                    setBarcodeBuffer("");
+                }, 200);
+            } else if (e.key === "Enter" && barcodeBufferRef.current.length > 0) {
+                setError("");
+                handleScannedBarcode(barcodeBufferRef.current);
+                setBarcodeBuffer("");
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+            } else if (e.key === " ") {
+                setIsBox(prev => !prev);
+                setBarcodeBuffer("");
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleScannedBarcode]); // Only run once on mount
+
+
+
+
+ 
     // Update product quantities in the backend
     const handleUpdateProductQuantity = async () => {
         if (!user) { toast.error("Bạn cần đăng nhập để thực hiện thao tác này."); return; }

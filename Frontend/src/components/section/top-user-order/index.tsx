@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { getTopUsersByOrders } from "@/lib/user-apis";
+import { getAllAdmins, getTopUsersByOrders } from "@/lib/user-apis";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createConversation } from "@/lib/chat-apis";
 import { UserIcon } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useUser } from "@/contexts/user-context";
 
 interface TopUser {
     userID: string;
@@ -18,7 +19,14 @@ interface TopUser {
     };
 }
 
+interface User {
+    userID: string;
+    username: string;
+    email: string;
+}
+
 const TopUserOrderSection: React.FC = () => {
+    const {user} = useUser();
     const [users, setUsers] = useState<TopUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,13 +49,44 @@ const TopUserOrderSection: React.FC = () => {
         fetchUsers();
     }, []);
 
+        // Generate conversation ID for user-admin chat
+    const generateConversationID = (userID: string, targetUserID: string, isGroup: boolean) => {
+        const day = new Date().getDay();
+        const month = new Date().getMonth() + 1;
+        const year = new Date().getFullYear();
+        // Generate 3 random digits 
+        const randomDigits = Math.floor(Math.random() * 900) + 100;
+        if (isGroup) {
+            return `GRP${userID}${day}${month}${year}${randomDigits}`;
+        }
+        return `CON${userID}${targetUserID}`;
+    };
+
+
     const handleCreateConversation = async (userID: string, username: string) => {
         try {
+            if(!user){
+                alert("Bạn cần đăng nhập để tạo cuộc trò chuyện.");
+                return;
+            }
             // Create a new conversation with this user (not group)
+            let admins: User[] = [];
+
+            try {
+                // Get all admins from the backend to create group chat
+                admins = await getAllAdmins();
+            } catch (error) {
+                console.error("Error initializing chat:", error);
+            }
+            // setIsOpen(true);
+
+            const conversationID = generateConversationID(user.userID, admins[0].userID, true);
+            const participants = [userID, ...admins.map(admin => admin.userID)];
+
             const res = await createConversation({
-                conversationID: `${userID}_${Date.now()}`,
+                conversationID: conversationID,
                 conversationName: `Hỗ trợ khách hàng: ${username}`,
-                participants: [userID],
+                participants: participants,
                 isGroup: false,
             });
             // Pass conversationID to the chat page to join a room automatically
@@ -130,9 +169,9 @@ const TopUserOrderSection: React.FC = () => {
                     onClick={handleExportExcel}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <rect x="3" y="3" width="18" height="18" rx="2" fill="#21A366"/>
-                        <path d="M7 8l2.5 4L7 16" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M13 8h4M13 12h4M13 16h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
+                        <rect x="3" y="3" width="18" height="18" rx="2" fill="#21A366" />
+                        <path d="M7 8l2.5 4L7 16" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M13 8h4M13 12h4M13 16h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                     Xuất Excel danh sách khách hàng
                 </button>
