@@ -4,7 +4,7 @@ import { Button, Card, CashFilter, CategoryFilter, ChatBot, CustomPagination, Di
 import { Funnel } from "lucide-react";
 import React, { useEffect, useCallback } from "react";
 import { useLoading } from "@/contexts/loading-context";
-import { motion, AnimatePresence } from "framer-motion";
+// import { motion, AnimatePresence } from "framer-motion";
 import removeDuplicates from "@/lib/others/remove-duplicate";
 import Head from "next/head";
 import {  fetchProductsNotExpired } from "@/lib/product-apis";
@@ -265,32 +265,31 @@ const Homepage = () => {
                                     }} />
                                 </div>
                             </div>
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={productView}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.4 }}
-                                    className={productView === "grid"
-                                        ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center`
-                                        : "flex flex-col items-start gap-y-6"
-                                    }
-                                >
-                                    {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
-                                        <Card
-                                            key={product.productID}
-                                            image={product.images[0]}
-                                            title={product.productName}
-                                            discountPrice={product.productPriceSale}
-                                            price={product.productPrice}
-                                            rating={product.rating}
-                                            productID={product.productID}
-                                            productName={product.productName}
-                                        />
-                                    )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
-                                </motion.div>
-                            </AnimatePresence>
+                            <div
+                                key={productView}
+                                className={productView === "grid"
+                                    ? `${paginatedProducts.length > 0 && "grid"} grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center transition-all duration-400`
+                                    : "flex flex-col items-start gap-y-6 transition-all duration-400"
+                                }
+                                style={{
+                                    opacity: 1,
+                                    transform: 'translateY(0)',
+                                    transition: 'opacity 0.4s, transform 0.4s',
+                                }}
+                            >
+                                {paginatedProducts.length > 0 ? paginatedProducts.map((product) => (
+                                    <Card
+                                        key={product.productID}
+                                        image={product.images[0]}
+                                        title={product.productName}
+                                        discountPrice={product.productPriceSale}
+                                        price={product.productPrice}
+                                        rating={product.rating}
+                                        productID={product.productID}
+                                        productName={product.productName}
+                                    />
+                                )) : <div className="w-full text-center py-5 border-[1px] border-dashed ">Không có dữ liệu sản phẩm</div>}
+                            </div>
                         </div>
                         <CustomPagination
                             totalPages={Math.ceil(products.length / displayModeProps.resultsPerPage)}

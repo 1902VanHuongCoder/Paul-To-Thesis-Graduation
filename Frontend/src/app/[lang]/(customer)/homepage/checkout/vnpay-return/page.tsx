@@ -3,7 +3,7 @@ import { useShoppingCart } from "@/contexts/shopping-cart-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { motion } from "framer-motion";
+// Removed framer-motion. Will use manual animation.
 import { Breadcrumb, Button } from "@/components";
 import darkLogo from "@public/images/dark+logo.png";
 import Image from "next/image";
@@ -76,24 +76,18 @@ export default function VNPayReturnPage() {
       <div>
         {isSuccess ? (
           <div className="text-center flex flex-col items-center justify-center gap-y-2">
-            {/* Framer Motion SVG Success Animation */}
-            <motion.svg
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { scale: 0, opacity: 0 },
-                visible: {
-                  scale: 1,
-                  opacity: 1,
-                  transition: { type: "spring", stiffness: 260, damping: 20 }
-                }
-              }}
+            <svg
               width={100}
               height={100}
               viewBox="0 0 80 80"
               className="mx-auto mb-6"
+              style={{
+                opacity: 1,
+                transform: 'scale(1)',
+                transition: 'opacity 0.6s, transform 0.6s',
+              }}
             >
-              <motion.circle
+              <circle
                 cx="40"
                 cy="40"
                 r="36"
@@ -101,22 +95,16 @@ export default function VNPayReturnPage() {
                 stroke="#22c55e"
                 strokeWidth="6"
                 strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6 }}
               />
-              <motion.path
+              <path
                 d="M25 42 L37 54 L56 31"
                 fill="none"
                 stroke="#22c55e"
                 strokeWidth="6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
               />
-            </motion.svg>
+            </svg>
             <h1 className="text-4xl font-bold text-green-600 mb-2">
               {"Thanh toán thành công!"}
             </h1>

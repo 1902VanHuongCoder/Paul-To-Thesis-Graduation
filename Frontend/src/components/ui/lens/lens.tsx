@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+// Removed framer-motion. Will use manual animation.
 
 interface LensProps {
     children: React.ReactNode;
@@ -27,6 +27,8 @@ export const Lens: React.FC<LensProps> = ({
     setHovering,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    // ...existing code...
+    // Replace framer-motion animation with CSS transitions below in the render
 
     const [localIsHovering, setLocalIsHovering] = useState(false);
 
@@ -54,21 +56,15 @@ export const Lens: React.FC<LensProps> = ({
             onMouseMove={handleMouseMove}
         >
             {children}
-
             {isStatic ? (
                 <div>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.58 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="absolute inset-0 overflow-hidden"
+                    <div
+                        className="absolute inset-0 overflow-hidden transition-all duration-300"
                         style={{
-                            maskImage: `radial-gradient(circle ${lensSize / 2}px at ${position.x
-                                }px ${position.y}px, black 100%, transparent 100%)`,
-                            WebkitMaskImage: `radial-gradient(circle ${lensSize / 2}px at ${position.x
-                                }px ${position.y}px, black 100%, transparent 100%)`,
+                            maskImage: `radial-gradient(circle ${lensSize / 2}px at ${position.x}px ${position.y}px, black 100%, transparent 100%)`,
+                            WebkitMaskImage: `radial-gradient(circle ${lensSize / 2}px at ${position.x}px ${position.y}px, black 100%, transparent 100%)`,
                             transformOrigin: `${position.x}px ${position.y}px`,
+                            opacity: 1,
                         }}
                     >
                         <div
@@ -80,42 +76,33 @@ export const Lens: React.FC<LensProps> = ({
                         >
                             {children}
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
-            ) : (
-                <AnimatePresence>
-                    {isHovering && (
-                        <div>
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.58 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="absolute inset-0 overflow-hidden"
-                                style={{
-                                    maskImage: `radial-gradient(circle ${lensSize / 2}px at ${mousePosition.x
-                                        }px ${mousePosition.y}px, black 100%, transparent 100%)`,
-                                    WebkitMaskImage: `radial-gradient(circle ${lensSize / 2
-                                        }px at ${mousePosition.x}px ${mousePosition.y
-                                        }px, black 100%, transparent 100%)`,
-                                    transformOrigin: `${mousePosition.x}px ${mousePosition.y}px`,
-                                    zIndex: 50,
-                                }}
-                            >
-                                <div
-                                    className="absolute inset-0"
-                                    style={{
-                                        transform: `scale(${zoomFactor})`,
-                                        transformOrigin: `${mousePosition.x}px ${mousePosition.y}px`,
-                                    }}
-                                >
-                                    {children}
-                                </div>
-                            </motion.div>
+            ) : null}
+            {!isStatic && isHovering ? (
+                <div>
+                    <div
+                        className="absolute inset-0 overflow-hidden transition-all duration-300"
+                        style={{
+                            maskImage: `radial-gradient(circle ${lensSize / 2}px at ${mousePosition.x}px ${mousePosition.y}px, black 100%, transparent 100%)`,
+                            WebkitMaskImage: `radial-gradient(circle ${lensSize / 2}px at ${mousePosition.x}px ${mousePosition.y}px, black 100%, transparent 100%)`,
+                            transformOrigin: `${mousePosition.x}px ${mousePosition.y}px`,
+                            opacity: 1,
+                            zIndex: 50,
+                        }}
+                    >
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                transform: `scale(${zoomFactor})`,
+                                transformOrigin: `${mousePosition.x}px ${mousePosition.y}px`,
+                            }}
+                        >
+                            {children}
                         </div>
-                    )}
-                </AnimatePresence>
-            )}
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 };

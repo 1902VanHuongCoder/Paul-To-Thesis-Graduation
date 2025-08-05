@@ -20,7 +20,6 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useDictionary } from "@/contexts/dictonary-context";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/user-context";
-import { motion } from "framer-motion";
 import Card from "@/components/ui/card/card";
 import { dislikeComment, fetchCommentByProductID, likeComment } from "@/lib/product-comment-apis";
 import { fetchProductById, fetchProducts } from "@/lib/product-apis";
@@ -387,14 +386,11 @@ export default function ProductDetailsPage() {
             )}</div>
         </div>
       </div>
-      <motion.div
-        initial={{ y: 120 }}
-        animate={showPanel ? { y: 0 } : { y: 120 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed bottom-0 left-0 w-full z-90 bg-white rounded-tr-xl rounded-tl-xl shadow-[var(--add-to-cart-panel-shadow)] border-t border-gray-200"
+      <div
+        className={`fixed bottom-0 left-0 w-full z-90 bg-white rounded-tr-xl rounded-tl-xl shadow-[var(--add-to-cart-panel-shadow)] border-t border-gray-200 transition-transform duration-300 ease-in-out ${showPanel ? 'translate-y-0' : 'translate-y-32'}`}
       >
         <AddToCartPanel productImage={product && product.images ? product.images[0] : ""} productName={product.productName} productID={product.productID} />
-      </motion.div>
+      </div>
     </>
   );
 }

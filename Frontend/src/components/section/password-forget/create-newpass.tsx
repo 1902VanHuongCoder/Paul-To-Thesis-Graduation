@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import toast from "react-hot-toast";
 import { useLoading } from "@/contexts/loading-context";
 import { Eye, EyeOff } from "lucide-react";
-import { motion } from "framer-motion";
 import { checkRecoveryCode, updateUserPassword } from "@/lib/user-apis";
 
 export default function CreateNewPassword({ open, setOpen, email }: { open: boolean; setOpen: (open: boolean) => void, email?: string }) {
@@ -124,46 +123,39 @@ export default function CreateNewPassword({ open, setOpen, email }: { open: bool
                 </DialogHeader>
                 {step === "done" ? (
                     <div className="px-6 py-4 text-center">
-                        <motion.svg
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: { scale: 0, opacity: 0 },
-                                visible: {
-                                    scale: 1,
-                                    opacity: 1,
-                                    transition: { type: "spring", stiffness: 260, damping: 20 }
-                                }
+                        <div
+                            className="success-bubble"
+                            style={{
+                                opacity: 1,
+                                transform: 'scale(1)',
+                                transition: 'opacity 0.3s, transform 0.3s',
                             }}
-                            width={100}
-                            height={100}
-                            viewBox="0 0 80 80"
-                            className="mx-auto mb-6"
                         >
-                            <motion.circle
-                                cx="40"
-                                cy="40"
-                                r="36"
-                                fill="none"
-                                stroke="#22c55e"
-                                strokeWidth="6"
-                                strokeLinecap="round"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 0.6 }}
-                            />
-                            <motion.path
-                                d="M25 42 L37 54 L56 31"
-                                fill="none"
-                                stroke="#22c55e"
-                                strokeWidth="6"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 0.5, delay: 0.5 }}
-                            />
-                        </motion.svg>
+                            <svg
+                                width={100}
+                                height={100}
+                                viewBox="0 0 80 80"
+                                className="mx-auto mb-6"
+                            >
+                                <circle
+                                    cx="40"
+                                    cy="40"
+                                    r="36"
+                                    fill="none"
+                                    stroke="#22c55e"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                />
+                                <path
+                                    d="M25 42 L37 54 L56 31"
+                                    fill="none"
+                                    stroke="#22c55e"
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </div>
                         <div className="text-green-600 font-semibold mb-2 text-xl">Mật khẩu đã được thay đổi</div>
                         <div>Bạn có thể đăng nhập với mật khẩu mới.</div>
                         <DialogFooter>

@@ -6,7 +6,7 @@ import { baseUrl } from "@/lib/others/base-url";
 import { Button } from "@/components/ui/button/button";
 import { Input } from "@/components/ui/input/input";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
-import { motion, AnimatePresence } from "framer-motion";
+// Removed framer-motion. Use normal elements and manual CSS for animation.
 import { useUser } from "@/contexts/user-context";
 import toast from "react-hot-toast";
 import { importProducts } from "@/lib/product-apis";
@@ -209,18 +209,12 @@ export default function ImportProductUsingBarcodePage() {
                                 <TableCell>{item.productPrice} VND</TableCell>
                                 <TableCell>{item.productPriceSale} VND</TableCell>
                                 <TableCell className="text-center">
-                                    <AnimatePresence mode="wait">
-                                        <motion.span
-                                            key={item.quantityAvailable}
-                                            initial={{ scale: 1 }}
-                                            animate={{ scale: 1.3, transition: { duration: 0.01 } }}
-                                            exit={{ scale: 1.6 }}
-                                            transition={{ type: "spring", stiffness: 700, damping: 15, duration: 0.01 }}
-                                            style={{ display: "inline-block" }}
-                                        >
-                                            {item.quantityAvailable}
-                                        </motion.span>
-                                    </AnimatePresence>
+                                    <span
+                                        className="inline-block animate-bounce-fast"
+                                        style={{ transition: 'transform 0.1s', transform: 'scale(1.2)' }}
+                                    >
+                                        {item.quantityAvailable}
+                                    </span>
                                 </TableCell>
                                 {/* <TableCell className="text-center">
                                     <AnimatePresence mode="wait">
