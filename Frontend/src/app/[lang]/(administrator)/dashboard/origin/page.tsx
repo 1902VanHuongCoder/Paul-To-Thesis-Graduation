@@ -45,6 +45,15 @@ export default function AddOriginPage() {
   }, []);
 
   const onSubmit = async (data: OriginFormValues) => {
+    // Check if origin name already exists
+    const nameExists = origins.some(
+      (origin) => origin.originName.trim().toLowerCase() === data.originName.trim().toLowerCase()
+    );
+    if (nameExists) {
+      toast.error("Tên nhà sản xuất đã tồn tại.");
+      return;
+    }
+
     if (!data.image || data.image.length === 0) {
       toast.error("Hãy chọn một ảnh nhà sản xuất");
       return;

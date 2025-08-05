@@ -196,36 +196,6 @@ export default function ChatPage() {
     return `CON${userID}${targetUserID}${day}${month}${year}${randomDigits}`;
   };
 
-  // // Handle opening chat panel
-  // const handleCreateConversation = async () => {
-  //   if (!user) return;
-  //   let admins: User[] = [];
-  //   try {
-  //     // Get all admins from the backend to create group chat
-  //     admins = await getAllAdmins();
-  //   } catch (error) {
-  //     console.error("Error initializing chat:", error);
-  //   }
-  //   const conversationID = generateConversationID(user.userID, "", false);
-  //   const participants = admins.map(admin => admin.userID);
-  //   participants.unshift(user.userID);
-
-  //   console.log("Creating conversation with participants:", participants);
-
-  //   const res = await createConversation({
-  //     conversationID,
-  //     conversationName: user.username,
-  //     participants,
-  //     isGroup: true,
-  //     conversationAvatar: user.avatar,
-  //   });
-
-  //   setJoinedConversationID(res.conversationID);
-  //   const data: ConversationList[] = await fetchConversations(user.userID);
-  //   setConversationUserBelongs(data);
-  // };
-
-
   // Ensure user joins the room on initial load if already in a conversation
   useEffect(() => {
     if (socket && joinedConversationID) {
@@ -310,7 +280,7 @@ export default function ChatPage() {
                 {conversationUserBelongs.length > 0 ? (
                   <ul className="pl-0">
                     {(searchUserID
-                      ? conversationUserBelongs.filter(conv => conv.conversation.conversationID.includes(searchUserID))
+                      ? conversationUserBelongs.filter(conv => conv.conversation.hostID && conv.conversation.hostID.includes(searchUserID))
                       : conversationUserBelongs
                     ).map((conv) => (
                       <li key={conv.conversationID} className="px-2">

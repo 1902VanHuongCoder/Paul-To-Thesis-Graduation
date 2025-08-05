@@ -311,46 +311,6 @@ export default function ProductDetailsPage() {
                         )}
                       </div>
                     </div>
-                    {/* <div className="absolute bottom-0 left-0 w-full bg-white p-6 border-t border-gray-200 rounded-bl-lg rounded-br-lg">
-                      <form onSubmit={handleCommentSubmit} className="flex flex-col gap-y-4">
-                        <div className="flex items-start gap-2">
-                          <span className="font-medium">Đánh giá:</span>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              type="button"
-                              key={star}
-                              className={star <= newRating ? "text-yellow-400" : "text-gray-300"}
-                              onClick={() => setNewRating(star)}
-                              aria-label={`Đánh giá ${star} sao`}
-                            >
-                              <Star className="h-[20px]" fill={star <= newRating ? "var(--color-yellow-400)" : "var(--color-gray-300)"} />
-                            </button>
-                          ))}
-                          <span className="ml-2 text-sm text-gray-500 translate-y-0.5">{newRating}/5 sao</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            ref={commentInputRef}
-                            type="text"
-                            className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white "
-                            placeholder="Viết bình luận về sản phẩm..."
-                            value={newComment}
-                            onChange={e => setNewComment(e.target.value)}
-                            disabled={submitting}
-                          />
-                          <Button
-                            type="submit"
-                            size="md"
-                            className="disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                            variant="primary"
-                            disabled={submitting || !newComment.trim()}
-                          >
-                            {submitting ? "Đang gửi..." : "Gửi bình luận"}
-                          </Button>
-                        </div>
-                      </form>
-                    </div> */}
-
                   </div>)
               }
             </div>
