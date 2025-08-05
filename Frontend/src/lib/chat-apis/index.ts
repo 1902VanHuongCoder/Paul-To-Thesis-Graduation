@@ -124,6 +124,7 @@ export const createConversation = async ({
       participants,
       isGroup,
     });
+    
     const response = await fetch(`${baseUrl}/api/chat/create-conversation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

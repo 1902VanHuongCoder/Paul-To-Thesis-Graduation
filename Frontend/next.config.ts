@@ -1,12 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove static export for dynamic routes to work
-  // output: 'export',
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
   images: {
-    unoptimized: true,
     domains: [
       "cdn-front.freepik.com",
       "www.shadcnblocks.com",

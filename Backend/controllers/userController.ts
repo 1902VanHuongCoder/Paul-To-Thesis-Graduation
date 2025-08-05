@@ -83,28 +83,39 @@ export const localSignUp = async (
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(409).json({ message: "Đã có tài khoản với email này, vui lòng sử dụng đăng ký với email khác." });
-    } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await User.create({
-        userID,
-        username,
-        email,
-        password: hashedPassword,
-        role,
-        provider: "local",
-      });
-      if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
-        const newAddress = await ShippingAddress.create({
-          userID,
-          address: shippingAddress.address,
-          phone: shippingAddress.phone,
-          isDefault: shippingAddress.isDefault ?? true,
-        });
-      }
-
-      const token = generateToken(user);
-      res.status(201).json({ user, token });
+      return;
     }
+
+    // Check if phone number exists in ShippingAddress
+    if (shippingAddress && shippingAddress.phone) {
+      const existingPhone = await ShippingAddress.findOne({ where: { phone: shippingAddress.phone } });
+      if (existingPhone) {
+        res.status(409).json({ message: "Số điện thoại đã được sử dụng cho tài khoản khác." });
+        return;
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      userID,
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      provider: "local",
+    });
+
+    if (shippingAddress && shippingAddress.address && shippingAddress.phone) {
+      await ShippingAddress.create({
+        userID,
+        address: shippingAddress.address,
+        phone: shippingAddress.phone,
+        isDefault: shippingAddress.isDefault ?? true,
+      });
+    }
+
+    const token = generateToken(user);
+    res.status(201).json({ user, token });
   } catch (error) {
     res
       .status(500)

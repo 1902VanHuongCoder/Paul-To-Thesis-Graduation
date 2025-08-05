@@ -121,7 +121,7 @@ async def predict(file: UploadFile = File(...)):
             "processed_image": img_b64
         }
     return {
-        "predicted_class": pred_label,
+        "predicted_class": pred_label,  
         "all_probs": result_probs,
         "processed_image": img_b64
     }

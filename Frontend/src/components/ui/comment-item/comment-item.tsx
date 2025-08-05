@@ -2,7 +2,7 @@
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import React from "react";
 import Image, { StaticImageData } from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+// Removed framer-motion. Will use manual animation.
 import { useUser } from "@/contexts/user-context";
 import { deleteNewsComment } from "@/lib/news-comment-apis";
 import { deleteProductComment } from "@/lib/product-comment-apis";
@@ -184,6 +184,7 @@ export default function CommentItem({
                             <ThumbsUp size={18} />
                             <span>Like</span>
                             <span className="ml-1 text-xs">{likeCount}</span>
+<<<<<<< HEAD
                             <AnimatePresence>
                                 {likeAnim && (
                                     <motion.span
@@ -191,12 +192,32 @@ export default function CommentItem({
                                         animate={{ opacity: 0, y: -40, scale: 0.5 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.5 }}
-                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                        style={{
+                                            position: "absolute",
+                                            left: "50%",
+                                            top: 0,
+                                            transform: "translateX(-50%)",
+                                            zIndex: 10,
+                                        }}
                                     >
-                                        <ThumbsUp size={28} className="text-green-500 drop-shadow-lg " fill="var(--color-green-500)" />
+                                        <ThumbsUp size={28} className="text-green-500 drop-shadow-lg" fill="var(--color-green-500)" />
                                     </motion.span>
                                 )}
                             </AnimatePresence>
+=======
+                            {likeAnim && (
+                                <span
+                                    className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                    style={{
+                                        opacity: likeAnim ? 1 : 0,
+                                        transform: likeAnim ? 'translateY(0) scale(1)' : 'translateY(-40px) scale(0.5)',
+                                        transition: 'opacity 0.5s, transform 0.5s',
+                                    }}
+                                >
+                                    <ThumbsUp size={28} className="text-green-500 drop-shadow-lg " fill="var(--color-green-500)" />
+                                </span>
+                            )}
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2
                         </button>
                         <button
                             className="flex items-center gap-1 px-3 py-2 text-sm cursor-pointer relative"
@@ -206,6 +227,7 @@ export default function CommentItem({
                             <ThumbsDown size={18} />
                             <span>Dislike</span>
                             <span className="ml-1 text-xs">{dislikeCount}</span>
+<<<<<<< HEAD
                             <AnimatePresence>
                                 {dislikeAnim && (
                                     <motion.span
@@ -213,12 +235,32 @@ export default function CommentItem({
                                         animate={{ opacity: 0, y: 40, scale: 0.5 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.5 }}
-                                        className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                        style={{
+                                            position: "absolute",
+                                            left: "50%",
+                                            top: 0,
+                                            transform: "translateX(-50%)",
+                                            zIndex: 10,
+                                        }}
                                     >
                                         <ThumbsDown size={28} className="text-red-500 drop-shadow-lg" fill="var(--color-red-500)" />
                                     </motion.span>
                                 )}
                             </AnimatePresence>
+=======
+                            {dislikeAnim && (
+                                <span
+                                    className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                                    style={{
+                                        opacity: dislikeAnim ? 1 : 0,
+                                        transform: dislikeAnim ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.5)',
+                                        transition: 'opacity 0.5s, transform 0.5s',
+                                    }}
+                                >
+                                    <ThumbsDown size={28} className="text-red-500 drop-shadow-lg" fill="var(--color-red-500)" />
+                                </span>
+                            )}
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2
                         </button>
 
                     </div>

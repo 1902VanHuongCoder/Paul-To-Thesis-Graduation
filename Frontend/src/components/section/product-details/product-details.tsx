@@ -215,11 +215,17 @@ export default function ProductDetails({
                                     +
                                 </button>
                             </div>
-                            <Button onClick={handleAddToCart} variant="primary" size="sm" className="flex items-center gap-2">
+                            <Button
+                                disabled={quantityAvailable <= 0}
+                                onClick={handleAddToCart} variant="primary" size="sm" className="flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Thêm vào giỏ hàng
                             </Button>
                             {/* <button onClick={handleAddToWishList} className="p-3 rounded-full border-1 border-primary/60 hover:bg-secondary hover:text-white hover:cursor-pointer"><Heart className="text-[#0D401C]" stroke="#0D401C"/></button> */}
-                            <HeartButton onClick={handleAddToWishList} />
+                            <div 
+                                className={`${quantityAvailable <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                                <HeartButton onClick={handleAddToWishList} />
+                            </div>
                         </div>
                     </div>
                 </div>

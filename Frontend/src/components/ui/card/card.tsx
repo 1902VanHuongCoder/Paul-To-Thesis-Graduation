@@ -7,7 +7,7 @@ import { useWishlist } from "@/contexts/wishlist-context";
 import { useUser } from "@/contexts/user-context";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog/dialog";
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed framer-motion. Will use manual animation.
 import Link from "next/link";
 import NoImage from "@public/images/NoImage.jpg";
 import toast from "react-hot-toast";
@@ -144,6 +144,7 @@ export const Card = ({
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide text-primary group-hover:text-white lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" /></svg>
                 </Link>
             </div>
+<<<<<<< HEAD
             <AnimatePresence>
                 {flyAnim && (
                     <motion.div
@@ -181,6 +182,28 @@ export const Card = ({
                     />
                 )}
             </AnimatePresence>
+=======
+            {flyAnim && (
+                <Image
+                    src={flyImage}
+                    width={50}
+                    height={50}
+                    style={{
+                        position: 'fixed',
+                        left: flyAnim.x,
+                        top: flyAnim.y,
+                        borderRadius: 12,
+                        zIndex: 9999,
+                        pointerEvents: 'none',
+                        opacity: 1,
+                        transition: 'all 0.8s ease-in-out',
+                    }}
+                    alt="Fly to cart animation"
+                    aria-hidden="true"
+                    onTransitionEnd={() => setFlyAnim(null)}
+                />
+            )}
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2
             <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
                 <DialogContent className="font-sans">
                     <DialogHeader>

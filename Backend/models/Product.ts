@@ -23,7 +23,8 @@ class Product extends Model {
   unit!: string;
   expiredAt!: Date | null;
   quantityPerBox!: number;
-  diseases!: number[]
+  diseases!: number[];
+  order!: number;
 }
 
 Product.init(
@@ -122,6 +123,12 @@ Product.init(
     diseases: {
       type: DataTypes.JSON,
       allowNull: true, // Allow null for products that do not have associated diseases
+      defaultValue: [], // Default to an empty array if no diseases are associated
+    },
+    order: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Allow null for products that do not have a specific order
+      defaultValue: 0, // Default value for order
     },
   },
   {

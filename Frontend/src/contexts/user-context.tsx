@@ -2,6 +2,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useChat } from "./chat-context";
+import { useCheckout } from "./checkout-context";
 
 interface User {
     userID: string;
@@ -20,6 +22,8 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+    const { setJoinedConversationID } = useChat();
+    const { setCheckoutData } = useCheckout();
     const pathname = usePathname();
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
@@ -30,6 +34,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if(pathname.includes("dashboard")) {
             localStorage.removeItem("admin");
         }
+        setJoinedConversationID(null);
+        setCheckoutData(undefined);
         router.push("/"); // Redirect to login page
         toast.success("Đăng xuất thành công!");
     };
@@ -47,7 +53,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 setUser(JSON.parse(storedUser));
             }
         }
-    }, []);
+    }, [pathname]);
 
     return (
         <UserContext.Provider value={{ user, setUser, logout }}>
