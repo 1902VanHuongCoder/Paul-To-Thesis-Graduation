@@ -220,6 +220,9 @@ export default function AddShippingAddressPage() {
                             onChange={handleChange}
                             required
                             placeholder="Nhập số điện thoại"
+                            pattern="^0\d{9}$"
+                            maxLength={10}
+                            title="Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0"
                         />
                     </div>
                     <div className="flex items-center">

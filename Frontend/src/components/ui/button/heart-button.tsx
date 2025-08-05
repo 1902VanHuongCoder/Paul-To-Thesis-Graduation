@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+// Removed framer-motion. Will use manual animation.
 import { Heart } from 'lucide-react'
 
 interface HeartButtonProps {
@@ -24,6 +24,7 @@ const HeartButton: React.FC<HeartButtonProps> = ({ onClick }) => {
             aria-label="Like"
         >
             <Heart className="w-6 h-6 text-red-500 fill-red-500 " />
+<<<<<<< HEAD
             <AnimatePresence>
                 {showBubble && (<>
                     <motion.span
@@ -91,6 +92,20 @@ const HeartButton: React.FC<HeartButtonProps> = ({ onClick }) => {
                     </motion.span>
                 </>) }
             </AnimatePresence>
+=======
+            {showBubble && (
+                <span
+                    className="absolute left-1/2 top-0 -translate-x-1/2 z-10"
+                    style={{
+                        opacity: showBubble ? 1 : 0,
+                        transform: showBubble ? 'translateY(-20px) scale(1.2)' : 'translateY(0) scale(0.7)',
+                        transition: 'opacity 0.6s, transform 0.6s',
+                    }}
+                >
+                    <Heart className="w-8 h-8 text-red-500 fill-red-500 animate-bounce" />
+                </span>
+            )}
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2
         </button>
     )
 }

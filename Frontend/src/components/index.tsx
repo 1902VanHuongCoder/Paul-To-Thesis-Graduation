@@ -46,4 +46,7 @@ export { default as OrderDetailPage } from './section/order-detail-page/order-de
 export { default as ErrorPage } from './section/error-page/error-page';
 export { default as LoginForm } from './section/login-page/login-page';
 export { default as SignUpForm } from './section/signup-page/signup-page';
+<<<<<<< HEAD
 // export { default as Component } from './section/test-table/test-table';
+=======
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2

@@ -22,6 +22,7 @@ export default function CartPage() {
     const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false); // Terms and Privacy Policy Dialog
     const [promoCode, setPromoCode] = useState({
         code: "",
+        maxDiscount: 0,
         discount: 0,
     });
     const router = useRouter();
@@ -29,7 +30,13 @@ export default function CartPage() {
     // const [selectedShipping, setSelectedShipping] = useState("local");
     // const [termsAccepted, setTermsAccepted] = useState(false);
 
-    const totalPayment = useMemo(()=> {
+    const subtotal = useMemo(() => {
+        return cart.products.reduce((total, item) => {
+            const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
+            return total + (price * (item.CartItem?.quantity || 0));
+        }, 0);
+    }, [cart.products]);
+    const totalPayment = useMemo(() => {
         const subtotal = cart.products.reduce((total, item) => {
             const price = item.productPriceSale ? item.productPriceSale : item.productPrice;
             return total + (price * (item.CartItem?.quantity || 0));
@@ -38,35 +45,78 @@ export default function CartPage() {
         return subtotal - discountValue;
     }, [cart.products, checkoutData?.discount?.discountValue]);
 
+    // Function to handle checking promo code
     const handleCheckPromoCode = async () => {
+        if (!promoCode.code) {
+            toast.error("Vui lòng nhập mã giảm giá.");
+            return;
+        }
+
         try {
-                const data = await checkPromotionCode(promoCode.code);
-                toast.success("Áp dụng mã giảm giá thành công!");
-                if (data.discount.isActive === false || data.discount.expireDate < new Date().toISOString() || data.discount.usedCount >= data.discount.usageLimit) {
-                    toast.error("Mã giảm giá đã hết hạn hoặc không còn hiệu lực.");
-                    return;
-                } else if (data.discount.minOrderValue && totalPayment < data.discount.minOrderValue) {
-                    toast.error(`Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá. Tối thiểu là ${formatVND(data.discount.minOrderValue)} VND.`);
-                    return;
-                } else {
-                    const discountValue = (data.discount.discountPercent || 0) / 100 * totalPayment;
-                    setCheckoutData({
-                        ...checkoutData,
-                        discount: {
-                            discountID: data.discount.discountID,
-                            discountValue: discountValue > data.discount.maxDiscountAmount ? data.discount.maxDiscountAmount : discountValue,
-                        }
-                    })
-                    setPromoCode({
-                        ...promoCode,
-                        discount: data.discount.discountPercent || 0 * totalPayment / 100,
-                    });
+            const discountID = promoCode.code;
+            const { discount, status, message } = await checkPromotionCode(discountID);
+
+            // Prevent applying a discount if one is already applied
+            if (checkoutData?.discount && checkoutData.discount.discountID) {
+                toast.error("Bạn đã áp dụng mã giảm giá. Không thể áp dụng thêm.");
+                return;
+            }
+            
+            if (status === 200) {
+                toast.success(`Mã giảm giá ${discount.discountPercent}% đã được áp dụng`);
+            } else {
+                toast.error(message);
+                return;
+            }
+
+
+
+            // Calculate discount value
+            let discountValue = 0;
+
+            if (subtotal < discount.minOrderAmount) {
+                toast.error(`Đơn hàng của bạn không đủ điều kiện để áp dụng mã giảm giá. Giá trị đơn hàng tối thiểu là ${formatVND(discount.minOrderAmount)}.`);
+                return;
+            }
+            if (discount.usageLimit && discount.usedCount && discount.usedCount >= discount.usageLimit) {
+                toast.error(`Mã giảm giá đã hết lượt sử dụng.`);
+                return;
+            }
+
+            if (discount.discountPercent) {
+                discountValue = (discount.discountPercent / 100) * subtotal;
+                console.log("Discount percent applied:", discountValue);
+            }
+
+            if (discount.maxDiscountAmount && discountValue > discount.maxDiscountAmount) {
+                discountValue = discount.maxDiscountAmount;
+            }
+
+            discountValue = Math.round(discountValue); // Always round to nearest integer
+
+            setCheckoutData({
+                ...checkoutData,
+                discount: {
+                    discountID: discount.discountID,
+                    discountValue: discountValue,
                 }
+            });
+
+            console.log("Discount applied:", {
+                discountID: discount.discountID,
+                discountValue: discountValue,
+            });
+
+            setPromoCode({
+                code: "",
+                maxDiscount: discount.maxDiscountAmount,
+                discount: discountValue,
+            });
         } catch (error) {
             console.error("Error checking promo code:", error);
-            toast.error("Đã xảy ra lỗi khi kiểm tra mã giảm giá. Vui lòng thử lại sau.");
+            toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
         }
-    }
+    };
 
     const handleCheckout = () => {
         if (cart.products.length === 0) {
@@ -192,6 +242,15 @@ export default function CartPage() {
                         {"Áp dụng mã giảm giá"}
                     </Button>
                 </div>
+                {/* )} */}
+                {promoCode.maxDiscount > 0 && (
+                    <div className="flex text-gray-700 mb-4 justify-end gap-x-2">
+                        <span>
+                            {"Giảm giá tối đa: "}
+                        </span>
+                        <span>{formatVND(promoCode.maxDiscount)} VND</span>
+                    </div>
+                )}
             </div>
 
             {/* Right Section – Order Summary */}
@@ -217,7 +276,7 @@ export default function CartPage() {
                             "Tổng phụ"
                         }</span>
                         <span>
-                            {formatVND(totalPayment)} VND
+                            {formatVND(subtotal)} VND
                         </span>
                     </div>
                     <div className="flex justify-between text-gray-700 border-b-[1px] border-solid border-black/10 pb-4">
@@ -232,7 +291,7 @@ export default function CartPage() {
                         <span>{
                             "Tổng"
                         }</span>
-                        <span>{formatVND(totalPayment - (checkoutData?.discount?.discountValue || 0))} VND </span>
+                        <span>{formatVND(totalPayment)} VND </span>
                     </div>
                     {/* <div className="flex items-center gap-2">
                         <input

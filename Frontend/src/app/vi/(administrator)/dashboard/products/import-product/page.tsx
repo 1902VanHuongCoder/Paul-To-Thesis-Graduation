@@ -6,7 +6,7 @@ import { baseUrl } from "@/lib/others/base-url";
 import { Button } from "@/components/ui/button/button";
 import { Input } from "@/components/ui/input/input";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table/table";
-import { motion, AnimatePresence } from "framer-motion";
+// Removed framer-motion. Use normal elements and manual CSS for animation.
 import { useUser } from "@/contexts/user-context";
 import toast from "react-hot-toast";
 import { importProducts } from "@/lib/product-apis";
@@ -52,6 +52,7 @@ export default function ImportProductUsingBarcodePage() {
     useEffect(() => {
         barcodeBufferRef.current = barcodeBuffer;
     }, [barcodeBuffer]);
+<<<<<<< HEAD:Frontend/src/app/vi/(administrator)/dashboard/products/import-product/page.tsx
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -77,9 +78,12 @@ export default function ImportProductUsingBarcodePage() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []); // Only run once on mount
 
+=======
+    // Unified barcode processing logic
+>>>>>>> 3ba2e34c1f1780838f0a0b3168f8d0df5ab526b2:Frontend/src/app/[lang]/(administrator)/dashboard/products/import-product/page.tsx
 
     // Fetch product details by barcode
-    const fetchProduct = async (barcode: string) => {
+    const fetchProduct = React.useCallback(async (barcode: string) => {
         try {
             const product = await importProducts(isBoxRef.current, barcode);
             setProducts(prev => [...prev, product]);
@@ -87,12 +91,12 @@ export default function ImportProductUsingBarcodePage() {
             console.error("Error fetching product:", err);
             setError("Không tìm thấy sản phẩm với mã vạch này. Thử nhập thủ công hoặc kiểm tra lại mã vạch.");
         }
-    }
-
-    // Unified barcode processing logic
-    const handleScannedBarcode = (bc: string) => {
+    }, []);
+    
+    const handleScannedBarcode = React.useCallback((bc: string) => {
         // Always compare only the first 12 digits, trimmed, for both scanned and product barcodes
-        const barcode = bc.trim().slice(0, 12);
+        const barcode = bc.trim();
+        console.log("Scanned barcode:", barcode);
         if (isBoxRef.current) {
             const existedInProductsArray = productsRef.current.find(item => item.boxBarcode === barcode);
             if (existedInProductsArray) {
@@ -122,8 +126,36 @@ export default function ImportProductUsingBarcodePage() {
                 fetchProduct(barcode);
             }
         }
-    };
+    }, [fetchProduct]);
 
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (/^[0-9]$/.test(e.key)) {
+                setBarcodeBuffer(prev => prev + e.key);
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+                bufferTimeout.current = setTimeout(() => {
+                    setBarcodeBuffer("");
+                }, 200);
+            } else if (e.key === "Enter" && barcodeBufferRef.current.length > 0) {
+                setError("");
+                handleScannedBarcode(barcodeBufferRef.current);
+                setBarcodeBuffer("");
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+            } else if (e.key === " ") {
+                setIsBox(prev => !prev);
+                setBarcodeBuffer("");
+                if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleScannedBarcode]); // Only run once on mount
+
+
+
+
+ 
     // Update product quantities in the backend
     const handleUpdateProductQuantity = async () => {
         if (!user) { toast.error("Bạn cần đăng nhập để thực hiện thao tác này."); return; }
@@ -210,18 +242,12 @@ export default function ImportProductUsingBarcodePage() {
                                 <TableCell>{item.productPrice} VND</TableCell>
                                 <TableCell>{item.productPriceSale} VND</TableCell>
                                 <TableCell className="text-center">
-                                    <AnimatePresence mode="wait">
-                                        <motion.span
-                                            key={item.quantityAvailable}
-                                            initial={{ scale: 1 }}
-                                            animate={{ scale: 1.3, transition: { duration: 0.01 } }}
-                                            exit={{ scale: 1.6 }}
-                                            transition={{ type: "spring", stiffness: 700, damping: 15, duration: 0.01 }}
-                                            style={{ display: "inline-block" }}
-                                        >
-                                            {item.quantityAvailable}
-                                        </motion.span>
-                                    </AnimatePresence>
+                                    <span
+                                        className="inline-block animate-bounce-fast"
+                                        style={{ transition: 'transform 0.1s', transform: 'scale(1.2)' }}
+                                    >
+                                        {item.quantityAvailable}
+                                    </span>
                                 </TableCell>
                                 {/* <TableCell className="text-center">
                                     <AnimatePresence mode="wait">
