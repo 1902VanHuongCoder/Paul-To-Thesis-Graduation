@@ -212,6 +212,19 @@ export const getAllAdmins = async () => {
   return data;
 };
 
+export const sendOrderConfirmation = async (email: string, orderID: string) => {
+  const res = await fetch(`${baseUrl}/api/users/send-confirmation-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, orderID }),
+  });
+  const data = await res.json();
+  return {
+    message: data.message,
+    status: res.status,
+  };
+};
+
 export const checkRecoveryCode = async (email: string, code: string) => {
   const res = await fetch(`${baseUrl}/api/users/check-recovery-code`, {
     method: "POST",

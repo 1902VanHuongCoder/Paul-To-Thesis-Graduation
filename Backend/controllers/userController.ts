@@ -320,6 +320,54 @@ export const forgotPassword = async (
   }
 };
 
+
+// Send email to user include confirmation code (6 digits) and expiry time (10 minutes) before order to confirm their info
+export const sendOrderConfirmation = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, orderID } = req.body;
+  if (!email || !orderID) {
+    res.status(400).json({ error: "Email and Order ID are required" });
+    return;
+  }
+
+  // Generate confirmation code and expiry
+  const code = generateSecure6DigitCode();
+  const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  // Save code and expiry to user (or a separate table)
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      res.status(404).json({ message: "Không tìm thấy người dùng" });
+      return;
+    }
+    user.resetPasswordCode = code;
+    user.resetPasswordCodeExpiry = codeExpiry;
+    await user.save();
+  } catch (error) {
+    console.error("Error saving reset password code:", error);
+    res.status(500).json({ message: "Xảy ra lỗi khi lưu mã xác nhận. Hãy thử lại!" });
+    return;
+  }
+
+  // Send email
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Mã xác nhận đơn hàng",
+      text: `Mã xác nhận của bạn là: ${code}. Mã có hiệu lực trong 10 phút.`,
+    });
+    res.json({ message: "Đã gửi mã xác nhận tới email của bạn." });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Không thể gửi email xác nhận" });
+    return;
+  }
+};
+
 export const checkRecoveryCode = async (
   req: Request,
   res: Response

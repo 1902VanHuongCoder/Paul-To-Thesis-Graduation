@@ -76,7 +76,10 @@ const Hero = () => {
                 />
             </div>
             <div className="absolute -bottom-5 md:-bottom-7 left-0 w-full h-auto z-1" aria-hidden="true">
-                <Image src="/vectors/Vector+02.png" alt={"Vector trang trí"} className="mb-4 w-full h-auto" priority />
+                <Image src="/vectors/Vector+02.png"
+                 width={1920}
+                 height={1080}
+                alt={"Vector trang trí"} className="mb-4 w-full h-auto" priority />
             </div>
             <button
                 onClick={handleStopHeroAnimation}
