@@ -83,10 +83,22 @@ export async function deleteProduct(productId: string) {
   const res = await fetch(`${baseUrl}/api/product/${productId}`, {
     method: "DELETE",
   });
-  const data = await res.json();
+  let message = "";
+  try {
+    // Only parse JSON if response has content
+    const text = await res.text();
+    console.log("Delete product response:", text);
+    if (text) {
+      const data = JSON.parse(text);
+      message = data.message || "";
+    }
+  } catch (err) {
+    console.error("Error parsing response:", err);
+    message = "";
+  }
   return {
     status: res.status,
-    message: data.message
+    message
   };
 }
 

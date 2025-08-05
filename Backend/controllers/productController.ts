@@ -290,7 +290,8 @@ export const deleteProduct = async (
     // Delete the product
     await product.destroy();
 
-    res.status(204).json({ message: "Sản phẩm đã được xóa thành công" });
+    res.status(200).json({ message: "Sản phẩm đã được xóa thành công" });
+    return; 
   } catch (error: any) {
     if (error.name === "SequelizeForeignKeyConstraintError") {
       res.status(400).json({

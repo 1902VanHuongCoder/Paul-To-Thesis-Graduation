@@ -78,6 +78,16 @@ export default function AddSubCategoryPage() {
 
   // Add new subcategory
   const onSubmit: SubmitHandler<SubCategoryFormValues> = async (data) => {
+    // Check if subcategory name already exists (case-insensitive, in the same category)
+    const existed = subCategories.some(
+      sub =>
+        sub.subcategoryName.trim().toLowerCase() === data.subcategoryName.trim().toLowerCase() &&
+        String(sub.categoryID) === String(data.categoryID)
+    );
+    if (existed) {
+      toast.error("Tên danh mục con đã tồn tại trong danh mục này.");
+      return;
+    }
     try {
       const res = await createSubCategory(data);
       if (res) {

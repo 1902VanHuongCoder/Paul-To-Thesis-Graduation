@@ -67,7 +67,8 @@ export default function ImportProductUsingBarcodePage() {
     
     const handleScannedBarcode = React.useCallback((bc: string) => {
         // Always compare only the first 12 digits, trimmed, for both scanned and product barcodes
-        const barcode = bc.trim().slice(0, 12);
+        const barcode = bc.trim();
+        console.log("Scanned barcode:", barcode);
         if (isBoxRef.current) {
             const existedInProductsArray = productsRef.current.find(item => item.boxBarcode === barcode);
             if (existedInProductsArray) {

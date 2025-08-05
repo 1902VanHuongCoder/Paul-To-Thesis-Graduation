@@ -56,6 +56,14 @@ export default function AddCategoryPage() {
 
   // Add new category
   const onSubmit = async (data: CategoryFormValues) => {
+    // Check if category name already exists (case-insensitive)
+    const exists = categories.some(
+      cat => cat.categoryName.trim().toLowerCase() === data.categoryName.trim().toLowerCase()
+    );
+    if (exists) {
+      toast.error("Tên danh mục đã tồn tại.");
+      return;
+    }
     try {
       await createCategory(data);
       reset();
