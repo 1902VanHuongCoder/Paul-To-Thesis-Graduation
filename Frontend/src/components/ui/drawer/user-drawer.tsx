@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+// import Link from "next/link";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerTrigger, DrawerDescription } from "./drawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
 import { BookUser, HousePlus, LogOut, ReceiptText, Settings, X } from "lucide-react";
@@ -53,10 +53,10 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: User
                             {user.email && <div className="text-gray-500">{user.email}</div>}
                         </div>
                     </div>
-                    <Link href={`/vi/homepage/user-profile`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><BookUser /></span><span>Xem chi tiết</span></Link>
-                    <Link href={`/vi/homepage/order-history`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><ReceiptText /></span><span>Lịch sử mua hàng</span></Link>
-                    <Link href={`/vi/homepage/add-shipping-address`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><HousePlus /></span><span>Thêm địa chỉ giao hàng</span></Link>
-                    <Link href={`/vi/homepage/update-user-profile?userID=${user.userID}`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><Settings /></span><span>Cài đặt tài khoản</span></Link>
+                    <a href={`/vi/homepage/user-profile`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><BookUser /></span><span>Xem chi tiết</span></a>
+                    <a href={`/vi/homepage/order-history`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><ReceiptText /></span><span>Lịch sử mua hàng</span></a>
+                    <a href={`/vi/homepage/add-shipping-address`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><HousePlus /></span><span>Thêm địa chỉ giao hàng</span></a>
+                    <a href={`/vi/homepage/update-user-profile?userID=${user.userID}`} className="text-black text-md flex items-center gap-x-2 hover:text-primary hover:font-bold"><span className="text-gray-600"><Settings /></span><span>Cài đặt tài khoản</span></a>
                 </div>
                 <div className="flex justify-end p-4 border-t border-gray-200">
                     {/* Add more user actions/info here */}

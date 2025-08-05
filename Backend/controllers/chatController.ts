@@ -97,6 +97,7 @@ export const createConversation = async (
 
   try {
     // Check if a conversation already exists with the possible IDs
+    console.log("Checking for existing conversation with participants:", participants[0]);
     existingConversation = await ConversationParticipant.findOne({
       where: {
         userID: participants[0],
@@ -259,19 +260,26 @@ export const getConversationsUserBelongs = async (
     const conversations = await ConversationParticipant.findAll({
       where: { userID },
       include: [
+      {
+        model: Conversation,
+        as: "conversation",
+        include: [
         {
-          model: Conversation,
-          as: "conversation",
-          include: [
-            {
-              model: Message,
-              as: "messages",
-              where: { isRead: false, senderID: { [Op.ne]: userID } },
-              required: false,
-            },
-          ],
+          model: Message,
+          as: "messages",
+          where: { isRead: false, senderID: { [Op.ne]: userID } },
+          required: false,
         },
+        ],
+      },
       ],
+    });
+
+    // Sort by number of unread messages (descending)
+    conversations.sort((a: any, b: any) => {
+      const aUnread = a.conversation?.messages?.length || 0;
+      const bUnread = b.conversation?.messages?.length || 0;
+      return bUnread - aUnread;
     });
 
     res.status(200).json(conversations);
@@ -328,12 +336,24 @@ export const markMessagesAsRead = async (
       }
     );
 
-    // Update unread messages count for the admin
+    // Fetch all admin userIDs
+    const adminUsers = await User.findAll({
+      where: { role: "adm" },
+      attributes: ["userID"],
+    });
+    const adminIDs = adminUsers.map((u: any) => u.userID);
+    // Calculate unread messages count except those sent by admins
     const unreadCount = await Message.count({
       where: {
         isRead: false,
+        senderID: { [Op.notIn]: adminIDs },
       },
     });
+    console.log(
+      "Unread messages count for admin (excluding admin's messages):",
+      unreadCount
+    );
+    // Emit the unread count to the admin room
     io.to("admin-room").emit("unread_count_update", {
       unreadCount,
     });

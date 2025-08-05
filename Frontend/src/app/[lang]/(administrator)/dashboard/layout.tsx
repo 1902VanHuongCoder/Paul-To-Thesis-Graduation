@@ -187,7 +187,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
             <DynamicBreadcrumb />
           </div>
-          <div className="relative mr-4 w-fit">
+          <div className="relative mr-4 w-fit flex items-center gap-4">
+            <p>Tin nhắn</p>
             <Link href="/vi/dashboard/chat" className="p-2 bg-primary text-white rounded-md block">
               <MessageCircle height={20} width={20} />
               {unreadCount > 0 && (

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { useRouter, useSearchParams } from "next/navigation";
+// Removed framer-motion. Will use manual animation.
 import { Breadcrumb } from "@/components";
 import { useCheckout } from "@/contexts/checkout-context";
 import { useShoppingCart } from "@/contexts/shopping-cart-context";
@@ -12,9 +12,10 @@ import Link from "next/link";
 import { createNewOrder } from "@/lib/order-apis";
 
 export default function PaypalReturnPage() {
+  const router = useRouter();
   const params = useSearchParams();
   const orderID = params.get("orderID");
-  const { checkoutData } = useCheckout();
+  const { checkoutData, setCheckoutData } = useCheckout();
   const { setCart } = useShoppingCart();
   const [status, setStatus] = useState<"success" | "fail" | null>(null);
   const effectRan = useRef(false);
@@ -44,30 +45,32 @@ export default function PaypalReturnPage() {
       setStatus("fail");
     }
 
-  }, [checkoutData, orderID]);
+  }, [checkoutData, orderID, setCart, setCheckoutData]);
 
   return (
-    <div className="min-h-[60vh] py-10 px-6">
+    <div className="min-h-[60vh] py-10 px-6"
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCheckoutData(undefined);
+        router.push("/");
+      }}
+    >
       <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Xác nhận đơn hàng" }]} />
       <div className="text-center flex flex-col items-center justify-center gap-y-2 mx-auto max-w-4xl">
         {status === "success" ? (
-          <motion.svg
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { scale: 0, opacity: 0 },
-              visible: {
-                scale: 1,
-                opacity: 1,
-                transition: { type: "spring", stiffness: 260, damping: 20 }
-              }
-            }}
+          <svg
             width={100}
             height={100}
             viewBox="0 0 80 80"
             className="mx-auto mb-6"
+            style={{
+              opacity: 1,
+              transform: 'scale(1)',
+              transition: 'opacity 0.6s, transform 0.6s',
+            }}
           >
-            <motion.circle
+            <circle
               cx="40"
               cy="40"
               r="36"
@@ -75,22 +78,16 @@ export default function PaypalReturnPage() {
               stroke="#22c55e"
               strokeWidth="6"
               strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.6 }}
             />
-            <motion.path
+            <path
               d="M25 42 L37 54 L56 31"
               fill="none"
               stroke="#22c55e"
               strokeWidth="6"
               strokeLinecap="round"
               strokeLinejoin="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
             />
-          </motion.svg>
+          </svg>
         ) : status === "fail" ? (
           <XCircle className="mx-auto mb-6 text-red-500" size={100} />
         ) : null}

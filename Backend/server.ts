@@ -37,11 +37,17 @@ import { Server } from "socket.io";
 const app = express();
 
 // Enable CORS
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  "http://localhost:3000",
+  "https://your-netlify-app.netlify.app"
+];
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow requests from this origin
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
   })
 );
 
@@ -64,6 +70,24 @@ sequelize
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
 app.use(bodyParser.json({ limit: "100mb" }));
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    service: "agricultural-management-backend",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({ 
+    message: "Agricultural Management System API",
+    version: "1.0.0",
+    status: "running"
+  });
+});
 
 // Routes
 app.use("/api/users", userRoutes);
@@ -130,11 +154,12 @@ io.on("connection", (socket) => {
 });
 
 // Define the port
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Start the server with Socket.IO
 server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;

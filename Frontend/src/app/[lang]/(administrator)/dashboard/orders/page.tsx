@@ -78,6 +78,8 @@ export default function OrdersPage() {
   const [refresh] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [userName, setUserName] = useState<string>("");
+  const [userPhone, setUserPhone] = useState<string>("");
 
   useEffect(() => {
     const fetchOrdersData = async () => {
@@ -92,7 +94,7 @@ export default function OrdersPage() {
   }, [refresh]);
 
   const handleStatusChange = async (newStatus: string, orderID: string) => {
-    if(newStatus === "pending"){
+    if (newStatus === "pending") {
       toast.error("Không thể đặt trạng thái là 'Chờ xác nhận'.");
       return;
     }
@@ -105,7 +107,7 @@ export default function OrdersPage() {
       if (o.orderID === orderID) {
         return { ...o, orderStatus: newStatus };
       }
-      return o; 
+      return o;
     });
     setOrders(orderUpdated);
     const res = await updateOrderStatus(newStatus, order);
@@ -120,6 +122,8 @@ export default function OrdersPage() {
   const filteredOrders = orders
     .filter(order => {
       if (status !== "all" && order.orderStatus !== status) return false;
+      if (userName && !order.fullName.toLowerCase().includes(userName.toLowerCase())) return false;
+      if (userPhone && !order.phone.includes(userPhone)) return false;
       if (month) {
         const orderMonth = new Date(order.createdAt).toISOString().slice(0, 7); // 'YYYY-MM'
         if (orderMonth !== month) return false;
@@ -155,12 +159,34 @@ export default function OrdersPage() {
       <div className="flex flex-wrap items-end mb-6 gap-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
+            <label className="block font-medium mb-1">Tìm kiếm</label>
+            <Input
+              type="text"
+              placeholder="Tìm theo tên khách hàng"
+              value={userName}
+              onChange={e => setUserName(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          {/* Filter by phone number */}
+          <div>
+            <label className="block font-medium mb-1">Số điện thoại</label>
+            <Input
+              type="text"
+              placeholder="Tìm theo số điện thoại"
+              value={userPhone}
+              onChange={e => setUserPhone(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          {/*  */}
+          <div>
             <label className="block font-medium mb-1">Tháng</label>
             <Input
               type="month"
               value={month}
               onChange={e => setMonth(e.target.value)}
-              className="w-48"
+              className="w-48 inline"
             />
           </div>
           <div>
@@ -238,7 +264,7 @@ export default function OrdersPage() {
                 <Select
                   value={order.orderStatus}
                   onValueChange={v => handleStatusChange(v, order.orderID)}
-                  disabled={order.orderStatus === "completed"}
+                  disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}
                 >
                   <SelectTrigger className="w-30 mt-1 pl-4 focus-visible:ring-0 outline-none">
                     <SelectValue />
@@ -248,7 +274,7 @@ export default function OrdersPage() {
                     <SelectItem value="accepted" disabled={order.orderStatus === "completed"}>Đã xác nhận</SelectItem>
                     <SelectItem value="shipping" disabled={order.orderStatus === "completed"}>Đang giao</SelectItem>
                     <SelectItem value="completed" disabled={order.orderStatus === "completed"}>Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed"}>Đã hủy</SelectItem>
+                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}>Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -292,75 +318,171 @@ export default function OrdersPage() {
         {viewOrder && (
           <DialogContent
             className="bg-white min-w-[880px] h-fit max-h-[90vh] overflow-x-hidden overflow-y-srcroll"
-            // onInteractOutside={e => e.preventDefault()}
-          >
-            <Image src={darkLogo} alt="Logo" width={100} height={100} className="w-auto h-[50px]" />
-            <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] -rotate-25 text-center select-none pointer-events-none">NFEAM HOUSE</div>
-            <p className="py-8 text-center text-3xl font-bold">THÔNG TIN ĐƠN HÀNG</p>
-            <div className="space-y-4 text-md w-full">
-              <div className="grid grid-cols-2 items-center">
-                <div><span>Mã đơn hàng: </span> <span className="font-semibold">{viewOrder.orderID}</span></div>
-                <div><span>Ngày đặt: </span><span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleString()}</span></div>
+          // onInteractOutside={e => e.preventDefault()}
+          ><Image
+              src={darkLogo}
+              alt="Logo"
+              width={100}
+              height={100}
+              className="w-auto h-[50px] print:h-[100px] print:w-auto"
+              style={{ printColorAdjust: "exact" }}
+            />
+            <div id="print-order-area">
+
+              <div className="text-gray-300 bg-primary text-7xl absolute opacity-5 z-1 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] -rotate-25 text-center select-none pointer-events-none">
+                NFEAM HOUSE
               </div>
-              <div className={`absolute right-5 top-5 flex items-center gap-x-2 z-100 px-4 py-2 shadow-sm rounded-md border bg-white`}>
-                <span className={`w-[10px] h-[10px] rounded-full animate-ping ${
-                  viewOrder.orderStatus === 'pending' ? 'bg-yellow-500' :
-                  viewOrder.orderStatus === 'accepted' ? 'bg-blue-500' :
-                  viewOrder.orderStatus === 'shipping' ? 'bg-purple-500' :
-                  viewOrder.orderStatus === 'completed' ? 'bg-green-500' :
-                  viewOrder.orderStatus === 'cancelled' ? 'bg-red-500' :
-                  'bg-gray-400'
-                }`}></span>
-                <span className="font-semibold text-md">Trạng thái:</span> <span>
-                  {viewOrder.orderStatus === "pending" ? "Đang xử lý" :
-                    viewOrder.orderStatus === "accepted" ? "Đã xác nhận" :
-                      viewOrder.orderStatus === "shipping" ? "Đang giao hàng" :
-                        viewOrder.orderStatus === "completed" ? "Hoàn thành" :
-                          viewOrder.orderStatus === "cancelled" ? "Đã hủy" : "Trạng thái không xác định"}
-                </span>
+              <p className="py-8 text-center text-3xl font-bold">THÔNG TIN ĐƠN HÀNG</p>
+              <div className="space-y-4 text-md w-full">
+                <div className="grid grid-cols-2 items-center">
+                  <div>
+                    <span>Mã đơn hàng: </span>
+                    <span className="font-semibold">{viewOrder.orderID}</span>
+                  </div>
+                  <div>
+                    <span>Ngày đặt: </span>
+                    <span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className={`absolute right-5 top-5 flex items-center gap-x-2 z-100 px-4 py-2 shadow-sm rounded-md border bg-white`}>
+                  <span
+                    className={`w-[10px] h-[10px] rounded-full animate-ping ${viewOrder.orderStatus === 'pending'
+                      ? 'bg-yellow-500'
+                      : viewOrder.orderStatus === 'accepted'
+                        ? 'bg-blue-500'
+                        : viewOrder.orderStatus === 'shipping'
+                          ? 'bg-purple-500'
+                          : viewOrder.orderStatus === 'completed'
+                            ? 'bg-green-500'
+                            : viewOrder.orderStatus === 'cancelled'
+                              ? 'bg-red-500'
+                              : 'bg-gray-400'
+                      }`}
+                  ></span>
+                  <span className="font-semibold text-md">Trạng thái:</span>{" "}
+                  <span>
+                    {viewOrder.orderStatus === "pending"
+                      ? "Đang xử lý"
+                      : viewOrder.orderStatus === "accepted"
+                        ? "Đã xác nhận"
+                        : viewOrder.orderStatus === "shipping"
+                          ? "Đang giao hàng"
+                          : viewOrder.orderStatus === "completed"
+                            ? "Hoàn thành"
+                            : viewOrder.orderStatus === "cancelled"
+                              ? "Đã hủy"
+                              : "Trạng thái không xác định"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 items-center">
+                  <div>
+                    <span>Khách hàng: </span>
+                    <span className="font-semibold">{viewOrder.fullName}</span>
+                  </div>
+                  <div>
+                    <span>Số điện thoại: </span>
+                    <span className="font-semibold">{viewOrder.phone}</span>
+                  </div>
+                </div>
+                <div>
+                  <span>Địa chỉ:</span>
+                  <span className="font-semibold"> {viewOrder.address}</span>
+                </div>
               </div>
-              <div className="grid grid-cols-2 items-center">
-                <div><span>Khách hàng: </span><span className="font-semibold">{viewOrder.fullName}</span></div>
-                <div><span>Số điện thoại: </span><span className="font-semibold">{viewOrder.phone}</span></div>
-              </div>
-              <div><span>Địa chỉ:</span><span className="font-semibold"> {viewOrder.address}</span></div>
-            </div>
-            <h2 className="text-lg font-semibold mb-2 mt-4">Sản phẩm</h2>
-            <table className="w-full border-collapse mb-4">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-2 text-left">Tên sản phẩm</th>
-                  <th className="p-2 text-left">Hình ảnh</th>
-                  <th className="p-2 text-left">Đơn giá</th>
-                  <th className="p-2 text-left">Số lượng</th>
-                  <th className="p-2 text-left">Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(viewOrder.products || []).map((product) => (
-                  <tr key={product.productID} className="border-b">
-                    <td className="p-2">{product.productName}</td>
-                    <td className="p-2">
-                      {product.images && product.images.length > 0 ? (
-                        <Image width={200} height={200} src={product.images[0]} alt={product.productName} className="w-16 h-16 object-cover rounded" />
-                      ) : (
-                        <span className="text-gray-400">No image</span>
-                      )}
-                    </td>
-                    <td className="p-2">{formatVND(product.OrderProduct?.price || 0)} VND</td>
-                    <td className="p-2">{product.OrderProduct?.quantity}</td>
-                    <td className="p-2">{product && product.OrderProduct ? formatVND(product.OrderProduct.price * product.OrderProduct.quantity) : 0} VND</td>
+              <h2 className="text-lg font-semibold mb-2 mt-4">Sản phẩm</h2>
+              <table className="w-full border-collapse mb-4">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 text-left">Tên sản phẩm</th>
+                    <th className="p-2 text-left">Hình ảnh</th>
+                    <th className="p-2 text-left">Đơn giá</th>
+                    <th className="p-2 text-left">Số lượng</th>
+                    <th className="p-2 text-left">Thành tiền</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="text-right font-bold text-md flex flex-col items-start gap-2">
-              <div className="space-x-2"><span className="font-normal">Phí vận chuyển:</span><span> {formatVND(viewOrder.deliveryCost || 0)} VND</span></div>
-              <div className="space-x-2"><span className="font-normal">Phương thức vận chuyển - {viewOrder.delivery?.name || ""}:</span><span>{formatVND(viewOrder.delivery?.basePrice || 0)} VND</span></div>
-              <div className="space-x-2"><span className="font-normal">Giảm giá:</span><span>{formatVND(viewOrder.discount || 0)} VND</span></div>
-              <div className="space-x-2 text-2xl"><span className="font-normal">Tổng thanh toán:</span><span className="text-3xl text-primary">{formatVND(viewOrder.totalPayment)} VND</span></div>
+                </thead>
+                <tbody>
+                  {(viewOrder.products || []).map((product) => (
+                    <tr key={product.productID} className="border-b">
+                      <td className="p-2">{product.productName}</td>
+                      <td className="p-2">
+                        {product.images && product.images.length > 0 ? (
+                          <Image
+                            width={200}
+                            height={200}
+                            src={product.images[0]}
+                            alt={product.productName}
+                            className="w-16 h-16 object-cover rounded print:w-[100px] print:h-[100px]"
+                            style={{ printColorAdjust: "exact" }}
+                          />
+                        ) : (
+                          <span className="text-gray-400">No image</span>
+                        )}
+                      </td>
+                      <td className="p-2">{formatVND(product.OrderProduct?.price || 0)} VND</td>
+                      <td className="p-2">{product.OrderProduct?.quantity}</td>
+                      <td className="p-2">
+                        {product && product.OrderProduct
+                          ? formatVND(product.OrderProduct.price * product.OrderProduct.quantity)
+                          : 0}{" "}
+                        VND
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="text-right font-bold text-md flex flex-col items-start gap-2">
+                <div className="space-x-2">
+                  <span className="font-normal">Phí vận chuyển:</span>
+                  <span> {formatVND(viewOrder.deliveryCost || 0)} VND</span>
+                </div>
+                <div className="space-x-2">
+                  <span className="font-normal">
+                    Phương thức vận chuyển - {viewOrder.delivery?.name || ""}:
+                  </span>
+                  <span>{formatVND(viewOrder.delivery?.basePrice || 0)} VND</span>
+                </div>
+                <div className="space-x-2">
+                  <span className="font-normal">Giảm giá:</span>
+                  <span>{formatVND(viewOrder.discount || 0)} VND</span>
+                </div>
+                <div className="space-x-2 text-2xl">
+                  <span className="font-normal">Tổng thanh toán:</span>
+                  <span className="text-3xl text-primary">
+                    {formatVND(viewOrder.totalPayment)} VND
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end mt-6 gap-4">
+              <button
+                className="px-6 py-2 rounded bg-primary text-white hover:bg-primary/80 font-semibold"
+                onClick={() => {
+                  const printContent = document.getElementById('print-order-area');
+                  if (printContent) {
+                    const printWindow = window.open('', '', 'width=900,height=900');
+                    printWindow?.document.write(`
+                      <html>
+                        <head>
+                          <title>Order PDF</title>
+                          <style>
+                            body { font-family: Arial, sans-serif; padding: 24px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                            th, td { border: 1px solid #ddd; padding: 8px; }
+                            th { background: #f3f3f3; }
+                            .text-primary { color: #21A366; }
+                          </style>
+                        </head>
+                        <body>${printContent.innerHTML}</body>
+                      </html>
+                    `);
+                    printWindow?.document.close();
+                    printWindow?.focus();
+                    printWindow?.print();
+                  }
+                }}
+              >
+                In hóa đơn (PDF)
+              </button>
               <DialogClose asChild>
                 <button className="px-6 py-2 rounded bg-gray-100 hover:bg-gray-200 font-semibold">Đóng</button>
               </DialogClose>

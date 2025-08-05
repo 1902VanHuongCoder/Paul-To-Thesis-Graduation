@@ -46,4 +46,3 @@ export { default as OrderDetailPage } from './section/order-detail-page/order-de
 export { default as ErrorPage } from './section/error-page/error-page';
 export { default as LoginForm } from './section/login-page/login-page';
 export { default as SignUpForm } from './section/signup-page/signup-page';
-export { default as Component } from './section/test-table/test-table';

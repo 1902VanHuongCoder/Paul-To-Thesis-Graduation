@@ -118,6 +118,13 @@ export const createConversation = async ({
   isGroup: boolean;
 }): Promise<Conversation> => {
   try {
+    console.log("Creating conversation with ID:", {
+      conversationID,
+      conversationName,
+      participants,
+      isGroup,
+    });
+    
     const response = await fetch(`${baseUrl}/api/chat/create-conversation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

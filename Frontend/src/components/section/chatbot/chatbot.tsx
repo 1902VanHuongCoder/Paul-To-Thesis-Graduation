@@ -171,6 +171,7 @@ const ChatBot = () => {
     }, [isListening]);
 
     useEffect(() => {
+        
         // On Bot icon click: fetch or create conversation, join room, load messages
         const handleOpenChat = async () => {
             if (!user) {
@@ -188,9 +189,11 @@ const ChatBot = () => {
                 console.error("Error initializing chat:", error);
             }
             // setIsOpen(true);
+       
+
             setIsLoading(true);
             const conversationID = generateConversationID(user.userID, admins[0].userID, true);
-            const participants = admins.map(admin => admin.userID);
+            const participants = [user.userID, ...admins.map(admin => admin.userID)];
             const data = await createConversation({
                 conversationID,
                 conversationName: user.username,
@@ -198,13 +201,13 @@ const ChatBot = () => {
                 isGroup: true,
                 conversationAvatar: user.avatar,
             });
+            console.log("Created or fetched conversation:", data);
             setConversation(data);
             setJoinedConversationID(data.conversationID);
             // Ensure socket is connected before joining room
             if (socket && data.conversationID) {
                 if (socket.connected) {
                     socket.emit("join_room", data.conversationID);
-                    alert(`Đã vào phòng trò chuyện ${data.conversationID}`);
                 } else {
                     socket.on("connect", () => {
                         socket.emit("join_room", data.conversationID);

@@ -14,6 +14,8 @@ import { getAccessStats } from '@/lib/statistic-apis';
 import TopSellingProductSection from '@/components/section/top-selling-product/top-selling-product';
 import OrderPerProductSection from '@/components/section/order-per-product/order-per-product';
 import TopUserOrderSection from '@/components/section/top-user-order';
+import WillBeExpiredSection from '@/components/section/will-be-expired';
+import SortProductsSection from '@/components/section/sort-products';
 
 export interface DeliveryMethod {
     deliveryID: number;
@@ -252,6 +254,12 @@ const Page = () => {
                 </div>
             </div>
             <div>
+                <WillBeExpiredSection />
+            </div>
+            <div className="flex justify-end mt-6">
+                <SortProductsSection />
+            </div>
+            <div>
                 {/* Top selling section */}
                 <div>
                     <TopSellingProductSection />
@@ -275,7 +283,7 @@ const Page = () => {
                         Hiển thị số đơn hàng trên sản phẩm
                     </button>
                 </div>
-                    {showOrderCount && <OrderPerProductSection />}
+                {showOrderCount && <OrderPerProductSection />}
             </div>
             <h2 className="text-2xl font-bold text-primary mt-6 mb-4">Thống Kê Khác</h2>
             <div className="min-h-[100vh] grid rounded-xl md:min-h-min mt-6 bg-white grid-rows-3 gap-4">

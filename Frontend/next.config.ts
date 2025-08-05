@@ -20,10 +20,6 @@ const nextConfig: NextConfig = {
       // Only redirect if NOT starting with /vi or /en
     ];
   },
-  devIndicators: {
-    buildActivity: false, // Hides the build activity indicator
-    buildActivityPosition: "bottom-right", // Optional: customize position if buildActivity is true
-  },
 };
 
 export default nextConfig;

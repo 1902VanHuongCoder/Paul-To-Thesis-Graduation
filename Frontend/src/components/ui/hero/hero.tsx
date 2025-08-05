@@ -8,7 +8,6 @@ import background03 from "@public/images/hero-background-03.jpg";
 import background04 from "@public/images/hero-background-04.jpg";
 import vector02 from "@public/vectors/Vector+02.png";
 import { Hand } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const Hero = () => {
     // State to control the hero animation 
@@ -35,26 +34,28 @@ const Hero = () => {
             className="relative w-full h-[400px] overflow-hidden"
             aria-label={"Banner quảng bá NFEAM HOUSE"}
         >
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={bgIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 1 }}
-                    className="absolute inset-0 w-full h-full"
+            {/* Manual fade animation for background images */}
+            {heroBackgroundList.map((bg, idx) => (
+                <Image
+                    key={idx}
+                    src={bg}
+                    alt={`Ảnh nền ${idx + 1}`}
+                    style={{
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        inset: 0,
+                        opacity: bgIndex === idx ? 1 : 0,
+                        transition: "opacity 1s",
+                        zIndex: 0,
+                    }}
+                    fill
+                    priority={bgIndex === idx}
+                    sizes="100vw"
                     aria-hidden="true"
-                >
-                    <Image
-                        src={heroBackgroundList[bgIndex]}
-                        alt={`Ảnh nền ${bgIndex + 1}`}
-                        className="object-cover w-full h-full"
-                        fill
-                        priority
-                        sizes="100vw"
-                    />
-                </motion.div>
-            </AnimatePresence>
+                />
+            ))}
             <div className="absolute top-0 left-0 w-full h-full bg-[rgba(0,0,0,.5)]" aria-hidden="true"></div>
             <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-1 md:px-20 px-10">
                 <h1 className="sr-only">{"NFEAM HOUSE - Nông nghiệp thông minh"}</h1>
