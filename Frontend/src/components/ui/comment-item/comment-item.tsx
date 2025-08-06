@@ -124,7 +124,7 @@ export default function CommentItem({
                                 alt={`${name}'s avatar`}
                                 width={40}
                                 height={40}
-                                className="rounded-full w-full h-full object-contain"
+                                className="rounded-full w-full h-full object-cover"
                             />
                         ) : (
                             // User icon fallback (Lucide User icon)

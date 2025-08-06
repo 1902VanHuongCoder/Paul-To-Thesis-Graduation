@@ -373,6 +373,8 @@ export const checkRecoveryCode = async (
   res: Response
 ): Promise<void> => {
   const { code, email } = req.body;
+  console.log("Checking recovery code for email:", email);
+  console.log("Recovery code:", code);
   try {
     const user = await User.findOne({
       where: {
@@ -393,6 +395,7 @@ export const checkRecoveryCode = async (
       user.resetPasswordCodeExpiry > new Date()
     ) {
       res.status(200).json(user);
+      console.log("Recovery code is valid.");
     } else {
       res.status(400).json({ message: "Invalid or expired code" });
     }

@@ -90,6 +90,7 @@ export default function NewsListPage() {
                     comments={news.comments?.length || 0}
                     views={news.views}
                     title={news.title}
+                    subtitle={news.subtitle || ""}
                     excerpt={news.subtitle || ""}
                     onReadMore={() => handleReadMore(news.newsID)}
                     onShare={() => navigator.share ? navigator.share({ title: news.title, url: window.location.origin + `/news/${news.newsID}` }) : alert("Share not supported")}

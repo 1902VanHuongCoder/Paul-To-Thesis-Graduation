@@ -14,6 +14,7 @@ interface NewsItemProps {
     comments: number;
     views: number;
     title: string;
+    subtitle?: string;
     excerpt: string;
     onReadMore: () => void;
     onShare: () => void;
@@ -27,6 +28,7 @@ export default function NewsItem({
     comments,
     views,
     title,
+    subtitle,
     excerpt,
     onReadMore,
     onShare,
@@ -92,6 +94,7 @@ export default function NewsItem({
 
                     {/* Title */}
                     <h2 className="text-lg font-bold text-gray-800 mt-2">{title}</h2>
+                    <h3 className="text-md font-semibold text-gray-600 mt-1">{subtitle}</h3>
 
                     {/* Excerpt */}
                     <p className="text-gray-600 mt-2">{excerpt}</p>
@@ -105,7 +108,7 @@ export default function NewsItem({
                         className="flex items-center gap-2"
                         onClick={onReadMore}
                     >
-                        Continue Reading
+                        Tiếp tục đọc
                     </Button>
                     <button
                         className="flex items-center gap-2 text-gray-600 hover:text-primary"
@@ -113,7 +116,7 @@ export default function NewsItem({
                         aria-label="Share this article"
                     >
                         <Share2 size={16} />
-                        <span>Share</span>
+                        <span>Chia sẻ</span>
                     </button>
                 </div>
             </div>

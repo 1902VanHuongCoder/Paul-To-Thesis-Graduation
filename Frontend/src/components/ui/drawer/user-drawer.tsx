@@ -24,7 +24,7 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: User
                                     alt={user.username}
                                     width={50}
                                     height={50}
-                                    className="object-cover rounded-full" 
+                                    className="object-cover rounded-full w-full h-full" 
                                 />
                             </div>
                         ) : (

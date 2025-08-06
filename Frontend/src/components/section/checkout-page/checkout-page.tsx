@@ -110,17 +110,16 @@ export default function CheckoutPage() {
         const orderID = `OR${1}0${productQuantity}0${(new Date()).getDate()}${(new Date()).getMonth() + 1}${(new Date()).getFullYear()}0${Math.floor(Math.random() * 10000)}`;
         setOrderIDForConfirm(orderID);
         try {
-            const {status, message} = await sendOrderConfirmation(user.email, orderID);
+            const {status} = await sendOrderConfirmation(user.email, orderID);
 
             if (status !== 200){
-                toast.error(message);
+                toast.error("Gửi mã xác nhận thất bại. Vui lòng thử lại sau.");
             }else{
                 toast.success("Mã xác nhận đã được gửi tới email của bạn!");
             }
             setOpenOrderConfirm(true);
-        } catch (err: unknown) {
-            setOrderConfirmError((err as Error).message || "Không thể gửi mã xác nhận");
-            toast.error((err as Error).message || "Không thể gửi mã xác nhận");
+        } catch {
+            toast.error("Gửi mã xác nhận thất bại. Vui lòng thử lại sau.");
         } finally {
             setOrderConfirmLoading(false);
         }
@@ -136,8 +135,8 @@ export default function CheckoutPage() {
         setOrderConfirmError("");
         try {
             const res = await checkRecoveryCode(user.email, orderConfirmCode);
-            if (!res.ok) {
-                toast.error("Mã xác nhận không hợp lệ");
+            if (!res) {
+                toast.error("Mã xác nhận không hợp lệ hoặc đã hết hạn.");
                 return;
             }
             toast.success("Xác nhận thành công! Bạn có thể đặt hàng.");
@@ -145,9 +144,8 @@ export default function CheckoutPage() {
             setOrderConfirmCode("");
             // Run onSubmit here 
             onSuccess();
-        } catch (err: unknown) {
-            setOrderConfirmError((err as Error).message || "Mã xác nhận không hợp lệ");
-            toast.error((err as Error).message || "Mã xác nhận không hợp lệ");
+        } catch {
+            toast.error("Mã xác nhận không hợp lệ hoặc đã hết hạn.");
         } finally {
             setOrderConfirmLoading(false);
         }
@@ -1006,7 +1004,7 @@ export default function CheckoutPage() {
                                 type="submit"
                                 variant="normal"
                                 size="md"
-                                className="w-full cursor-pointer"
+                                className="w-full flex justify-center bg-primary text-white cursor-pointer"
                                 disabled={orderConfirmLoading || !orderConfirmCode.trim()}
                             >
                                 {orderConfirmLoading ? "Đang xác nhận..." : "Xác nhận và đặt hàng"}
