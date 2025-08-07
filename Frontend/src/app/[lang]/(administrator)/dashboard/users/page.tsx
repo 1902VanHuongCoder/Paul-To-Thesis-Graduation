@@ -14,19 +14,20 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectLabel, SelectItem } from "@/components/ui/select/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination/pagination";
-import { Trash2Icon } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog/dialog";
+// import { Trash2Icon } from "lucide-react";
+// import {
+//   Dialog,
+//   DialogTrigger,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogClose,
+// } from "@/components/ui/dialog/dialog";
 import toast from "react-hot-toast";
-import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
+// import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
+import { getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
 import formatDate from "@/lib/others/format-date";
 import { useUser } from "@/contexts/user-context";
 
@@ -51,8 +52,8 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = React.useState("");
   const [loading, setLoading] = React.useState(true)
   const [updatingUserId, setUpdatingUserId] = React.useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [userToDelete, setUserToDelete] = React.useState<User | null>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  // const [userToDelete, setUserToDelete] = React.useState<User | null>(null);
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);
   const [recordsPerPage, setRecordsPerPage] = React.useState(10);
@@ -114,20 +115,20 @@ export default function UsersPage() {
     }
   };
 
-  const handleDeleteUser = async (userID: string) => {
-    try {
-      const {status, message}  = await deleteAccount(userID);
-      if (status === 200) {
-        setUsers((prev) => prev.filter((u) => u.userID !== userID));
-        toast.success(message);
-      } else {
-        toast.error(message);
-      }
-    } catch (err) {
-      alert("Xóa tài khoản thất bại.");
-      console.error("Error deleting user:", err);
-    }
-  };
+  // const handleDeleteUser = async (userID: string) => {
+  //   try {
+  //     const {status, message}  = await deleteAccount(userID);
+  //     if (status === 200) {
+  //       setUsers((prev) => prev.filter((u) => u.userID !== userID));
+  //       toast.success(message);
+  //     } else {
+  //       toast.error(message);
+  //     }
+  //   } catch (err) {
+  //     alert("Xóa tài khoản thất bại.");
+  //     console.error("Error deleting user:", err);
+  //   }
+  // };
 
   return (
     <div className="">
@@ -193,7 +194,7 @@ export default function UsersPage() {
             <TableHead>Vai trò</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Ngày tạo</TableHead>
-            <TableHead className="text-center">Hành động</TableHead>
+            {/* <TableHead className="text-center">Hành động</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -216,7 +217,7 @@ export default function UsersPage() {
                 </button>
               </TableCell>
               <TableCell>{formatDate(user.createdAt)}</TableCell>
-              <TableCell className="flex justify-center items-center">
+              {/* <TableCell className="flex justify-center items-center">
                 <Dialog open={deleteDialogOpen && userToDelete?.userID === user.userID} onOpenChange={open => {
                   setDeleteDialogOpen(open);
                   if (!open) setUserToDelete(null);
@@ -258,7 +259,7 @@ export default function UsersPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>

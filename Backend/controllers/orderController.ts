@@ -359,3 +359,34 @@ export const getTopUsersByOrders = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+
+// Function to bulk update many order status
+export const bulkUpdateOrderStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { orderIDs, newStatus } = req.body;
+
+  if (!Array.isArray(orderIDs) || orderIDs.length === 0) {
+    res.status(400).json({ message: "Invalid order IDs" });
+    return;
+  }
+
+  const t = await Order.sequelize?.transaction();
+
+  try {
+    // Update the status of all specified orders
+    await Order.update(
+      { orderStatus: newStatus },
+      { where: { orderID: orderIDs }, transaction: t }
+    );
+
+    await t?.commit();
+    res.status(200).json({ message: "Order statuses updated successfully" });
+  } catch (error) {
+    await t?.rollback();
+    console.error("Error updating order statuses:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};

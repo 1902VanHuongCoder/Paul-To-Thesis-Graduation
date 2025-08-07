@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Input } from "@/components/ui/input/input";
 import { Button } from "@/components/ui/button/button";
@@ -117,7 +116,12 @@ function generateBoxBarcode() {
   return barcode;
 }
 
+
 export default function AddProductPage() {
+  // Barcode scanner buffer state
+  const [barcodeBuffer, setBarcodeBuffer] = useState("");
+  const barcodeBufferRef = useRef(barcodeBuffer);
+  const bufferTimeout = useRef<NodeJS.Timeout | null>(null);
   const methods = useForm<ProductFormValues>();
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = methods;
   const [, setMessage] = useState("");
@@ -291,6 +295,28 @@ export default function AddProductPage() {
     fetchProducts();
   }, []);
 
+  // Barcode scanner effect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) {
+        setBarcodeBuffer(prev => prev + e.key);
+        if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+        bufferTimeout.current = setTimeout(() => {
+          setBarcodeBuffer("");
+        }, 200);
+      } else if (e.key === "Enter" && barcodeBufferRef.current.length === 13) {
+        // Set barcode field value
+        setBarcode(barcodeBufferRef.current);
+        setValue("barcode", barcodeBufferRef.current);
+        setBarcodeBuffer("");
+        if (bufferTimeout.current) clearTimeout(bufferTimeout.current);
+      }
+    };
+    barcodeBufferRef.current = barcodeBuffer;
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [barcodeBuffer]);
 
 
   if (!editor) return null
@@ -308,6 +334,8 @@ export default function AddProductPage() {
     JsBarcode(canvas, boxBarcode.boxBarcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
     setBoxBarcode({ ...boxBarcode, boxBarcodeImage: canvas.toDataURL("image/png") })
   };
+
+
 
   return (
     <main>
