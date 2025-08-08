@@ -140,9 +140,9 @@ export const createOrder = async (
           totalPayment,
           totalQuantity,
           note,
-          discountValue,
+          discount: discountValue,
           deliveryCost,
-          status
+          orderStatus: status,
         },
         { transaction: t }
       );

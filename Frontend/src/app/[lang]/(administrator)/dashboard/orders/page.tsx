@@ -85,10 +85,13 @@ export default function OrdersPage() {
   const [userName, setUserName] = useState<string>("");
   const [userPhone, setUserPhone] = useState<string>("");
 
+  console.log(viewOrder); 
+
   useEffect(() => {
     const fetchOrdersData = async () => {
       try {
         const data = await fetchAllOrders();
+        console.log(data);
         setOrders(data);
       } catch (error) {
         console.error("Error fetching orders:", error);

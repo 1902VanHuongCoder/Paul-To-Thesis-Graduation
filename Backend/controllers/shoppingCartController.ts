@@ -119,6 +119,12 @@ export const createShoppingCartWithBarcode = async (
 ): Promise<void> => {
   const { customerID, barcode, quantity } = req.body;
 
+  console.log({
+    customerID,
+    barcode,
+    quantity
+  })
+
   try {
     // Check if a shopping cart already exists for the customer
     let cart = await ShoppingCart.findOne({ where: { customerID } });

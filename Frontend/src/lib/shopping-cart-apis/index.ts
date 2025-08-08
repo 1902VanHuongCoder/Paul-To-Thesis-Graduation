@@ -34,6 +34,9 @@ export const createShoppingCartWithBarcode = async (
   barcode: string,
   quantity: number
 ) => {
+  
+  console.log(customerID, barcode, quantity); 
+
   const res = await fetch(`${baseUrl}/api/shopping-cart/barcode`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,27 +47,29 @@ export const createShoppingCartWithBarcode = async (
     throw new Error("Failed to create shopping cart with barcode");
   }
 
-  return await res.json();
+  const data = await res.json();
+  return data;
 };
 
 // Update an existing shopping cart item quantity using barcode
 export const updateShoppingCartWithBarcode = async (
-    cartID: number,
-    productID: number,
-    quantity: number
-    ) => {
-    const res = await fetch(`${baseUrl}/api/shopping-cart/barcode`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cartID, productID, quantity }),
-    });
-    
-    if (!res.ok) {
-        throw new Error("Failed to update shopping cart with barcode");
-    }
-    
-    return await res.json();
-    }
+  cartID: number,
+  barcode: string,
+  quantity: number
+) => {
+  const res = await fetch(`${baseUrl}/api/shopping-cart/barcode`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cartID, barcode, quantity }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update shopping cart with barcode");
+  }
+
+  const data = await res.json();
+  return data;
+};
 
 export const updateShoppingCart = async (
   cartID: number,
