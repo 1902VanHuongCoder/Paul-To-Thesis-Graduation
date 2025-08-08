@@ -75,24 +75,27 @@ export default function NewsListPage() {
     return (
         <div className="py-10 px-6 space-y-8">
             <Breadcrumb items={[
-                { label: "Trang chủ", href: "/" },
-                { label: "Tin tức" }
+            { label: "Trang chủ", href: "/" },
+            { label: "Tin tức" }
             ]} />
             <h1 className="text-2xl font-bold mb-6 uppercase mt-6 text-center">Tin tức</h1>
-            {newsList.length === 0 && <div>Hiện tại chưa có bài đăng nào.</div>}
-            {newsList.map((news) => (
+            {newsList.filter(news => !news.isDraft).length === 0 && <div>Hiện tại chưa có bài đăng nào.</div>}
+            {newsList
+            .filter(news => !news.isDraft)
+            .map((news) => (
                 <NewsItem
-                    key={news.newsID}
-                    image={news.titleImageUrl || "/placeholder.jpg"}
-                    date={news.createdAt ? new Date(news.createdAt).toLocaleDateString() : ""}
-                    author={news.author.username}
-                    category={news.hastags?.map(t => t.tagName).join(", ") || "Uncategorized"}
-                    comments={news.comments?.length || 0}
-                    views={news.views}
-                    title={news.title}
-                    excerpt={news.subtitle || ""}
-                    onReadMore={() => handleReadMore(news.newsID)}
-                    onShare={() => navigator.share ? navigator.share({ title: news.title, url: window.location.origin + `/news/${news.newsID}` }) : alert("Share not supported")}
+                key={news.newsID}
+                image={news.titleImageUrl || "/placeholder.jpg"}
+                date={news.createdAt ? new Date(news.createdAt).toLocaleDateString() : ""}
+                author={news.author.username}
+                category={news.hastags?.map(t => t.tagName).join(", ") || "Uncategorized"}
+                comments={news.comments?.length || 0}
+                views={news.views}
+                title={news.title}
+                subtitle={news.subtitle || ""}
+                excerpt={news.subtitle || ""}
+                onReadMore={() => handleReadMore(news.newsID)}
+                onShare={() => navigator.share ? navigator.share({ title: news.title, url: window.location.origin + `/news/${news.newsID}` }) : alert("Share not supported")}
                 />
             ))}
         </div>

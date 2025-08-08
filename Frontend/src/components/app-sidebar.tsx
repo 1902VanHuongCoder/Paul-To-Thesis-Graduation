@@ -153,6 +153,10 @@ const data = {
           title: "Tất cả đơn hàng",
           url: "/vi/dashboard/orders",
         },
+        {
+          title: "Thêm đơn tại cửa hàng",
+          url: "/vi/dashboard/orders/add-order",
+        },
       ],
     },
     // {

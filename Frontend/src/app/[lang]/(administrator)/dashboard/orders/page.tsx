@@ -17,7 +17,7 @@ import {
 import Image from "next/image";
 import darkLogo from "@public/images/dark+logo.png";
 import toast from "react-hot-toast";
-import { fetchAllOrders, updateOrderStatus } from "@/lib/order-apis";
+import { fetchAllOrders, updateOrderStatus, bulkUpdateOrderStatus } from "@/lib/order-apis";
 import formatDate from "@/lib/others/format-date";
 
 export interface DeliveryMethod {
@@ -71,9 +71,13 @@ function formatVND(value: number) {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrderIDs, setSelectedOrderIDs] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [status, setStatus] = useState<string>("all");
   const [sort, setSort] = useState<string>("createdAt-desc");
   const [month, setMonth] = useState<string>("");
+  const [day, setDay] = useState<string>(""); // new: filter by day
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [refresh] = useState(0);
   const [page, setPage] = useState(1);
@@ -81,10 +85,13 @@ export default function OrdersPage() {
   const [userName, setUserName] = useState<string>("");
   const [userPhone, setUserPhone] = useState<string>("");
 
+  console.log(viewOrder); 
+
   useEffect(() => {
     const fetchOrdersData = async () => {
       try {
         const data = await fetchAllOrders();
+        console.log(data);
         setOrders(data);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -124,7 +131,11 @@ export default function OrdersPage() {
       if (status !== "all" && order.orderStatus !== status) return false;
       if (userName && !order.fullName.toLowerCase().includes(userName.toLowerCase())) return false;
       if (userPhone && !order.phone.includes(userPhone)) return false;
-      if (month) {
+      if (day) {
+        // Compare only the date part (YYYY-MM-DD)
+        const orderDay = new Date(order.createdAt).toISOString().slice(0, 10);
+        if (orderDay !== day) return false;
+      } else if (month) {
         const orderMonth = new Date(order.createdAt).toISOString().slice(0, 7); // 'YYYY-MM'
         if (orderMonth !== month) return false;
       }
@@ -139,6 +150,49 @@ export default function OrdersPage() {
   const totalPages = Math.ceil(filteredOrders.length / pageSize);
   const paginatedOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
+  // Bulk select helpers
+  const allFilteredOrderIDs = filteredOrders.map(o => o.orderID);
+  const isAllSelected = selectedOrderIDs.length === allFilteredOrderIDs.length && allFilteredOrderIDs.length > 0;
+  const isIndeterminate = selectedOrderIDs.length > 0 && selectedOrderIDs.length < allFilteredOrderIDs.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedOrderIDs([]);
+    } else {
+      setSelectedOrderIDs(allFilteredOrderIDs);
+    }
+  };
+
+  const handleSelectOrder = (orderID: string) => {
+    setSelectedOrderIDs(prev => prev.includes(orderID) ? prev.filter(id => id !== orderID) : [...prev, orderID]);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!bulkStatus) {
+      toast.error("Vui lòng chọn trạng thái muốn cập nhật.");
+      return;
+    }
+    if (selectedOrderIDs.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một đơn hàng.");
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      // const updates = selectedOrderIDs.map(orderID => ({ orderID, status: bulkStatus }));
+      console.log("Bulk update data:", selectedOrderIDs);
+      await bulkUpdateOrderStatus(selectedOrderIDs, bulkStatus);
+      setOrders(prev => prev.map(o => selectedOrderIDs.includes(o.orderID) ? { ...o, orderStatus: bulkStatus } : o));
+      toast.success("Cập nhật trạng thái hàng loạt thành công!");
+      setSelectedOrderIDs([]);
+      setBulkStatus("");
+    } catch (err) {
+      toast.error("Cập nhật trạng thái hàng loạt thất bại.");
+      console.error("Bulk update error:", err);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   useEffect(() => {
     setPage(1);
   }, [status, sort, pageSize, month]);
@@ -151,12 +205,42 @@ export default function OrdersPage() {
     completed: 'bg-green-500 text-green-800 border-green-300',
     cancelled: 'bg-red-500 text-red-800 border-red-300',
     default: 'bg-gray-500 text-gray-800 border-gray-300',
+    boomed: 'bg-orange-500 text-orange-800 border-orange-300',
   };
 
   return (
     <div className="w-full">
       <h1 className="text-2xl font-bold mb-6">Đơn hàng</h1>
       <div className="flex flex-wrap items-end mb-6 gap-4">
+      {/* Bulk update status UI */}
+      <div className="flex items-center gap-4 mb-4">
+        <input
+          type="checkbox"
+          checked={isAllSelected}
+          ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+          onChange={handleSelectAll}
+        />
+        <span className="font-medium">Chọn tất cả ({filteredOrders.length})</span>
+        <Select value={bulkStatus} onValueChange={setBulkStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Chọn trạng thái cập nhật" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Chờ xác nhận</SelectItem>
+            <SelectItem value="accepted">Đã xác nhận</SelectItem>
+            <SelectItem value="shipping">Đang giao</SelectItem>
+            <SelectItem value="completed">Hoàn thành</SelectItem>
+            <SelectItem value="cancelled">Đã hủy</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="default"
+          onClick={handleBulkUpdate}
+          disabled={bulkLoading || !bulkStatus || selectedOrderIDs.length === 0}
+        >
+          {bulkLoading ? "Đang cập nhật..." : "Cập nhật trạng thái đã chọn"}
+        </Button>
+      </div>
         <div className="flex flex-wrap gap-4 items-end">
           <div>
             <label className="block font-medium mb-1">Tìm kiếm</label>
@@ -181,12 +265,22 @@ export default function OrdersPage() {
           </div>
           {/*  */}
           <div>
+            <label className="block font-medium mb-1">Ngày</label>
+            <Input
+              type="date"
+              value={day}
+              onChange={e => setDay(e.target.value)}
+              className="w-48 inline"
+            />
+          </div>
+          <div>
             <label className="block font-medium mb-1">Tháng</label>
             <Input
               type="month"
               value={month}
               onChange={e => setMonth(e.target.value)}
               className="w-48 inline"
+              disabled={!!day}
             />
           </div>
           <div>
@@ -197,11 +291,9 @@ export default function OrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="pending">Chờ xác nhận</SelectItem>
                 <SelectItem value="accepted">Đã xác nhận</SelectItem>
                 <SelectItem value="shipping">Đang giao</SelectItem>
                 <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -238,6 +330,14 @@ export default function OrdersPage() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+                onChange={handleSelectAll}
+              />
+            </TableHead>
             <TableHead>Mã đơn</TableHead>
             <TableHead>Khách hàng</TableHead>
             <TableHead>SĐT</TableHead>
@@ -252,7 +352,16 @@ export default function OrdersPage() {
         </TableHeader>
         <TableBody>
           {paginatedOrders.map(order => (
-            <TableRow key={order.orderID}>
+            <TableRow key={order.orderID} className={`${order.orderStatus === "boomed" ? "bg-orange-100" : ""}`}>
+                <TableCell>
+                <input
+                  type="checkbox"
+                  checked={order.orderStatus === "cancelled" ? false : selectedOrderIDs.includes(order.orderID)}
+                  onChange={() => handleSelectOrder(order.orderID)}
+                  disabled={order.orderStatus === "cancelled"}
+                  className="disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                </TableCell>
               <TableCell>{order.orderID}</TableCell>
               <TableCell>{order.fullName}</TableCell>
               <TableCell>{order.phone}</TableCell>
@@ -264,17 +373,18 @@ export default function OrdersPage() {
                 <Select
                   value={order.orderStatus}
                   onValueChange={v => handleStatusChange(v, order.orderID)}
-                  disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}
+                  disabled={order.orderStatus === "cancelled"}
                 >
                   <SelectTrigger className="w-30 mt-1 pl-4 focus-visible:ring-0 outline-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending" disabled={order.orderStatus === "completed"}>Chờ xác nhận</SelectItem>
-                    <SelectItem value="accepted" disabled={order.orderStatus === "completed"}>Đã xác nhận</SelectItem>
-                    <SelectItem value="shipping" disabled={order.orderStatus === "completed"}>Đang giao</SelectItem>
-                    <SelectItem value="completed" disabled={order.orderStatus === "completed"}>Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled" disabled={order.orderStatus === "completed" || order.orderStatus === "cancelled"}>Đã hủy</SelectItem>
+                    <SelectItem value="pending" disabled={order.orderStatus === "completed" || order.orderStatus === "accepted"}>Chờ xác nhận</SelectItem>
+                    <SelectItem value="accepted" >Đã xác nhận</SelectItem>
+                    <SelectItem value="shipping">Đang giao</SelectItem>
+                    <SelectItem value="completed" >Hoàn thành</SelectItem>
+                    <SelectItem value="cancelled" disabled={true}>Đã hủy</SelectItem>
+                    <SelectItem value="boomed" disabled={order.orderStatus === "boomed"}>Boom hàng</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -356,6 +466,8 @@ export default function OrdersPage() {
                             ? 'bg-green-500'
                             : viewOrder.orderStatus === 'cancelled'
                               ? 'bg-red-500'
+                              : viewOrder.orderStatus === 'boomed'
+                                ? 'bg-orange-500'
                               : 'bg-gray-400'
                       }`}
                   ></span>
@@ -371,6 +483,8 @@ export default function OrdersPage() {
                             ? "Hoàn thành"
                             : viewOrder.orderStatus === "cancelled"
                               ? "Đã hủy"
+                              : viewOrder.orderStatus === "boomed"
+                                ? "Boom hàng"
                               : "Trạng thái không xác định"}
                   </span>
                 </div>

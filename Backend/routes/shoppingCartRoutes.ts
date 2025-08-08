@@ -6,6 +6,8 @@ import {
   removeProductFromCart,
   deleteAllShoppingCartBelongsToCustomer,
   updateCartItemQuantity,
+  createShoppingCartWithBarcode,
+  updateShoppingCartWithBarcode,
 } from "../controllers/shoppingCartController";
 
 const router = express.Router();
@@ -18,6 +20,12 @@ router.get("/:customerID", getShoppingCartById);
 
 // POST a new shopping cart
 router.post("/", createShoppingCart);
+
+// Create a new shopping cart for a customer using barcode
+router.post("/barcode", createShoppingCartWithBarcode);
+
+// Update a shopping cart item quantity using barcode
+router.put("/barcode", updateShoppingCartWithBarcode);
 
 // PUT (update) an existing shopping cart by ID
 router.put("/:cartID/product/:productID", updateCartItemQuantity);

@@ -260,121 +260,156 @@ export default function NewsDetailPage() {
                 ]}
             />
 
-            <div className="relative grid grid-cols-[1fr_400px] gap-6">
-                <div className="flex-1 overflow-y-auto h-screen">
-                    {/* Title and Title Image */}
-                    <h1 className="text-3xl font-bold mt-6 mb-2">{news.title}</h1>
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 mx-auto">
+                {/* Main News Content */}
+                <div className="flex-1">
+                    {/* Title */}
+                    <h1 className="text-4xl font-extrabold mt-4 mb-3 text-primary-gradient bg-clip-text">
+                        {news.title}
+                    </h1>
                     {/* Tags */}
                     {news.hastags && news.hastags.length > 0 && (
-                        <div className="mb-4 flex flex-wrap gap-2 ">
+                        <div className="mb-5 flex flex-wrap gap-2">
                             {news.hastags.map((tag, idx) => (
                                 <span
                                     key={idx}
-                                    className="bg-blue-100 text-blue-700 p-2 rounded text-sm flex items-center gap-x-1"
+                                    className="bg-gradient-to-r from-blue-200 to-green-200 text-blue-900 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-x-1 shadow-sm"
                                 >
-                                    <span><Tag height={18} /></span><span>{tag.tagName}</span>
+                                    <Tag height={16} />
+                                    {tag.tagName}
                                 </span>
                             ))}
                         </div>
                     )}
+                    {/* Title Image */}
                     {news.titleImageUrl && (
-                        <NextImage
-                            width={800}
-                            height={400}
-                            src={news.titleImageUrl || NoImage}
-                            alt={news.title}
-                            className="w-full max-h-96 object-cover rounded mb-4"
-                        />
+                        <div className="overflow-hidden rounded-xl shadow-lg mb-6">
+                            <NextImage
+                                width={800}
+                                height={400}
+                                src={news.titleImageUrl || NoImage}
+                                alt={news.title}
+                                className="w-full h-64 object-cover transition-transform duration-300 hover:scale-105"
+                            />
+                        </div>
                     )}
-
                     {/* Subtitle */}
-                    {news.subtitle && <div className="text-lg text-gray-600 mb-6">{news.subtitle}</div>}
+                    {news.subtitle && (
+                        <div className="text-lg text-gray-600 mb-8 italic">{news.subtitle}</div>
+                    )}
                     {/* Content */}
-                    <div className="prose prose-blue max-w-4xl mx-auto tiptap-content mb-8 ">
+                    <div className="prose prose-blue max-w-none mx-auto tiptap-content mb-10 text-lg leading-relaxed border-[1px] border-gray-200 p-2 rounded-md">
                         {news?.content && <EditorContent editor={editor} className="tiptap-editor" />}
                     </div>
                 </div>
-                {/* Other News */}
-                <div className="shrink-0 sticky top-0 h-fit">
-                    <h2 className="text-xl font-semibold mb-4">Những bài viết khác</h2>
-                    <div className="grid gap-4">
+                {/* Sidebar: Other News */}
+                <aside className="shrink-0 sticky top-24 h-fit bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                    <h2 className="text-2xl font-bold mb-6 text-primary-gradient bg-clip-text ">
+                        Những bài viết khác
+                    </h2>
+                    <div className="flex flex-col gap-5">
                         {otherNews.slice(0, 5).map((item) => (
                             <div
                                 key={item.newsID}
-                                className="p-4 border rounded hover:bg-gray-100 cursor-pointer flex gap-4"
+                                className="flex gap-4 items-center p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition cursor-pointer group"
+                                onClick={() => router.push(`/vi/homepage/news/${item.newsID}`)}
                             >
-                                <div className="flex-shrink-0 w-20 h-20">
-
+                                <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden shadow">
                                     <NextImage
-                                        width={100}
-                                        height={100}
+                                        width={64}
+                                        height={64}
                                         src={item.titleImageUrl || NoImage}
                                         alt={item.title}
-                                        className="object-cover rounded w-full h-full"
+                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                                     />
                                 </div>
-                                <div className="">
-                                    <div className="font-bold w-[280px] truncate">{item.title}</div>
-                                    <div className="text-sm w-[280px] truncate text-gray-500">{item.subtitle}</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-base truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                        {item.title}
+                                    </div>
+                                    <div className="text-xs text-gray-500 truncate mb-1">{item.subtitle}</div>
                                     <div className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleDateString()}</div>
-                                    <Button
-                                        variant={"link"}
-                                        className="cursor-pointer px-0"
-                                        onClick={() => router.push(`/vi/homepage/news/${item.newsID}`)}
-                                    >
-                                        Xem chi tiết
-                                    </Button>
                                 </div>
+                                <Button
+                                    variant="link"
+                                    className="px-0 text-blue-500 dark:text-blue-400 font-medium text-sm"
+                                >
+                                    Xem
+                                </Button>
                             </div>
                         ))}
                     </div>
-                </div>
+                </aside>
             </div>
             <hr className="my-8" />
             {/* Comment Section */}
-            <div className="mt-8 max-w-7xl mx-auto">
-                <h2 className="text-4xl font-semibold mb-4">Bình luận về bài viết</h2>
-                <form onSubmit={handleCommentSubmit} className="mb-6 flex flex-col gap-2 items-end">
+            <div className="mt-12 max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8">
+                <h2 className="text-4xl font-extrabold mb-6 text-primary-gradient bg-clip-text text-transparent">
+                    Bình luận về bài viết
+                </h2>
+                <form
+                    onSubmit={handleCommentSubmit}
+                    className="mb-8 flex flex-col gap-4 items-end"
+                >
                     <Textarea
                         ref={commentInputRef}
-                        className="min-h-[200px]"
-                        placeholder="Nhập bình luận của bạn..."
+                        className="min-h-[160px] border-2 border-primary/30 focus:border-primary transition rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-lg"
+                        placeholder="Hãy chia sẻ cảm nghĩ của bạn..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
                         disabled={submitting}
-                        rows={8}
+                        rows={6}
                     />
                     <Button
                         type="submit"
-                        className="bg-primary text-white px-4 py-2 rounded w-fit cursor-pointer "
+                        className="bg-gradient-to-r from-blue-500 to-green-400 text-white px-6 py-2 rounded-lg shadow hover:scale-105 transition-transform font-semibold"
                         disabled={submitting || !newComment.trim()}
                     >
-                        {submitting ? "Đang gửi bình luận..." : "Gửi bình luận"}
+                        {submitting ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                Đang gửi...
+                            </span>
+                        ) : "Gửi bình luận"}
                     </Button>
                 </form>
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {news && comments.length > 0 ? (
                         comments.map((comment, index) => (
-                            <CommentItem
-                                commentID={comment.commentID}
-                                index={index}
-                                commentsLength={comments.length}
-                                userID={comment.userID}
+                            <div
                                 key={comment.commentID}
-                                avatar={comment.user_comments?.avatar || NoImage}
-                                name={comment.user_comments?.username || `Người dùng ${comment.userID}`}
-                                date={new Date(comment.commentAt).toLocaleDateString()}
-                                comment={comment.content}
-                                likeCount={comment.likeCount}
-                                dislikeCount={comment.dislikeCount}
-                                onLike={() => handleLikeComment(comment.commentID)}
-                                onDislike={() => handleDislikeComment(comment.commentID)}
-                                reFetchComments={() => handleDeleteComment(comment.commentID)}
-                                type="news"
-                            />
+                                className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-xl transition group"
+                            >
+                                <CommentItem
+                                    commentID={comment.commentID}
+                                    index={index}
+                                    commentsLength={comments.length}
+                                    userID={comment.userID}
+                                    avatar={comment.user_comments?.avatar || NoImage}
+                                    name={comment.user_comments?.username || `Người dùng ${comment.userID}`}
+                                    date={new Date(comment.commentAt).toLocaleDateString()}
+                                    comment={comment.content}
+                                    likeCount={comment.likeCount}
+                                    dislikeCount={comment.dislikeCount}
+                                    onLike={() => handleLikeComment(comment.commentID)}
+                                    onDislike={() => handleDislikeComment(comment.commentID)}
+                                    reFetchComments={() => handleDeleteComment(comment.commentID)}
+                                    type="news"
+                                />
+                            </div>
                         ))
                     ) : (
-                        <div className="text-gray-500">Chưa có bình luận nào cho bài đăng này.</div>
+                        <div className="text-gray-400 text-center py-8 text-lg">
+                            <span className="inline-flex items-center gap-2">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                                Chưa có bình luận nào cho bài đăng này.
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

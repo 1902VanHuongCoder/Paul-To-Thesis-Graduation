@@ -18,13 +18,13 @@ export default function UserDrawer({ user, open, setOpen, logout }: { user: User
                 <button className="p-1.5 rounded-full bg-transparent border-[1px] border-solid border-primary/50 cursor-pointer" aria-label="Open user drawer">
                     <Avatar>
                         {user.avatar ? (
-                            <div>
+                            <div className="w-12 h-12 rounded-full overflow-hidden">
                                 <Image 
                                     src={user.avatar}
                                     alt={user.username}
                                     width={50}
                                     height={50}
-                                    className="object-cover rounded-full" 
+                                    className="object-cover rounded-full w-full h-full" 
                                 />
                             </div>
                         ) : (

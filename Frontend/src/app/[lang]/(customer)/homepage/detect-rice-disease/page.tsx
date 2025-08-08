@@ -185,7 +185,7 @@ export default function DetectRiceDiseaseDemo() {
   };
 
   return (
-    <div className="px-6 py-10 font-sans bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] min-h-screen">
+    <div className="px-6 py-10 font-sans bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] min-h-screen w-full">
       <Breadcrumb
         items={[
           { label: "Trang chủ", href: "/" },
@@ -361,11 +361,11 @@ export default function DetectRiceDiseaseDemo() {
                 <CircleAlert className="text-[#f8c32c]" />
               </span>
               <span>
-                Vui lòng kiểm tra xem có bệnh nào dưới đây trùng với thiệt hại trên cây lúa của bạn không
+                Tham khảo kết quả chẩn đoán để biết cây lúa của bạn đang gặp vấn đề gì.
               </span>
             </div>
           )}
-          <div className="mt-8">
+          <div className="mt-8 w-full">
             {/* Show fetched disease details */}
             {diseaseDetails.length > 0 && (
               <div className="grid gap-8">
@@ -419,49 +419,58 @@ export default function DetectRiceDiseaseDemo() {
             )}
             {/* Disease Details Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogContent className="max-w-4xl bg-gray-100 rounded-2xl shadow-2xl border border-[#278d45]/20">
+              <DialogContent className="bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] rounded-2xl shadow-2xl border border-[#278d45]/20 sm:max-w-5xl max-h-[90vh] overflow-x-hidden">
                 <DialogHeader>
-                  <DialogTitle className="uppercase text-center text-2xl text-[#0d401c] font-extrabold tracking-wide">
+                  <DialogTitle className="uppercase text-center text-3xl text-[#278d45] font-extrabold tracking-wide drop-shadow-lg mb-2">
                     {selectedDisease?.diseaseName || "Chi tiết bệnh"}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="mb-4 space-y-2">
-                  <div className="mb-4 max-w-full flex justify-center gap-x-2">
+                <div className="mb-4 w-full flex justify-center">
+                  <div className="flex justify-center max-w-4xl overflow-x-auto">
                     {selectedDisease?.images && selectedDisease.images.length > 0 ? (
-                      <div className="w-[320px] h-[320px] rounded-xl overflow-hidden border-2 border-[#278d45]/20 shadow-xl bg-white">
-                        <Image
-                          src={selectedDisease.images[0]}
-                          alt="Disease"
-                          width={320}
-                          height={320}
-                          className="rounded-lg object-cover w-full h-full"
-                        />
+                      <div className="flex gap-x-4 py-2">
+                        {selectedDisease.images.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="w-[320px] h-[320px] rounded-2xl overflow-hidden border-2 border-[#278d45]/20 bg-white flex-shrink-0 transition-transform"
+                          >
+                            <Image
+                              src={img}
+                              alt={`Disease ${idx + 1}`}
+                              width={320}
+                              height={320}
+                              className="rounded-xl object-cover w-full h-full"
+                            />
+                          </div>
+                        ))}
                       </div>
                     ) : (
-                      <div className="w-[320px] h-[320px] flex items-center justify-center text-[#278d45]/40 bg-[#eaf7ef] rounded-xl border">
+                      <div className="w-[320px] h-[320px] flex items-center justify-center text-[#278d45]/40 bg-[#eaf7ef] rounded-2xl border-2 border-[#278d45]/10 shadow">
                         Không có hình ảnh
                       </div>
                     )}
                   </div>
-                  <div className="text-[#278d45]">
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                  <div className="text-[#278d45] bg-white/80 rounded-lg px-4 py-2 shadow border border-[#278d45]/10">
                     <b>Tên tiếng Anh:</b>{" "}
-                    <span className="text-xl font-semibold">{selectedDisease?.diseaseEnName}</span>
+                    <span className="text-lg font-semibold">{selectedDisease?.diseaseEnName}</span>
                   </div>
-                  <div className="text-[#278d45]">
+                  <div className="text-[#278d45] bg-white/80 rounded-lg px-4 py-2 shadow border border-[#278d45]/10">
                     <b>Tác nhân:</b>{" "}
-                    <span className="text-xl font-semibold">{selectedDisease?.ricePathogen}</span>
+                    <span className="text-lg font-semibold">{selectedDisease?.ricePathogen}</span>
                   </div>
                 </div>
-                <div className="prose prose-blue max-w-none tiptap-content mb-8 bg-white/90 rounded-lg p-4 border border-[#278d45]/10">
+                <div className="w-fit mx-auto tiptap-content mb-8 rounded-xl p-6 border border-[#278d45]/10 shadow">
                   {selectedDisease?.symptoms && <EditorContent editor={editor} className="tiptap-editor" />}
                 </div>
                 <DialogClose asChild>
-                  <div className="flex gap-x-4">
-                    <button className="mt-2 px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45]">
+                  <div className="flex gap-x-4 mt-4">
+                    <button className="px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45] shadow">
                       Đóng
                     </button>
                     <button
-                      className="mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition w-full hover:cursor-pointer"
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow-xl hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition w-full hover:cursor-pointer"
                       onClick={() => {
                         if (selectedDisease && selectedDisease.diseaseID) {
                           handleViewProducts(selectedDisease.diseaseID);

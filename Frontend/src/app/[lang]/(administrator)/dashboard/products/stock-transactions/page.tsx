@@ -12,6 +12,8 @@ import vectortop from '@public/vectors/cart+total+shap+top.png';
 import Image from "next/image";
 import { Button } from "@/components/ui/button/button";
 import { fetchAllInventoryTransactions } from "@/lib/stock-transaction-apis";
+import * as XLSX from "xlsx";
+
 interface Product {
   productID: number;
   productName: string;
@@ -28,7 +30,6 @@ interface InventoryTransaction {
   updatedAt: string;
   product?: Product;
 }
-
 
 export default function InventoryTransactionsPage() {
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([]);
@@ -62,6 +63,24 @@ export default function InventoryTransactionsPage() {
   const total = filtered.length;
   const totalPages = Math.ceil(total / perPage);
   const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+
+  // Export to Excel handler
+  const handleExportExcel = () => {
+    // Prepare data for export (paginated)
+    const exportData = paginated.map(tran => ({
+      "ID": tran.transactionID,
+      "Tên sản phẩm": tran.product?.productName || tran.productID,
+      "Loại giao dịch": tran.transactionType === 'import' ? 'Nhập kho' : tran.transactionType === 'export' ? 'Xuất kho' : 'Điều chỉnh',
+      "Thay đổi SL": tran.quantityChange,
+      "Ghi chú": tran.note || "",
+      "Người thực hiện": tran.performedBy,
+      "Ngày tạo": new Date(tran.createdAt).toLocaleString(),
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "GiaoDichKho");
+    XLSX.writeFile(wb, `giao_dich_kho_page${currentPage}.xlsx`);
+  };
 
   return (
     <div className="">
@@ -103,6 +122,7 @@ export default function InventoryTransactionsPage() {
             </SelectContent>
           </Select>
         </div>
+        <Button type="button" onClick={handleExportExcel} className="ml-auto bg-green-600 text-white hover:bg-green-700">Xuất Excel</Button>
       </div>
       <Table>
         <TableHeader>

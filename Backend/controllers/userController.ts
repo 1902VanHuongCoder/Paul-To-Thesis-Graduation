@@ -320,11 +320,61 @@ export const forgotPassword = async (
   }
 };
 
+
+// Send email to user include confirmation code (6 digits) and expiry time (10 minutes) before order to confirm their info
+export const sendOrderConfirmation = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, orderID } = req.body;
+  if (!email || !orderID) {
+    res.status(400).json({ error: "Email and Order ID are required" });
+    return;
+  }
+
+  // Generate confirmation code and expiry
+  const code = generateSecure6DigitCode();
+  const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  // Save code and expiry to user (or a separate table)
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      res.status(404).json({ message: "Không tìm thấy người dùng" });
+      return;
+    }
+    user.resetPasswordCode = code;
+    user.resetPasswordCodeExpiry = codeExpiry;
+    await user.save();
+  } catch (error) {
+    console.error("Error saving reset password code:", error);
+    res.status(500).json({ message: "Xảy ra lỗi khi lưu mã xác nhận. Hãy thử lại!" });
+    return;
+  }
+
+  // Send email
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Mã xác nhận đơn hàng",
+      text: `Mã xác nhận của bạn là: ${code}. Mã có hiệu lực trong 10 phút.`,
+    });
+    res.json({ message: "Đã gửi mã xác nhận tới email của bạn." });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Không thể gửi email xác nhận" });
+    return;
+  }
+};
+
 export const checkRecoveryCode = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { code, email } = req.body;
+  console.log("Checking recovery code for email:", email);
+  console.log("Recovery code:", code);
   try {
     const user = await User.findOne({
       where: {
@@ -345,6 +395,7 @@ export const checkRecoveryCode = async (
       user.resetPasswordCodeExpiry > new Date()
     ) {
       res.status(200).json(user);
+      console.log("Recovery code is valid.");
     } else {
       res.status(400).json({ message: "Invalid or expired code" });
     }
@@ -379,5 +430,42 @@ export const deleteUser = async (
     } else {
       res.status(500).json({ message: "Đã xảy ra lỗi khi xóa người dùng. Hãy thử lại." });
     }
+  }
+};
+
+
+// Update user status (active/inactive) and send email notification about the reason block their account 
+export const updateUserStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userID = req.params.userID;
+  const { isActive, reason } = req.body;
+
+  try {
+    const user = await User.findByPk(userID);
+    if (!user) {
+      res.status(404).json({ message: "Người dùng không tồn tại." });
+      return;
+    }
+
+    // Update user status
+    user.isActive = isActive;
+    await user.save();
+
+    // Send email notification if the account is deactivated
+    if (!isActive && reason) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "Thông báo về trạng thái tài khoản",
+        text: `Tài khoản của bạn đã bị vô hiệu hóa. Lý do: ${reason}. Vui lòng liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi nào.`,
+      });
+    }
+
+    res.status(200).json({ message: "Cập nhật trạng thái người dùng thành công.", user });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    res.status(500).json({ error: (error as Error).message });
   }
 };

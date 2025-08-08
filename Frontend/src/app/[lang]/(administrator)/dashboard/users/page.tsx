@@ -14,10 +14,10 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectLabel, SelectItem } from "@/components/ui/select/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination/pagination";
-import { Trash2Icon } from "lucide-react";
+// import { Trash2Icon } from "lucide-react";
 import {
   Dialog,
-  DialogTrigger,
+  // DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -26,7 +26,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog/dialog";
 import toast from "react-hot-toast";
-import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
+// import { deleteAccount, getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
+import { getAllUsers, updateUserProfileStatus } from "@/lib/user-apis";
 import formatDate from "@/lib/others/format-date";
 import { useUser } from "@/contexts/user-context";
 
@@ -51,8 +52,11 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = React.useState("");
   const [loading, setLoading] = React.useState(true)
   const [updatingUserId, setUpdatingUserId] = React.useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [userToDelete, setUserToDelete] = React.useState<User | null>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  // const [userToDelete, setUserToDelete] = React.useState<User | null>(null);
+  const [blockDialogOpen, setBlockDialogOpen] = React.useState(false);
+  const [blockReason, setBlockReason] = React.useState("");
+  const [userToBlock, setUserToBlock] = React.useState<User | null>(null);
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);
   const [recordsPerPage, setRecordsPerPage] = React.useState(10);
@@ -93,9 +97,16 @@ export default function UsersPage() {
   );
 
   const handleToggleStatus = async (user: User) => {
+    if (user.isActive) {
+      // Show dialog to choose reason
+      setUserToBlock(user);
+      setBlockDialogOpen(true);
+      setBlockReason("");
+      return;
+    }
     setUpdatingUserId(user.userID);
     try {
-      const res = await updateUserProfileStatus(user.userID, user.isActive);
+      const res = await updateUserProfileStatus(user.userID, true, blockReason);
       if (res) {
         setUsers((prev) =>
           prev.map((u) =>
@@ -114,20 +125,51 @@ export default function UsersPage() {
     }
   };
 
-  const handleDeleteUser = async (userID: string) => {
+  // Confirm block handler
+  const handleConfirmBlock = async () => {
+    if (!userToBlock || !blockReason) {
+      toast.error("Vui lòng chọn lý do khóa tài khoản.");
+      return;
+    }
+    setUpdatingUserId(userToBlock.userID);
+    setBlockDialogOpen(false);
     try {
-      const {status, message}  = await deleteAccount(userID);
-      if (status === 200) {
-        setUsers((prev) => prev.filter((u) => u.userID !== userID));
-        toast.success(message);
+      // Optionally send blockReason to backend here
+      const res = await updateUserProfileStatus(userToBlock.userID, false, blockReason);
+      if (res) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.userID === userToBlock.userID ? { ...u, isActive: false } : u
+          )
+        );
+        toast.success(`Tài khoản ${userToBlock.username} đã bị khóa. Lý do: ${blockReason}`);
       } else {
-        toast.error(message);
+        toast.error("Khóa tài khoản thất bại.");
       }
     } catch (err) {
-      alert("Xóa tài khoản thất bại.");
-      console.error("Error deleting user:", err);
+      toast.error("Khóa tài khoản thất bại.");
+      console.error("Error blocking user:", err);
+    } finally {
+      setUpdatingUserId(null);
+      setUserToBlock(null);
+      setBlockReason("");
     }
   };
+
+  // const handleDeleteUser = async (userID: string) => {
+  //   try {
+  //     const {status, message}  = await deleteAccount(userID);
+  //     if (status === 200) {
+  //       setUsers((prev) => prev.filter((u) => u.userID !== userID));
+  //       toast.success(message);
+  //     } else {
+  //       toast.error(message);
+  //     }
+  //   } catch (err) {
+  //     alert("Xóa tài khoản thất bại.");
+  //     console.error("Error deleting user:", err);
+  //   }
+  // };
 
   return (
     <div className="">
@@ -193,7 +235,7 @@ export default function UsersPage() {
             <TableHead>Vai trò</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Ngày tạo</TableHead>
-            <TableHead className="text-center">Hành động</TableHead>
+            {/* <TableHead className="text-center">Hành động</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -216,7 +258,7 @@ export default function UsersPage() {
                 </button>
               </TableCell>
               <TableCell>{formatDate(user.createdAt)}</TableCell>
-              <TableCell className="flex justify-center items-center">
+              {/* <TableCell className="flex justify-center items-center">
                 <Dialog open={deleteDialogOpen && userToDelete?.userID === user.userID} onOpenChange={open => {
                   setDeleteDialogOpen(open);
                   if (!open) setUserToDelete(null);
@@ -258,7 +300,7 @@ export default function UsersPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
@@ -299,6 +341,62 @@ export default function UsersPage() {
           </Pagination>
         </div>
       )}
+      {/* Block reason dialog */}
+      <Dialog open={blockDialogOpen} onOpenChange={open => { setBlockDialogOpen(open); if (!open) setUserToBlock(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Chọn lý do khóa tài khoản</DialogTitle>
+            <DialogDescription>Vui lòng chọn lý do khóa tài khoản người dùng này:</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-2">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="blockReason" value="Vi phạm quy định" checked={blockReason === "Vi phạm quy định"} onChange={e => setBlockReason(e.target.value)} />
+              Vi phạm quy định
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="blockReason" value="Yêu cầu của quản trị viên" checked={blockReason === "Yêu cầu của quản trị viên"} onChange={e => setBlockReason(e.target.value)} />
+              Yêu cầu của quản trị viên
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="blockReason" value="Tài khoản bị nghi ngờ xâm nhập" checked={blockReason === "Tài khoản bị nghi ngờ xâm nhập"} onChange={e => setBlockReason(e.target.value)} />
+              Tài khoản bị nghi ngờ xâm nhập
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="blockReason"
+                value="Khác"
+                checked={blockReason !== "" && blockReason !== "Vi phạm quy định" && blockReason !== "Yêu cầu của quản trị viên" && blockReason !== "Tài khoản bị nghi ngờ xâm nhập"}
+                onChange={() => setBlockReason("")}
+              />
+              Khác
+            </label>
+            {blockReason !== "Vi phạm quy định" &&
+              blockReason !== "Yêu cầu của quản trị viên" &&
+              blockReason !== "Tài khoản bị nghi ngờ xâm nhập" && (
+                <input
+                  className="border rounded px-2 py-1 mt-1"
+                  placeholder="Nhập lý do khác..."
+                  value={blockReason}
+                  onChange={e => setBlockReason(e.target.value)}
+                  autoFocus
+                />
+              )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer">Hủy</button>
+            </DialogClose>
+            <button
+              className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+              onClick={handleConfirmBlock}
+              disabled={!blockReason}
+            >
+              Xác nhận khóa
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
