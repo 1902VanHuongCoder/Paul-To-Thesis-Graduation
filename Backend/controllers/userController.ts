@@ -432,3 +432,40 @@ export const deleteUser = async (
     }
   }
 };
+
+
+// Update user status (active/inactive) and send email notification about the reason block their account 
+export const updateUserStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userID = req.params.userID;
+  const { isActive, reason } = req.body;
+
+  try {
+    const user = await User.findByPk(userID);
+    if (!user) {
+      res.status(404).json({ message: "Người dùng không tồn tại." });
+      return;
+    }
+
+    // Update user status
+    user.isActive = isActive;
+    await user.save();
+
+    // Send email notification if the account is deactivated
+    if (!isActive && reason) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "Thông báo về trạng thái tài khoản",
+        text: `Tài khoản của bạn đã bị vô hiệu hóa. Lý do: ${reason}. Vui lòng liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi nào.`,
+      });
+    }
+
+    res.status(200).json({ message: "Cập nhật trạng thái người dùng thành công.", user });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};

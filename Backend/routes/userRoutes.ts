@@ -12,6 +12,7 @@ import {
   getUsersBasedOnRole,
   deleteUser,
   sendOrderConfirmation,
+  updateUserStatus,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -37,6 +38,9 @@ router.get("/role/:role", getUsersBasedOnRole);
 
 // Get user info based on userID
 router.get("/:userID",getUserByID); 
+
+// Update user account status 
+router.put("/status/:userID", updateUserStatus);
 
 // Update user information
 router.put("/:userID", updateUser); 

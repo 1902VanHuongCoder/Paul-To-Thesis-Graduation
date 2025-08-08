@@ -288,11 +288,9 @@ export default function OrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="pending">Chờ xác nhận</SelectItem>
                 <SelectItem value="accepted">Đã xác nhận</SelectItem>
                 <SelectItem value="shipping">Đang giao</SelectItem>
                 <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -352,15 +350,15 @@ export default function OrdersPage() {
         <TableBody>
           {paginatedOrders.map(order => (
             <TableRow key={order.orderID} className={`${order.orderStatus === "boomed" ? "bg-orange-100" : ""}`}>
-              <TableCell>
+                <TableCell>
                 <input
                   type="checkbox"
-                  checked={selectedOrderIDs.includes(order.orderID)}
+                  checked={order.orderStatus === "cancelled" ? false : selectedOrderIDs.includes(order.orderID)}
                   onChange={() => handleSelectOrder(order.orderID)}
                   disabled={order.orderStatus === "cancelled"}
                   className="disabled:opacity-50 disabled:cursor-not-allowed"
                 />
-              </TableCell>
+                </TableCell>
               <TableCell>{order.orderID}</TableCell>
               <TableCell>{order.fullName}</TableCell>
               <TableCell>{order.phone}</TableCell>

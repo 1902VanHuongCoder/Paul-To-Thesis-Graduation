@@ -180,12 +180,14 @@ export const updateUserPassword = async (
 
 export const updateUserProfileStatus = async (
   userID: string,
-  isActive: boolean
+  isActive: boolean,
+  reason: string
 ) => {
-  const res = await fetch(`${baseUrl}/api/users/${userID}`, {
+  console.log("Updating user status:", userID, isActive, reason);
+  const res = await fetch(`${baseUrl}/api/users/status/${userID}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ isActive: !isActive }),
+    body: JSON.stringify({ isActive: isActive, reason }),
   });
   if (!res.ok) {
     throw new Error("Failed to update user status");

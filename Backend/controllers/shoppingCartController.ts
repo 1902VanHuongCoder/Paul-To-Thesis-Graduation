@@ -112,6 +112,107 @@ export const createShoppingCart = async (
   }
 };
 
+// Create new shopping cart using barcode, don't use productID, using barcode instead
+export const createShoppingCartWithBarcode = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { customerID, barcode, quantity } = req.body;
+
+  try {
+    // Check if a shopping cart already exists for the customer
+    let cart = await ShoppingCart.findOne({ where: { customerID } });
+
+    // If not, create a new shopping cart
+    if (!cart) {
+      cart = await ShoppingCart.create({ customerID, totalQuantity: 1 });
+    } else {
+      // If exists, increase totalQuantity by 1
+      cart.totalQuantity += 1;
+      await cart.save();
+    }
+
+    // Get product by barcode
+    const product = await Product.findOne({ where: { barcode } });
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+
+    // Check if the product is already in the cart
+    let cartItem = await CartItem.findOne({
+      where: { cartID: cart.cartID, productID: product.productID },
+    });
+
+    if (cartItem) {
+      // If exists, update the quantity
+      cartItem.quantity += quantity;
+      await cartItem.save();
+    } else {
+      // If not, create a new cart item
+      cartItem = await CartItem.create({
+        cartID: cart.cartID,
+        productID: product.productID,
+        quantity,
+        discount: 0,
+        price: product.productPrice,
+      });
+    }
+
+    res.status(201).json({
+      message: "Product added to cart successfully",
+      cart,
+      cartItem,
+    });
+  } catch (error) {
+    console.error("Error creating shopping cart with barcode:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+}
+
+// Update cart item quantity using barcode 
+export const updateShoppingCartWithBarcode = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { customerID, barcode, quantity } = req.body;
+
+  try {
+    // Find the shopping cart for the customer
+    const cart = await ShoppingCart.findOne({ where: { customerID } });
+    if (!cart) {
+      res.status(404).json({ message: "Shopping cart not found" });
+      return;
+    }
+
+    // Get product by barcode
+    const product = await Product.findOne({ where: { barcode } });
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+
+    // Find the cart item
+    let cartItem = await CartItem.findOne({
+      where: { cartID: cart.cartID, productID: product.productID },
+    });
+
+    if (cartItem) {
+      // Update the quantity
+      cartItem.quantity = quantity;
+      await cartItem.save();
+      res.status(200).json({ message: "Cart item updated successfully", cartItem });
+    } else {
+      res.status(404).json({ message: "Cart item not found" });
+    }
+  } catch (error) {
+    console.error("Error updating shopping cart with barcode:", error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+
+
 export const updateCartItemQuantity = async (
   req: Request,
   res: Response

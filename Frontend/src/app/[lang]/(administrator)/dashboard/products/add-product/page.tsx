@@ -136,7 +136,7 @@ export default function AddProductPage() {
   const [editorImages, setEditorImages] = useState<File[]>([]);
   const [, setProducts] = useState<ProductFormValues[]>([]);
   const [barcode, setBarcode] = useState("");
-  const [barcodeImage, setBarcodeImage] = useState<string>("");
+  // const [barcodeImage, setBarcodeImage] = useState<string>("");
   const [boxBarcode, setBoxBarcode] = useState<{ boxBarcode: string, boxBarcodeImage: string }>({ boxBarcode: "", boxBarcodeImage: "" })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [selectedDiseases, setSelectedDiseases] = useState<Disease[]>([]);
@@ -322,18 +322,18 @@ export default function AddProductPage() {
   if (!editor) return null
 
   // Function to generate barcode image
-  const handleGenerateBarcodeImage = () => {
-    console.log("Generating barcode image for:", barcode);
-    const canvas = document.createElement('canvas');
-    JsBarcode(canvas, barcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
-    setBarcodeImage(canvas.toDataURL("image/png"));
-  };
+  // const handleGenerateBarcodeImage = () => {
+  //   console.log("Generating barcode image for:", barcode);
+  //   const canvas = document.createElement('canvas');
+  //   JsBarcode(canvas, barcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+  //   setBarcodeImage(canvas.toDataURL("image/png"));
+  // };
 
-  const handleGenerateBoxBarcodeImage = () => {
-    const canvas = document.createElement('canvas');
-    JsBarcode(canvas, boxBarcode.boxBarcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
-    setBoxBarcode({ ...boxBarcode, boxBarcodeImage: canvas.toDataURL("image/png") })
-  };
+  // const handleGenerateBoxBarcodeImage = () => {
+  //   const canvas = document.createElement('canvas');
+  //   JsBarcode(canvas, boxBarcode.boxBarcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+  //   setBoxBarcode({ ...boxBarcode, boxBarcodeImage: canvas.toDataURL("image/png") })
+  // };
 
 
 
@@ -504,17 +504,17 @@ export default function AddProductPage() {
           </div>
           {/* Barcode Field */}
           <FormItem className="col-span-2">
-            <FormLabel>Mã vạch sản phẩm (12 số)</FormLabel>
+            <FormLabel>Mã vạch sản phẩm (13 số)</FormLabel>
             <FormControl>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <Input
                   {...register("barcode", {
                     required: true,
-                    pattern: { value: /\d{12}$/, message: "Mã vạch phải dài 12 số" },
+                    pattern: { value: /\d{13}$/, message: "Mã vạch phải dài 13 số" },
                   })}
                   value={barcode}
                   // replace non-numeric characters and limit to 12 digits
-                  onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
+                  onChange={e => setBarcode(e.target.value.replace(/[^0-9]/g, '').slice(0, 13))}
                   placeholder="Nhập hoặc sinh tự động mã vạch"
                 />
                 <Button type="button" onClick={() => {
@@ -522,33 +522,43 @@ export default function AddProductPage() {
                   setBarcode(newBarcode);
                   setValue("barcode", newBarcode);
                 }}>Tạo mã vạch</Button>
-                <Button type="button" onClick={handleGenerateBarcodeImage} disabled={barcode.length !== 12}>
-                  Tạo ảnh mã vạch
+                <Button type="button"
+                  onClick={() => {
+                    if (barcode.length === 13) {
+                      const canvas = document.createElement('canvas');
+                      JsBarcode(canvas, barcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+                      const url = canvas.toDataURL("image/png");
+                      // Download logic
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `barcode-${barcode}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
+                  }}
+                  disabled={barcode.length !== 13}
+                >
+                  Tải ảnh mã vạch
                 </Button>
               </div>
-
             </FormControl>
-            {barcodeImage && (
-              <div style={{ marginTop: 8 }}>
-                <NextImage width={300} height={200} src={barcodeImage} alt="Barcode" style={{ background: '#fff', padding: 4, border: '1px solid #eee' }} />
-              </div>
-            )}
             {errors.barcode && <FormMessage>{errors.barcode.message || "Mã vạch không thể để trống."}</FormMessage>}
           </FormItem>
           {(watch("quantityPerBox") ?? 0) > 0 &&
             (<FormItem className="col-span-2">
-              <FormLabel>Mã vạch lô/thùng (12 số)</FormLabel>
+              <FormLabel>Mã vạch lô/thùng (13 số)</FormLabel>
               <FormControl>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <Input
                     {...register("boxBarcode", {
                       required: true,
-                      pattern: { value: /\d{12}$/, message: "Mã vạch lô thùng phải dài 12 số." },
+                      pattern: { value: /\d{13}$/, message: "Mã vạch lô thùng phải dài 13 số." },
                     })}
                     value={boxBarcode.boxBarcode}
                     onChange={e => {
                       const value = e.target.value.replace(/[^0-9]/g, '').slice(
-                        0, 12);
+                        0, 13);
                       setBoxBarcode({
                         boxBarcode: value, boxBarcodeImage: boxBarcode.boxBarcodeImage
                       });
@@ -562,17 +572,28 @@ export default function AddProductPage() {
                     setBoxBarcode({ boxBarcode: newBarcode, boxBarcodeImage: "" });
                     setValue("boxBarcode", newBarcode);
                   }}>Tạo mã vạch</Button>
-                  <Button type="button" onClick={handleGenerateBoxBarcodeImage} disabled={boxBarcode.boxBarcode.length !== 12}>
-                    Tạo ảnh mã vạch
+                  <Button type="button"
+                    onClick={() => {
+                      if (boxBarcode.boxBarcode.length === 13) {
+                        const canvas = document.createElement('canvas');
+                        JsBarcode(canvas, boxBarcode.boxBarcode, { format: "EAN13", width: 2, height: 60, displayValue: true });
+                        const url = canvas.toDataURL("image/png");
+                        // Download logic
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `box-barcode-${boxBarcode.boxBarcode}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
+                    }}
+                    disabled={boxBarcode.boxBarcode.length !== 13}
+                  >
+                    Tải ảnh mã vạch
                   </Button>
                 </div>
 
               </FormControl>
-              {boxBarcode.boxBarcodeImage && (
-                <div style={{ marginTop: 8 }}>
-                  <NextImage width={300} height={200} src={boxBarcode.boxBarcodeImage} alt="Barcode" style={{ background: '#fff', padding: 4, border: '1px solid #eee' }} />
-                </div>
-              )}
               {errors.boxBarcode && <FormMessage>{errors.boxBarcode.message || "Barcode is required"}</FormMessage>}
             </FormItem>)
           }
