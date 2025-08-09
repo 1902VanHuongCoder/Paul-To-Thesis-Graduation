@@ -10,7 +10,7 @@ import {
     navigationMenuTriggerStyle,
 } from "./navigation-menu-shadcn";
 import Image from "next/image";
-import darkLogo from "@public/images/dark+logo.png";
+// import darkLogo from "@public/images/dark+logo.png";
 import vector02 from "@public/vectors/Vector+02.png";
 import Link from "next/link";
 import { cn } from "@/lib/others/utils";
