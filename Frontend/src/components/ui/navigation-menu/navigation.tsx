@@ -106,7 +106,7 @@ export default function Navigation() {
             </div>
             <div className="relative z-2 flex flex-col md:flex-row items-center justify-between bg-white font-sans text-primary md:px-6 pb-4 md:pt-4 md:pb-2">
                 <Link href="/" aria-label={"Trang chủ"}>
-                    <Image src={darkLogo} alt={"Logo NFeam House"} width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" priority />
+                    <Image src="/images/dark+logo.png" alt={"Logo NFeam House"} width={200} height={100} className="mb-6 mt-4 md:mt-0 md:mb-4 w-[250px] h-auto md:w-[400px] translate-x-5 md:translate-x-0" priority />
                 </Link>
                 {/* Only render NavigationMenu on client to avoid hydration mismatch */}
                 {isClient && (
