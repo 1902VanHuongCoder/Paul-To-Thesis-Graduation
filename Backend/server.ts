@@ -37,7 +37,7 @@ import { Server } from "socket.io";
 const app = express();
 
 // Enable CORS
-const allowedOrigins = ["*"];
+const allowedOrigins = ["http://localhost:3000", "https://thesis-test.netlify.app"];
 
 app.use(
   cors({
@@ -120,7 +120,7 @@ app.use("/api/disease", diseaseRoutes); // Disease routes
 export const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "*", // Your frontend origin
+    origin: ["http://localhost:3000", "https://thesis-test.netlify.app"], // Your frontend origin
     methods: ["GET", "POST"],
   },
 });
