@@ -40,6 +40,7 @@ type Product = {
   unit: string;
 };
 
+
 export default function DetectRiceDiseaseDemo() {
   // Dialog state for disease details
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -94,6 +95,8 @@ export default function DetectRiceDiseaseDemo() {
   const [productsForDisease, setProductsForDisease] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [, setSelectedDiseaseID] = useState<string | number | undefined>(undefined);
+  // Store all_probs for confidence badges
+  const [allProbs, setAllProbs] = useState<[string, number][]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -111,13 +114,13 @@ export default function DetectRiceDiseaseDemo() {
     setError(null);
     setResult(null);
     setDiseaseDetails([]);
+    setAllProbs([]);
 
-    const formData = new FormData();
-    formData.append("file", file);
     try {
       const data = await detectRiceDisease(file);
       if (data && data.predicted_class && data.all_probs && data.all_probs.length > 0) {
         setResult({ class: data.predicted_class, confidence: data.all_probs[0][1] });
+        setAllProbs(data.all_probs);
         const diseaseEnNames = data.all_probs.map(([diseaseEnName]: [string, number]) => diseaseEnName);
         const details = await Promise.all(
           diseaseEnNames.map(async (enName: string) => {
@@ -138,7 +141,7 @@ export default function DetectRiceDiseaseDemo() {
         setDiseaseDetails(details.filter(d => d !== null));
         setDiagnoseResult(details.filter(d => d !== null) as DiseaseDetail[]);
       } else {
-        setError("Không thể nhận diện bệnh lúa. Vui lòng thử lại với ảnh khác.");
+        setError("Đảm bảo hình ảnh tải lên là hình ảnh lá lúa, hình ảnh rõ nét và không bị mờ. Vui lòng thử lại!");
       }
     } catch (err) {
       setError("Lỗi khi nhận diện bệnh lúa. Vui lòng thử lại sau.");
@@ -185,7 +188,7 @@ export default function DetectRiceDiseaseDemo() {
   };
 
   return (
-    <div className="px-6 py-10 font-sans bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] min-h-screen w-full">
+    <div className="px-6 py-10 font-sans bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] min-h-screen">
       <Breadcrumb
         items={[
           { label: "Trang chủ", href: "/" },
@@ -361,18 +364,19 @@ export default function DetectRiceDiseaseDemo() {
                 <CircleAlert className="text-[#f8c32c]" />
               </span>
               <span>
-                Tham khảo kết quả chẩn đoán để biết cây lúa của bạn đang gặp vấn đề gì.
+                Vui lòng kiểm tra xem có bệnh nào dưới đây trùng với thiệt hại trên cây lúa của bạn không
               </span>
             </div>
           )}
-          <div className="mt-8 w-full">
+
+          <div className="mt-8">
             {/* Show fetched disease details */}
             {diseaseDetails.length > 0 && (
               <div className="grid gap-8">
                 {diseaseDetails.map((disease, idx) => (
                   <div
                     key={disease.diseaseID || idx}
-                    className="border border-[#278d45]/20 bg-white rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col md:flex-row items-center gap-6"
+                    className="relative border border-[#278d45]/20 bg-white rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col md:flex-row items-center gap-6"
                   >
                     <div className="flex-shrink-0 w-[120px] h-[120px] bg-white rounded-xl flex items-center justify-center border border-[#278d45]/10 shadow">
                       {disease && disease.images && disease.images.length > 0 ? (
@@ -389,8 +393,11 @@ export default function DetectRiceDiseaseDemo() {
                       )}
                     </div>
                     <div className="space-y-2 flex-1">
-                      <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
-                        {disease.diseaseName}
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
+                          {disease.diseaseName}
+                        </div>
+                        
                       </div>
                       <div className="text-sm text-[#278d45]">
                         <b>Tên tiếng Anh:</b> {disease.diseaseEnName}
@@ -413,6 +420,16 @@ export default function DetectRiceDiseaseDemo() {
                         </span>
                       </button>
                     </div>
+                    {/* Confidence badge for this disease */}
+                    {Array.isArray(allProbs) && allProbs[idx] && (
+                      <span
+                        className={`absolute top-3 right-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow
+                              ${idx === 0 ? "bg-green-100 text-green-800 border border-green-300" : "bg-gray-100 text-gray-800 border border-gray-300"}
+                            `}
+                      >
+                        {(allProbs[idx][1] * 100).toFixed(2)}%
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
