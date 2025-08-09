@@ -36,7 +36,7 @@ export const Footer = () => {
 
     return (
         <footer className="relative bg-primary text-foreground transition-colors duration-300 font-sans" aria-label="Site footer">
-            <div className="absolute -top-1 md:-top-4 overflow-hidden w-full h-fit" aria-hidden="true">
+            <div className="absolute -top-1 md:-top-3.5 overflow-hidden w-full h-fit" aria-hidden="true">
                 <Image src={grazzvector} width={800} height={1000} alt="Decorative grass vector" className="w-full h-full object-cover" priority />
             </div>
             <div className="container px-4 py-12 w-full mx-auto">
