@@ -2,7 +2,7 @@
 [build]
   base = "Frontend"
   command = "npm run build"
-  publish = "Frontend"
+  publish = "."
 
 [build.environment]
   NODE_VERSION = "18"
