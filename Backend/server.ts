@@ -151,7 +151,7 @@ io.on("connection", (socket) => {
 });
 
 // Define the port
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Start the server with Socket.IO
 server.listen(PORT, () => {
