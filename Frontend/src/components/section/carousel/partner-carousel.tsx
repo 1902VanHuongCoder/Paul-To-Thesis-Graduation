@@ -54,13 +54,13 @@ const ParterCarousel = () => {
                                     className="flex basis-1/3 justify-center pl-0 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
                                 >
                                     <div className="mx-10 flex shrink-0 items-center justify-center">
-                                        <div>
+                                        <div className="relative w-[120px] h-[120px]">
                                             <Image
-                                                width={100}
-                                                height={100}
                                                 src={logo.originImage}
                                                 alt={logo.originName}
-                                                className={clsx(logo.className, 'w-auto h-auto')}
+                                                fill
+                                                style={{ objectFit: "contain" }}
+                                                className={clsx(logo.className)}
                                             />
                                         </div>
                                     </div>
@@ -68,8 +68,8 @@ const ParterCarousel = () => {
                             ))}
                         </CarouselContent>
                     </Carousel>
-                    <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent"></div>
-                    <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent"></div>
+                    {/* <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent"></div> */}
+                    {/* <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent"></div> */}
                 </div>
             </div>
         </section>
