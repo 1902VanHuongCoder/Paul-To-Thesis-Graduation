@@ -89,7 +89,7 @@ const OrderHistory = () => {
           {orders.map((order) => (
           <tr
             key={order.orderID}
-            className="border-b last:border-b-0 hover:bg-brand-50/40 transition"
+            className={`border-b last:border-b-0 hover:bg-brand-50/40 transition ${order.orderStatus === "boomed" ? "bg-red-500 text-white" : ""}`}
           >
             <td className="p-4 font-mono text-brand-700">{order.orderID}</td>
             <td className="p-4">{formatDate(order.createdAt)}</td>
@@ -106,6 +106,7 @@ const OrderHistory = () => {
                 "bg-blue-500": order.orderStatus === "shipping",
                 "bg-green-500": order.orderStatus === "completed",
                 "bg-red-500": order.orderStatus === "cancelled",
+                "bg-orange-500": order.orderStatus === "boomed",
                 },
                 "w-3 h-3 rounded-full shadow"
               )}
@@ -120,7 +121,9 @@ const OrderHistory = () => {
                 : order.orderStatus === "completed"
                 ? "Hoàn thành"
                 : order.orderStatus === "cancelled"
-                ? "Đã hủy"
+                ? "Đã hủy" 
+                : order.orderStatus === "boomed"
+                ? "Không nhận hàng"
                 : ""}
               </span>
             </span>
