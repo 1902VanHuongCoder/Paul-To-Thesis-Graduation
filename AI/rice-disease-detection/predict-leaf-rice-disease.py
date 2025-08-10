@@ -83,7 +83,8 @@ async def predict(file: UploadFile = File(...)):
 
     # Roboflow leaf detection
     roboflow_result = CLIENT.infer(temp_input_path, model_id="rice-leaf-disease-2p362/1")
-    print("Roboflow result:", roboflow_result)  # Console log for debugging
+    # Optionally log for debugging if needed
+    # print("Roboflow result:", roboflow_result)
 
     # Remove temp input image
     if os.path.exists(temp_input_path):
@@ -121,7 +122,8 @@ async def predict(file: UploadFile = File(...)):
             "processed_image": img_b64
         }
     return {
-        "predicted_class": pred_label,  
+        "predicted_class": pred_label,
         "all_probs": result_probs,
-        "processed_image": img_b64
+        "processed_image": img_b64,
+        "roboflow_result": roboflow_result.get("predictions", [])
     }

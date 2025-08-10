@@ -87,9 +87,11 @@ export default function DetectRiceDiseaseDemo() {
     images?: string[];
     productPrice?: number;
     unit?: string;
+
   };
 
   const { result: contextResult, setResult: setDiagnoseResult } = useDiagnoseContext();
+  const [boundingBox, setBoundingBox] = useState<{ x: number; y: number; width: number; height: number, confidence: number }[]>([]);
   const [diseaseDetails, setDiseaseDetails] = useState<DiseaseDetail[]>(contextResult ? contextResult : []);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [productsForDisease, setProductsForDisease] = useState<Product[]>([]);
@@ -100,6 +102,7 @@ export default function DetectRiceDiseaseDemo() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      setBoundingBox([]);
       setFile(e.target.files[0]);
       setResult(null);
       setError(null);
@@ -110,6 +113,7 @@ export default function DetectRiceDiseaseDemo() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
+    setBoundingBox([]);
     setLoading(true);
     setError(null);
     setResult(null);
@@ -118,7 +122,8 @@ export default function DetectRiceDiseaseDemo() {
 
     try {
       const data = await detectRiceDisease(file);
-      if (data && data.predicted_class && data.all_probs && data.all_probs.length > 0) {
+      if (data && data.predicted_class && data.all_probs && data.roboflow_result && data.all_probs.length > 0) {
+        setBoundingBox(data.roboflow_result || []);
         setResult({ class: data.predicted_class, confidence: data.all_probs[0][1] });
         setAllProbs(data.all_probs);
         const diseaseEnNames = data.all_probs.map(([diseaseEnName]: [string, number]) => diseaseEnName);
@@ -240,14 +245,163 @@ export default function DetectRiceDiseaseDemo() {
                 onChange={handleFileChange}
               />
               {file ? (
-                <div className="relative w-full min-h-[300px] max-h-[500px] rounded-xl overflow-hidden shadow-xl border-2 border-[#278d45]/30 bg-white mb-2 flex items-center justify-center">
-                  <Image
-                    width={320}
-                    height={240}
+                <div className="relative w-[400px] h-fit rounded-xl shadow-xl border-2 border-[#278d45]/30 mb-2 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    id="uploaded-image"
                     src={URL.createObjectURL(file)}
                     alt="Uploaded"
-                    className="w-full h-full object-contain rounded-xl"
+                    className="w-full h-full rounded-xl"
+                    // style={{ maxWidth: 320, maxHeight: 400 }}
+                    onLoad={(e) => {
+                      // Store image reference and natural dimensions when loaded
+                      const img = e.target as HTMLImageElement;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._uploadedImg = img;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._naturalWidth = img.naturalWidth;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._naturalHeight = img.naturalHeight;
+                    }}
                   />
+                  {/* Overlay bounding boxes from boundingBox state */}
+                  {boundingBox.length > 0 &&  Array.isArray(boundingBox) && boundingBox.length > 0 && (
+                    <>
+                      {/* Show (0,0) origin position */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: -5,
+                          top: -5,
+                          width: 10,
+                          height: 10,
+                          backgroundColor: '#00ff00',
+                          borderRadius: '50%',
+                          border: '2px solid #ffffff',
+                          pointerEvents: 'none',
+                          zIndex: 30,
+                        }}
+                        title="Origin (0,0)"
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 8,
+                          top: -2,
+                          color: '#00ff00',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                          pointerEvents: 'none',
+                          zIndex: 30,
+                        }}
+                      >
+                        (0,0)
+                      </div>
+                      {boundingBox.map((box, idx) => {
+                        // Get displayed image size and natural dimensions
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const img = (typeof window !== 'undefined' && (window as any)._uploadedImg) as HTMLImageElement | null;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const natWidth = (typeof window !== 'undefined' && (window as any)._naturalWidth) || 0;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const natHeight = (typeof window !== 'undefined' && (window as any)._naturalHeight) || 0;
+
+                        if (!img || natWidth === 0 || natHeight === 0) {
+                          return null; // Don't render if we don't have proper dimensions
+                        }
+
+                        // Get the container dimensions (displayed image element)
+                        const containerW = img.offsetWidth;
+                        const containerH = img.offsetHeight;
+
+                        // Calculate the aspect ratios
+                        const naturalAspect = natWidth / natHeight;
+                        const containerAspect = containerW / containerH;
+
+                        // Calculate actual image dimensions and offset within container (object-contain behavior)
+                        let actualImageW, actualImageH, offsetX = 0, offsetY = 0;
+
+                        if (naturalAspect > containerAspect) {
+                          // Image is wider - it will fit to container width, height will be smaller
+                          actualImageW = containerW;
+                          actualImageH = containerW / naturalAspect;
+                          offsetY = (containerH - actualImageH) / 2; // Center vertically
+                        } else {
+                          // Image is taller - it will fit to container height, width will be smaller
+                          actualImageH = containerH;
+                          actualImageW = containerH * naturalAspect;
+                          offsetX = (containerW - actualImageW) / 2; // Center horizontally
+                        }
+
+
+                        // Calculate the scaling factors from natural to actual displayed image
+                        const scaleX = actualImageW / natWidth;
+                        const scaleY = actualImageH / natHeight;
+
+                        // Calculate scaled bounding box position and size, adding the offset
+                        // Calculate top-left corner from center coordinates
+                        const left = ((box.x - box.width / 2) * scaleX) + offsetX;
+                        const top = ((box.y - box.height / 2) * scaleY) + offsetY;
+                        const width = box.width * scaleX;
+                        const height = box.height * scaleY;
+
+                        // Red dot should show the top-left of the bounding box (scaled and offset)
+                        const redDotLeft = left - 3;
+                        const redDotTop = top - 3;
+
+                        return (
+                          <React.Fragment key={idx}>
+                            {/* Red dot showing scaled top-left position */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left: redDotLeft,
+                                top: redDotTop,
+                                width: 6,
+                                height: 6,
+                                backgroundColor: '#ff0000',
+                                borderRadius: '50%',
+                                border: '1px solid #ffffff',
+                                pointerEvents: 'none',
+                                zIndex: 25,
+                              }}
+                              title={`Scaled top-left: (${left.toFixed(1)}, ${top.toFixed(1)})`}
+                            />
+                            {/* Yellow bounding box */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left,
+                                top,
+                                width,
+                                height,
+                                border: '2px solid #f8c32c',
+                                borderRadius: 8,
+                                pointerEvents: 'none',
+                                boxSizing: 'border-box',
+                                zIndex: 20,
+                              }}
+                              title={`Confidence: ${(box.confidence * 100).toFixed(1)}%`}
+                            >
+                              <span style={{
+                                position: 'absolute',
+                                top: -24,
+                                left: 0,
+                                background: '#f8c32c',
+                                color: '#278d45',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                boxShadow: '0 2px 8px #0001',
+                              }}>Lá ({(box.confidence * 100).toFixed(0)}%)</span>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+                    </>
+                  )}
                   {loading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 animate-fade-in">
                       {/* Enhanced scan animation (manual) */}
@@ -397,7 +551,7 @@ export default function DetectRiceDiseaseDemo() {
                         <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
                           {disease.diseaseName}
                         </div>
-                        
+
                       </div>
                       <div className="text-sm text-[#278d45]">
                         <b>Tên tiếng Anh:</b> {disease.diseaseEnName}
@@ -427,7 +581,7 @@ export default function DetectRiceDiseaseDemo() {
                               ${idx === 0 ? "bg-green-100 text-green-800 border border-green-300" : "bg-gray-100 text-gray-800 border border-gray-300"}
                             `}
                       >
-                        {(allProbs[idx][1] * 100).toFixed(2)}%
+                        Độ tự tin: {(allProbs[idx][1] * 100).toFixed(2)}%
                       </span>
                     )}
                   </div>

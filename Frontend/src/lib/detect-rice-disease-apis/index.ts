@@ -15,14 +15,18 @@ export const detectRiceDisease = async (
   predicted_class: string;
   all_probs: Array<[string, number]>;
   processed_image: string | null;
+  roboflow_result: Array<{ x: number; y: number; width: number; height: number; confidence: number }>;
 }> => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch("http://127.0.0.1:8000/predict", {
-    method: "POST",
-    body: formData,
-  });
+  const response = await fetch(
+    "https://paul-to-thesis-graduation-2.onrender.com/predict",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to detect rice disease");
