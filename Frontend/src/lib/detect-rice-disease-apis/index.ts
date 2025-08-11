@@ -21,7 +21,8 @@ export const detectRiceDisease = async (
   formData.append("file", file);
 
   const response = await fetch(
-    "https://paul-to-thesis-graduation-2.onrender.com/predict",
+    // "https://paul-to-thesis-graduation-2.onrender.com/predict",
+    `http://127.0.0.1:8000/predict`,
     {
       method: "POST",
       body: formData,

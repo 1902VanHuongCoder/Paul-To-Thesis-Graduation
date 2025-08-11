@@ -127,6 +127,7 @@ export default function DetectRiceDiseaseDemo() {
         setResult({ class: data.predicted_class, confidence: data.all_probs[0][1] });
         setAllProbs(data.all_probs);
         const diseaseEnNames = data.all_probs.map(([diseaseEnName]: [string, number]) => diseaseEnName);
+        console.log(diseaseEnNames);
         const details = await Promise.all(
           diseaseEnNames.map(async (enName: string) => {
             const data = await getDiseaseDetails(enName);
