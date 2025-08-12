@@ -25,7 +25,7 @@ import Conversation from "./Conversation";
 import ConversationParticipant from "./ConversationParticipant";
 import Message from "./Message";
 import Disease from "./Disease";
-
+import Inventory from "./Inventory";
 // 1. User - ShippingAddress
 User.hasMany(ShippingAddress, {
   foreignKey: "userID",
@@ -199,4 +199,5 @@ export {
   Conversation,
   ConversationParticipant,
   Message,
+  Inventory
 };

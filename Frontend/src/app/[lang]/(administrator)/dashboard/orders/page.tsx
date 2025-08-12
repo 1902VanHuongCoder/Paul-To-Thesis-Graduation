@@ -291,6 +291,7 @@ export default function OrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="pending">Chờ xác nhận</SelectItem>
                 <SelectItem value="accepted">Đã xác nhận</SelectItem>
                 <SelectItem value="shipping">Đang giao</SelectItem>
                 <SelectItem value="completed">Hoàn thành</SelectItem>
