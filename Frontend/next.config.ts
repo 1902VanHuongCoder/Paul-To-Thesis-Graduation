@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       "res.cloudinary.com",
       "lh3.googleusercontent.com",
     ],
+    unoptimized: true, // Enable unoptimized images
   },
   // next.config.ts
   async redirects() {

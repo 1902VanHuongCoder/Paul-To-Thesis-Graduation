@@ -260,7 +260,9 @@ export default function OrderDetailPage() {
                 order.orderStatus === "accepted" ? "Đã xác nhận" :
                   order.orderStatus === "shipping" ? "Đang giao hàng" :
                     order.orderStatus === "completed" ? "Hoàn thành" :
-                      order.orderStatus === "cancelled" ? "Đã hủy" : "Trạng thái không xác định"}
+                      order.orderStatus === "cancelled" ? "Đã hủy" :
+                      order.orderStatus === "boomed" ? "Không nhận hàng" :
+                      "Trạng thái không xác định"}
             </span></div>
           <div><span>{"Khách hàng"}: </span><span className="font-semibold">{order.fullName}</span> </div>
           <div><span>{"Số điện thoại"}: </span><span className="font-semibold">{order.phone}</span> </div>

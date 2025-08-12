@@ -28,6 +28,7 @@ const pathToLabel = (segment: string) => {
     case "posts": return "Bài viết";
     case "add-post" : return "Thêm bài viết";
     case "orders" : return "Đơn hàng";
+    case "add-order": return "Thêm đơn tại cửa hàng";
     case "origin": return "Nhà cung cấp"; 
     case "comments": return "Bình luận";
     case "news" : return "Tin tức";

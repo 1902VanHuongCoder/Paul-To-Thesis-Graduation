@@ -1,5 +1,8 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog/dialog";
+// import { Input } from "@/components/ui/input/input";
 import Button from "@/components/ui/button/button-brand";
 import carttotalshaptop from "@public/vectors/cart+total+shap+top.png"
 import carttotalshapbot from "@public/vectors/cart+total+shap+bot.png"
@@ -21,8 +24,9 @@ import { checkPromotionCode } from "@/lib/discount-apis";
 import { createNewOrder } from "@/lib/order-apis";
 import { fetchDeliveryMethods } from "@/lib/delivery-apis";
 import { addNewShippingAddress, getShippingAddressesByUserID } from "@/lib/shipping-address-apis";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog/dialog";
+// ...existing code...
 import { calculateShippingCost } from "@/lib/others/calculate-shipping-cost";
+// import { checkRecoveryCode, sendOrderConfirmation } from "@/lib/user-apis";
 
 export type RegionType = 'urban' | 'rural' | 'international' | null;
 export type SpeedType = 'standard' | 'fast' | 'same_day' | null;
@@ -89,6 +93,65 @@ export default function CheckoutPage() {
     const { checkoutData, setCheckoutData } = useCheckout();
 
     // State variables
+    // const [openOrderConfirm, setOpenOrderConfirm] = useState(false);
+    // const [orderConfirmCode, setOrderConfirmCode] = useState("");
+    // const [orderConfirmLoading, setOrderConfirmLoading] = useState(false);
+    // const [orderConfirmError, setOrderConfirmError] = useState("");
+    // const [, setOrderIDForConfirm] = useState("");
+    // New: Send confirmation code before order
+    // const handleSendOrderConfirmationCode = async () => {
+    //     if (!user) {
+    //         toast.error("Bạn cần đăng nhập để đặt hàng.");
+    //         return;
+    //     }
+    //     setOrderConfirmLoading(true);
+    //     setOrderConfirmError("");
+    //     // Generate orderID (same as in your order logic)
+    //     const productQuantity = cart.products.reduce((total, product) => total + product.CartItem.quantity, 0);
+    //     const orderID = `OR${1}0${productQuantity}0${(new Date()).getDate()}${(new Date()).getMonth() + 1}${(new Date()).getFullYear()}0${Math.floor(Math.random() * 10000)}`;
+    //     setOrderIDForConfirm(orderID);
+    //     try {
+    //         const {status} = await sendOrderConfirmation(user.email, orderID);
+
+    //         if (status !== 200){
+    //             toast.error("Gửi mã xác nhận thất bại. Vui lòng thử lại sau.");
+    //         }else{
+    //             toast.success("Mã xác nhận đã được gửi tới email của bạn!");
+    //         }
+    //         setOpenOrderConfirm(true);
+    //     } catch {
+    //         toast.error("Gửi mã xác nhận thất bại. Vui lòng thử lại sau.");
+    //     } finally {
+    //         setOrderConfirmLoading(false);
+    //     }
+    // };
+
+    // New: Verify confirmation code before allowing order
+    // const handleVerifyOrderCode = async (onSuccess: () => void) => {
+    //     if (!user) {
+    //         toast.error("Bạn cần đăng nhập để xác nhận mã.");
+    //         return;
+    //     }
+    //     setOrderConfirmLoading(true);
+    //     setOrderConfirmError("");
+    //     try {
+    //         const res = await checkRecoveryCode(user.email, orderConfirmCode);
+    //         if (!res) {
+    //             toast.error("Mã xác nhận không hợp lệ hoặc đã hết hạn.");
+    //             return;
+    //         }
+    //         toast.success("Xác nhận thành công! Bạn có thể đặt hàng.");
+    //         setOpenOrderConfirm(false);
+    //         setOrderConfirmCode("");
+    //         // Run onSubmit here 
+    //         onSuccess();
+    //     } catch {
+    //         toast.error("Mã xác nhận không hợp lệ hoặc đã hết hạn.");
+    //     } finally {
+    //         setOrderConfirmLoading(false);
+    //     }
+    // };
+
     const [paymentMethod, setPaymentMethod] = useState(""); // Default payment method
     const [openTermsAndPolicy, setOpenTermsAndPolicy] = useState(false); // For Terms and Privacy Policy dialog
     const [termsAccepted, setTermsAccepted] = useState(false); // For terms and conditions acceptance 
@@ -901,28 +964,18 @@ export default function CheckoutPage() {
                     {/* Place Order Button */}
                     <div className="flex justify-center">
                         {paymentMethod === "paypal" ? (
-                            // showPaypal ? (
-                            //     <PayPalButton amount={totalPayment} />
-                            // ) : (
-                            //     <Button
-                            //         type="submit"
-                            //         form="checkout-form"
-                            //         variant="primary"
-                            //         size="md"
-                            //         className="mt-4"
-                            //     >
-                            //         {"Đặt hàng"}
-                            //     </Button>
-                            // )
                             <PayPalButton termIsAccepted={termsAccepted} submitForm={() => { onSubmit(methods.getValues()) }} amount={totalPayment} />
                         ) : (
                             <Button
                                 type="submit"
-                                form="checkout-form"
                                 variant="primary"
                                 size="md"
                                 className="mt-4"
+                                // onClick={handleSendOrderConfirmationCode}
+                                onClick={() => {onSubmit(methods.getValues())}}
+                                // disabled={orderConfirmLoading}
                             >
+                                {/* {orderConfirmLoading ? "Đang gửi mã xác nhận..." : "Đặt hàng"} */}
                                 {"Đặt hàng"}
                             </Button>
                         )}
@@ -930,6 +983,48 @@ export default function CheckoutPage() {
                 </div>
             </div>
             <TermsAndPrivacyDialog open={openTermsAndPolicy} setOpen={setOpenTermsAndPolicy} />
+            {/* Order Confirmation Dialog (before order) */}
+            {/* <Dialog open={openOrderConfirm} onOpenChange={setOpenOrderConfirm}>
+                <DialogContent className="min-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận thông tin đặt hàng</DialogTitle>
+                        <DialogDescription>
+                            Nhập mã xác nhận gồm 6 chữ số đã gửi tới email của bạn để hoàn tất đặt hàng.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleVerifyOrderCode(() => onSubmit(methods.getValues())); }}>
+                        <Input
+                            type="text"
+                            placeholder="Nhập mã xác nhận"
+                            value={orderConfirmCode}
+                            onChange={e => setOrderConfirmCode(e.target.value)}
+                            required
+                            className="w-full px-4 py-6 rounded-full border border-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus:bg-white"
+                        />
+                        {orderConfirmError && <div className="text-red-500 text-sm">{orderConfirmError}</div>}
+                        <DialogFooter>
+                            <Button
+                                type="submit"
+                                variant="normal"
+                                size="md"
+                                className="w-full flex justify-center bg-primary text-white cursor-pointer"
+                                disabled={orderConfirmLoading || !orderConfirmCode.trim()}
+                            >
+                                {orderConfirmLoading ? "Đang xác nhận..." : "Xác nhận và đặt hàng"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                    <DialogClose asChild>
+                        <button
+                            className="absolute top-4 right-4 hover:text-gray-700"
+                            aria-label="Đóng"
+                        >
+                            Đóng
+                        </button>
+                    </DialogClose>
+                </DialogContent>
+            </Dialog> */}
         </div>
+
     );
 }

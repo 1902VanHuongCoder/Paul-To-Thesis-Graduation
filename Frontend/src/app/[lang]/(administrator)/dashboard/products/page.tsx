@@ -128,11 +128,17 @@ export default function ProductsPage() {
             const matchesCategory = !categoryFilter || categoryFilter === "df" || String(product.categoryID) === categoryFilter;
             const matchesOrigin = !originFilter || originFilter === "df" || String(product.originID) === originFilter;
             const matchesRating = !ratingFilter || ratingFilter === "df" || product.rating === Number(ratingFilter);
+            // Ensure expiredAt is a Date object for comparison
+            let expiredAtDate: Date | null = null;
+            if (product.expiredAt) {
+                expiredAtDate = product.expiredAt instanceof Date ? product.expiredAt : new Date(product.expiredAt);
+            }
+            const now = new Date();
             const matchesExpired =
                 expiredFilter === "all" ||
-                (expiredFilter === "no-expiration" && !product.expiredAt) ||
-                (expiredFilter === "expired" && product.expiredAt !== null && product.expiredAt < new Date()) ||
-                (expiredFilter === "not-expired" && product.expiredAt !== null && product.expiredAt >= new Date());
+                (expiredFilter === "no-expiration" && !expiredAtDate) ||
+                (expiredFilter === "expired" && expiredAtDate !== null && expiredAtDate < now) ||
+                (expiredFilter === "not-expired" && expiredAtDate !== null && expiredAtDate >= now);
             return matchesName && matchesCategory && matchesOrigin && matchesRating && matchesExpired;
         })
         .sort((a, b) => {

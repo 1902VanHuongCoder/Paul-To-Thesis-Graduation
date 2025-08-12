@@ -11,6 +11,8 @@ import {
   checkRecoveryCode,
   getUsersBasedOnRole,
   deleteUser,
+  sendOrderConfirmation,
+  updateUserStatus,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -18,6 +20,9 @@ const router = express.Router();
 // General routes 
 // Local sign up
 router.post("/signup", localSignUp);
+
+// Send confirmation code for order
+router.post("/send-confirmation-code", sendOrderConfirmation);
 
 // Local sign in
 router.post("/signin", localSignIn);
@@ -33,6 +38,9 @@ router.get("/role/:role", getUsersBasedOnRole);
 
 // Get user info based on userID
 router.get("/:userID",getUserByID); 
+
+// Update user account status 
+router.put("/status/:userID", updateUserStatus);
 
 // Update user information
 router.put("/:userID", updateUser); 

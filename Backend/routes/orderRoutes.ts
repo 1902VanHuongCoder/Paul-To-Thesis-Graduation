@@ -7,6 +7,7 @@ import {
   deleteOrder,
   getOrdersByUserID,
   getTopUsersByOrders,
+  bulkUpdateOrderStatus,
 } from "../controllers/orderController";
 
 const router = express.Router();
@@ -22,6 +23,9 @@ router.get("/:orderID", getOrderById);
 
 // POST a new order
 router.post("/", createOrder);
+
+// Update many order status
+router.put("/bulk-update-status", bulkUpdateOrderStatus);
 
 // PUT (update) an existing order by ID
 router.put("/:orderID", updateOrder);

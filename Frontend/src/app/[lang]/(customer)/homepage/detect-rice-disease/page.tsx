@@ -40,6 +40,7 @@ type Product = {
   unit: string;
 };
 
+
 export default function DetectRiceDiseaseDemo() {
   // Dialog state for disease details
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -86,17 +87,22 @@ export default function DetectRiceDiseaseDemo() {
     images?: string[];
     productPrice?: number;
     unit?: string;
+
   };
 
   const { result: contextResult, setResult: setDiagnoseResult } = useDiagnoseContext();
+  const [boundingBox, setBoundingBox] = useState<{ x: number; y: number; width: number; height: number, confidence: number }[]>([]);
   const [diseaseDetails, setDiseaseDetails] = useState<DiseaseDetail[]>(contextResult ? contextResult : []);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [productsForDisease, setProductsForDisease] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [, setSelectedDiseaseID] = useState<string | number | undefined>(undefined);
+  // Store all_probs for confidence badges
+  const [allProbs, setAllProbs] = useState<[string, number][]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      setBoundingBox([]);
       setFile(e.target.files[0]);
       setResult(null);
       setError(null);
@@ -107,18 +113,21 @@ export default function DetectRiceDiseaseDemo() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
+    setBoundingBox([]);
     setLoading(true);
     setError(null);
     setResult(null);
     setDiseaseDetails([]);
+    setAllProbs([]);
 
-    const formData = new FormData();
-    formData.append("file", file);
     try {
       const data = await detectRiceDisease(file);
-      if (data && data.predicted_class && data.all_probs && data.all_probs.length > 0) {
+      if (data && data.predicted_class && data.all_probs && data.roboflow_result && data.all_probs.length > 0) {
+        setBoundingBox(data.roboflow_result || []);
         setResult({ class: data.predicted_class, confidence: data.all_probs[0][1] });
+        setAllProbs(data.all_probs);
         const diseaseEnNames = data.all_probs.map(([diseaseEnName]: [string, number]) => diseaseEnName);
+        console.log(diseaseEnNames);
         const details = await Promise.all(
           diseaseEnNames.map(async (enName: string) => {
             const data = await getDiseaseDetails(enName);
@@ -138,7 +147,7 @@ export default function DetectRiceDiseaseDemo() {
         setDiseaseDetails(details.filter(d => d !== null));
         setDiagnoseResult(details.filter(d => d !== null) as DiseaseDetail[]);
       } else {
-        setError("Không thể nhận diện bệnh lúa. Vui lòng thử lại với ảnh khác.");
+        setError("Đảm bảo hình ảnh tải lên là hình ảnh lá lúa, hình ảnh rõ nét và không bị mờ. Vui lòng thử lại!");
       }
     } catch (err) {
       setError("Lỗi khi nhận diện bệnh lúa. Vui lòng thử lại sau.");
@@ -237,14 +246,163 @@ export default function DetectRiceDiseaseDemo() {
                 onChange={handleFileChange}
               />
               {file ? (
-                <div className="relative w-full min-h-[300px] max-h-[500px] rounded-xl overflow-hidden shadow-xl border-2 border-[#278d45]/30 bg-white mb-2 flex items-center justify-center">
-                  <Image
-                    width={320}
-                    height={240}
+                <div className="relative w-[400px] h-fit rounded-xl shadow-xl border-2 border-[#278d45]/30 mb-2 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    id="uploaded-image"
                     src={URL.createObjectURL(file)}
                     alt="Uploaded"
-                    className="w-full h-full object-contain rounded-xl"
+                    className="w-full h-full rounded-xl"
+                    // style={{ maxWidth: 320, maxHeight: 400 }}
+                    onLoad={(e) => {
+                      // Store image reference and natural dimensions when loaded
+                      const img = e.target as HTMLImageElement;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._uploadedImg = img;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._naturalWidth = img.naturalWidth;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (window as any)._naturalHeight = img.naturalHeight;
+                    }}
                   />
+                  {/* Overlay bounding boxes from boundingBox state */}
+                  {boundingBox.length > 0 &&  Array.isArray(boundingBox) && boundingBox.length > 0 && (
+                    <>
+                      {/* Show (0,0) origin position */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: -5,
+                          top: -5,
+                          width: 10,
+                          height: 10,
+                          backgroundColor: '#00ff00',
+                          borderRadius: '50%',
+                          border: '2px solid #ffffff',
+                          pointerEvents: 'none',
+                          zIndex: 30,
+                        }}
+                        title="Origin (0,0)"
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 8,
+                          top: -2,
+                          color: '#00ff00',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                          pointerEvents: 'none',
+                          zIndex: 30,
+                        }}
+                      >
+                        (0,0)
+                      </div>
+                      {boundingBox.map((box, idx) => {
+                        // Get displayed image size and natural dimensions
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const img = (typeof window !== 'undefined' && (window as any)._uploadedImg) as HTMLImageElement | null;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const natWidth = (typeof window !== 'undefined' && (window as any)._naturalWidth) || 0;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const natHeight = (typeof window !== 'undefined' && (window as any)._naturalHeight) || 0;
+
+                        if (!img || natWidth === 0 || natHeight === 0) {
+                          return null; // Don't render if we don't have proper dimensions
+                        }
+
+                        // Get the container dimensions (displayed image element)
+                        const containerW = img.offsetWidth;
+                        const containerH = img.offsetHeight;
+
+                        // Calculate the aspect ratios
+                        const naturalAspect = natWidth / natHeight;
+                        const containerAspect = containerW / containerH;
+
+                        // Calculate actual image dimensions and offset within container (object-contain behavior)
+                        let actualImageW, actualImageH, offsetX = 0, offsetY = 0;
+
+                        if (naturalAspect > containerAspect) {
+                          // Image is wider - it will fit to container width, height will be smaller
+                          actualImageW = containerW;
+                          actualImageH = containerW / naturalAspect;
+                          offsetY = (containerH - actualImageH) / 2; // Center vertically
+                        } else {
+                          // Image is taller - it will fit to container height, width will be smaller
+                          actualImageH = containerH;
+                          actualImageW = containerH * naturalAspect;
+                          offsetX = (containerW - actualImageW) / 2; // Center horizontally
+                        }
+
+
+                        // Calculate the scaling factors from natural to actual displayed image
+                        const scaleX = actualImageW / natWidth;
+                        const scaleY = actualImageH / natHeight;
+
+                        // Calculate scaled bounding box position and size, adding the offset
+                        // Calculate top-left corner from center coordinates
+                        const left = ((box.x - box.width / 2) * scaleX) + offsetX;
+                        const top = ((box.y - box.height / 2) * scaleY) + offsetY;
+                        const width = box.width * scaleX;
+                        const height = box.height * scaleY;
+
+                        // Red dot should show the top-left of the bounding box (scaled and offset)
+                        const redDotLeft = left - 3;
+                        const redDotTop = top - 3;
+
+                        return (
+                          <React.Fragment key={idx}>
+                            {/* Red dot showing scaled top-left position */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left: redDotLeft,
+                                top: redDotTop,
+                                width: 6,
+                                height: 6,
+                                backgroundColor: '#ff0000',
+                                borderRadius: '50%',
+                                border: '1px solid #ffffff',
+                                pointerEvents: 'none',
+                                zIndex: 25,
+                              }}
+                              title={`Scaled top-left: (${left.toFixed(1)}, ${top.toFixed(1)})`}
+                            />
+                            {/* Yellow bounding box */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left,
+                                top,
+                                width,
+                                height,
+                                border: '2px solid #f8c32c',
+                                borderRadius: 8,
+                                pointerEvents: 'none',
+                                boxSizing: 'border-box',
+                                zIndex: 20,
+                              }}
+                              title={`Confidence: ${(box.confidence * 100).toFixed(1)}%`}
+                            >
+                              <span style={{
+                                position: 'absolute',
+                                top: -24,
+                                left: 0,
+                                background: '#f8c32c',
+                                color: '#278d45',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                boxShadow: '0 2px 8px #0001',
+                              }}>Lá ({(box.confidence * 100).toFixed(0)}%)</span>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+                    </>
+                  )}
                   {loading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 animate-fade-in">
                       {/* Enhanced scan animation (manual) */}
@@ -365,6 +523,7 @@ export default function DetectRiceDiseaseDemo() {
               </span>
             </div>
           )}
+
           <div className="mt-8">
             {/* Show fetched disease details */}
             {diseaseDetails.length > 0 && (
@@ -372,7 +531,7 @@ export default function DetectRiceDiseaseDemo() {
                 {diseaseDetails.map((disease, idx) => (
                   <div
                     key={disease.diseaseID || idx}
-                    className="border border-[#278d45]/20 bg-white rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col md:flex-row items-center gap-6"
+                    className="relative border border-[#278d45]/20 bg-white rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col md:flex-row items-center gap-6"
                   >
                     <div className="flex-shrink-0 w-[120px] h-[120px] bg-white rounded-xl flex items-center justify-center border border-[#278d45]/10 shadow">
                       {disease && disease.images && disease.images.length > 0 ? (
@@ -389,8 +548,11 @@ export default function DetectRiceDiseaseDemo() {
                       )}
                     </div>
                     <div className="space-y-2 flex-1">
-                      <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
-                        {disease.diseaseName}
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-2xl text-[#0d401c] uppercase tracking-wide">
+                          {disease.diseaseName}
+                        </div>
+
                       </div>
                       <div className="text-sm text-[#278d45]">
                         <b>Tên tiếng Anh:</b> {disease.diseaseEnName}
@@ -413,55 +575,74 @@ export default function DetectRiceDiseaseDemo() {
                         </span>
                       </button>
                     </div>
+                    {/* Confidence badge for this disease */}
+                    {Array.isArray(allProbs) && allProbs[idx] && (
+                      <span
+                        className={`absolute top-3 right-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow
+                              ${idx === 0 ? "bg-green-100 text-green-800 border border-green-300" : "bg-gray-100 text-gray-800 border border-gray-300"}
+                            `}
+                      >
+                        Độ tự tin: {(allProbs[idx][1] * 100).toFixed(2)}%
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
             )}
             {/* Disease Details Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogContent className="max-w-4xl bg-gray-100 rounded-2xl shadow-2xl border border-[#278d45]/20">
+              <DialogContent className="bg-gradient-to-br from-[#eaf7ef] via-white to-[#f8fbe9] rounded-2xl shadow-2xl border border-[#278d45]/20 sm:max-w-5xl max-h-[90vh] overflow-x-hidden">
                 <DialogHeader>
-                  <DialogTitle className="uppercase text-center text-2xl text-[#0d401c] font-extrabold tracking-wide">
+                  <DialogTitle className="uppercase text-center text-3xl text-[#278d45] font-extrabold tracking-wide drop-shadow-lg mb-2">
                     {selectedDisease?.diseaseName || "Chi tiết bệnh"}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="mb-4 space-y-2">
-                  <div className="mb-4 max-w-full flex justify-center gap-x-2">
+                <div className="mb-4 w-full flex justify-center">
+                  <div className="flex justify-center max-w-4xl overflow-x-auto">
                     {selectedDisease?.images && selectedDisease.images.length > 0 ? (
-                      <div className="w-[320px] h-[320px] rounded-xl overflow-hidden border-2 border-[#278d45]/20 shadow-xl bg-white">
-                        <Image
-                          src={selectedDisease.images[0]}
-                          alt="Disease"
-                          width={320}
-                          height={320}
-                          className="rounded-lg object-cover w-full h-full"
-                        />
+                      <div className="flex gap-x-4 py-2">
+                        {selectedDisease.images.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="w-[320px] h-[320px] rounded-2xl overflow-hidden border-2 border-[#278d45]/20 bg-white flex-shrink-0 transition-transform"
+                          >
+                            <Image
+                              src={img}
+                              alt={`Disease ${idx + 1}`}
+                              width={320}
+                              height={320}
+                              className="rounded-xl object-cover w-full h-full"
+                            />
+                          </div>
+                        ))}
                       </div>
                     ) : (
-                      <div className="w-[320px] h-[320px] flex items-center justify-center text-[#278d45]/40 bg-[#eaf7ef] rounded-xl border">
+                      <div className="w-[320px] h-[320px] flex items-center justify-center text-[#278d45]/40 bg-[#eaf7ef] rounded-2xl border-2 border-[#278d45]/10 shadow">
                         Không có hình ảnh
                       </div>
                     )}
                   </div>
-                  <div className="text-[#278d45]">
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                  <div className="text-[#278d45] bg-white/80 rounded-lg px-4 py-2 shadow border border-[#278d45]/10">
                     <b>Tên tiếng Anh:</b>{" "}
-                    <span className="text-xl font-semibold">{selectedDisease?.diseaseEnName}</span>
+                    <span className="text-lg font-semibold">{selectedDisease?.diseaseEnName}</span>
                   </div>
-                  <div className="text-[#278d45]">
+                  <div className="text-[#278d45] bg-white/80 rounded-lg px-4 py-2 shadow border border-[#278d45]/10">
                     <b>Tác nhân:</b>{" "}
-                    <span className="text-xl font-semibold">{selectedDisease?.ricePathogen}</span>
+                    <span className="text-lg font-semibold">{selectedDisease?.ricePathogen}</span>
                   </div>
                 </div>
-                <div className="prose prose-blue max-w-none tiptap-content mb-8 bg-white/90 rounded-lg p-4 border border-[#278d45]/10">
+                <div className="w-fit mx-auto tiptap-content mb-8 rounded-xl p-6 border border-[#278d45]/10 shadow">
                   {selectedDisease?.symptoms && <EditorContent editor={editor} className="tiptap-editor" />}
                 </div>
                 <DialogClose asChild>
-                  <div className="flex gap-x-4">
-                    <button className="mt-2 px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45]">
+                  <div className="flex gap-x-4 mt-4">
+                    <button className="px-4 py-2 rounded-lg font-semibold border border-[#278d45] hover:bg-[#eaf7ef] transition w-full hover:cursor-pointer text-[#278d45] shadow">
                       Đóng
                     </button>
                     <button
-                      className="mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition w-full hover:cursor-pointer"
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#278d45] to-[#f8c32c] text-white font-bold shadow-xl hover:from-[#0d401c] hover:to-[#f8c32c]/90 transition w-full hover:cursor-pointer"
                       onClick={() => {
                         if (selectedDisease && selectedDisease.diseaseID) {
                           handleViewProducts(selectedDisease.diseaseID);

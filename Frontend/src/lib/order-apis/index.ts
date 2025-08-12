@@ -29,13 +29,12 @@ export interface DeliveryMethod {
   speed?: string;
   isActive: boolean;
   isDefault: boolean;
-
 }
 
 type OrderProduct = {
   quantity: number;
   price: number;
-}
+};
 
 interface Product {
   productID: number;
@@ -64,8 +63,6 @@ interface Order {
   products: Product[];
   delivery: DeliveryMethod;
 }
-
-
 
 export const fetchAllOrders = async () => {
   const response = await fetch(`${baseUrl}/api/order`);
@@ -106,7 +103,6 @@ export const getOrderDetails = async (orderID: string) => {
   return response.json();
 };
 
-
 export const updateOrderStatus = async (status: string, order: Order) => {
   const response = await fetch(`${baseUrl}/api/order/${order.orderID}`, {
     method: "PUT",
@@ -119,4 +115,23 @@ export const updateOrderStatus = async (status: string, order: Order) => {
     throw new Error("Failed to update order status");
   }
   return response.json();
+};
+
+// Bulk update order status
+export const bulkUpdateOrderStatus = async (
+  orderIDs: string[],
+  status: string
+) => {
+  const response = await fetch(`${baseUrl}/api/order/bulk-update-status`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ orderIDs, status }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to bulk update order status");
+  }
+  const data = await response.json();
+  return data;
 };

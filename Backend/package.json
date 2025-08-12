@@ -6,7 +6,6 @@
     "dev": "nodemon --watch . --ext ts,js,json --exec ts-node server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "postbuild": "npm run build",
     "test": "jest"
   },
   "engines": {
